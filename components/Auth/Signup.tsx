@@ -6,7 +6,7 @@ function Signup() {
   return (
     <div className="w-screen h-screen flex">
       {/* Left section */}
-      <div className="w-[60%] pl-24 ">
+      <div className="w-[60%] pl-8 xl:pl-24 ">
         <Image
           src={AuthImage}
           alt="auth-image"
@@ -14,10 +14,11 @@ function Signup() {
         />
       </div>
       {/* Right section */}
-      <div className="w-[50%] px-[150px] pt-[80px]">
-        <h1 className="text-black-1 font-[500] text-[22px] w-[334px]  leading-[30px] ">
+      <div className="w-[50%] px-[50px] xl:px-[150px] pt-[80px]">
+        <h1 className="text-black-1 font-medium text-[22px] w-[334px]  leading-[30px] ">
           Your local marketplace for Products and Services
         </h1>
+        <p className="font-normal text-[16px] text-gray-8">Let’s get started</p>
       </div>
     </div>
   );
