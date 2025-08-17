@@ -12,6 +12,7 @@
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
   --color-black-1:#030303;
+  --color-black-2:#121212;
   --color-white-1:#FFFFFF;
   --color-white-2:#EBEBEB;
   --color-blue-1:#0195F5;
@@ -28,6 +29,7 @@
   --color-gray-8: #4B514F;
   --color-gray-9: #E5E5E5;
   --color-gray-10: #F6F6F6;
+  --color-gray-11:#727272;
   --color-orange:#EE6134;
   --color-red-1:#E92440;
   --color-blue-1:#4286F8;
@@ -45,4 +47,22 @@ body {
   color: var(--foreground);
   font-family: 'IBM Plex Sans Variable', sans-serif;
   
+}
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+/* Chrome, Safari, Edge */
+input:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0px 1000px transparent inset !important;
+  -webkit-text-fill-color: inherit !important;
+  /* keep original text color */
+  transition: background-color 9999s ease-in-out 0s !important;
+  /* prevent yellow flash */
+}
+
+/* Firefox */
+input:-moz-autofill {
+  box-shadow: 0 0 0px 1000px transparent inset !important;
+  -moz-text-fill-color: inherit !important;
 }

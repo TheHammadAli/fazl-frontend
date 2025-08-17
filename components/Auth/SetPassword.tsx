@@ -1,0 +1,248 @@
+"use client";
+import React, { useEffect, useRef, useState } from "react";
+import Image from "next/image";
+import AuthImage from "@/assets/images/auth-image.png";
+import { BeatLoader } from "react-spinners";
+import toast from "react-hot-toast";
+import { useAppDispatch, useAppSelector } from "@/store/store";
+import { useRouter } from "next/navigation";
+import greenTick from "@/assets/icons/green-tick-icon.svg";
+import redCross from "@/assets/icons/red-cross-icon.svg";
+import { setConfirmPwd } from "@/store/reducers/authReducer";
+export type Body = {
+  email?: string;
+  phoneNumber?: string;
+};
+
+function SetPassword({
+  password,
+  setPassword,
+}: {
+  password: string;
+  setPassword: React.Dispatch<React.SetStateAction<string>>;
+}) {
+  const router = useRouter();
+  const dispatch = useAppDispatch();
+  const { email, phone, type } = useAppSelector(
+    (state) => state.authReducer.otpInfo
+  );
+  const [passwordError, setPasswordError] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [confirmPasswordError, setConfirmPasswordError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [validationStatus, setValidationStatus] = useState({
+    length: false,
+    specialCharacter: false,
+    noSpaces: false,
+  });
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  useEffect(() => {
+    const hasLength = password.length >= 8;
+    const hasSpecialCharacter = /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]+/.test(
+      password
+    );
+    const hasNoSpaces = !password.includes(" ");
+    if (password !== "") {
+      setValidationStatus({
+        length: hasLength,
+        specialCharacter: hasSpecialCharacter,
+        noSpaces: hasNoSpaces,
+      });
+      if (!hasLength || !hasSpecialCharacter || !hasNoSpaces) {
+        setPasswordError("Password must meet all requirements.");
+      } else {
+        setPasswordError("");
+      }
+    } else {
+      setPasswordError("");
+    }
+  }, [password, confirmPassword]);
+
+  useEffect(() => {
+    if (confirmPassword !== "" && password !== confirmPassword) {
+      setConfirmPasswordError("Passwords do not match.");
+    } else {
+      setConfirmPasswordError("");
+    }
+  }, [password, confirmPassword]);
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    if (password === "") {
+      setPasswordError("Password is required*");
+    }
+    if (confirmPassword === "") {
+      setConfirmPasswordError("Confirm password is required*");
+    }
+    if (!passwordError && !confirmPasswordError) {
+      dispatch(setConfirmPwd(true));
+    }
+  };
+  return (
+    <form
+      onSubmit={handleSubmit}
+      className="w-[40%] flex flex-col justify-between px-[50px] xl:px-[100px] pt-[80px]"
+    >
+      <div>
+        <h1 className="text-black-1 font-medium text-[22px] w-[334px]  leading-[30px] ">
+          Create password{" "}
+        </h1>
+        <p className="font-normal text-[16px] text-gray-8">
+          Enter the verification code we just sent to
+        </p>
+        <p className="font-normal text-[16px] text-gray-8 -mt-1">
+          {isClient ? (type === "email" ? email : phone) : ""}
+        </p>
+        {/* password */}
+        <div className="space-y-2 mt-5">
+          <p
+            className={`text-[14px] font-normal
+            ${passwordError ? "text-red-1" : "text-gray-8"}
+              `}
+          >
+            Password
+          </p>
+          <div
+            className={`flex gap-1 items-center ${
+              passwordError ? "border-red-1" : "border-gray-9"
+            } border-b-[1px]`}
+          >
+            <input
+              type={showPassword ? "text" : "password"}
+              value={password}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                setPassword(e.target.value)
+              }
+              className={`h-[28px] text-[14px] text-gray-8  font-normal focus:outline-none w-full  `}
+            />
+            <span
+              onClick={() => setShowPassword(!showPassword)}
+              className="text-[14px] font-medium text-black-1 cursor-pointer underline"
+            >
+              {showPassword ? "Hide" : "Show"}
+            </span>
+          </div>
+          <p className="text-red-1 text-[14px] font-normal -mt-1">
+            {passwordError}
+          </p>
+        </div>
+        {password !== "" && (
+          <div className="mt-3 space-y-2">
+            <div className="flex items-center gap-[4px]">
+              <Image
+                src={validationStatus.length ? greenTick : redCross}
+                alt="validation status"
+                className="inline-block "
+              />
+              <p
+                className={`text-[14px] font-normal ${
+                  validationStatus.length ? "text-green-1" : "text-red-500"
+                }`}
+              >
+                Must be at least 8 characters
+              </p>
+            </div>
+            <div className="flex items-center gap-[4px]">
+              <Image
+                src={validationStatus.specialCharacter ? greenTick : redCross}
+                alt="validation status"
+                className="inline-block "
+              />
+              <p
+                className={`text-[14px] font-normal leading-none ${
+                  validationStatus.specialCharacter
+                    ? "text-green-1"
+                    : "text-red-500"
+                }`}
+              >
+                Must have at least one special character
+              </p>
+            </div>
+            <div className="flex items-center gap-[4px]">
+              <Image
+                src={validationStatus.noSpaces ? greenTick : redCross}
+                alt="validation status"
+                className="inline-block "
+              />
+              <p
+                className={`text-[14px] font-normal ${
+                  validationStatus.noSpaces ? "text-green-1" : "text-red-500"
+                }`}
+              >
+                Can&apos;t contain spaces
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* confirm password */}
+        <div className="space-y-2 mt-5">
+          <p
+            className={`text-[14px] font-normal
+            ${confirmPasswordError ? "text-red-1" : "text-gray-8"}
+              `}
+          >
+            Confirm password
+          </p>
+          <div
+            className={`flex gap-1 items-center ${
+              confirmPasswordError ? "border-red-1" : "border-gray-9"
+            } border-b-[1px]`}
+          >
+            <input
+              type={showConfirmPassword ? "text" : "password"}
+              value={confirmPassword}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                setConfirmPassword(e.target.value)
+              }
+              className={`h-[28px] text-[14px] text-gray-8  font-normal focus:outline-none w-full  `}
+            />
+            <span
+              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              className="text-[14px] font-medium text-black-1 cursor-pointer underline"
+            >
+              {showConfirmPassword ? "Hide" : "Show"}
+            </span>
+          </div>
+
+          {confirmPasswordError && (
+            <p className="text-red-1 text-[14px] font-normal">
+              {confirmPasswordError}
+            </p>
+          )}
+        </div>
+
+        <button
+          type="submit"
+          disabled={false}
+          className="mt-6 h-[52px] w-full rounded-[12px] text-white font-medium text-[16px]  bg-green-1 cursor-pointer"
+        >
+          {false ? <BeatLoader color="white" size={8} /> : "Continue"}
+        </button>
+      </div>
+      <div className="mb-16">
+        <div className="flex justify-center mt-[80px]">
+          <div className="h-[30px] w-[70px] bg-green-1 rounded-[6px] text-white flex items-center justify-center text-[18px] font-semibold">
+            Knayf
+          </div>
+        </div>
+        <div className="flex justify-center items-center font-[400] text-[12px] text-green-1 gap-[6px] mt-3">
+          <p>Contact</p>
+          <div className="h-1 w-1 bg-green-1 rounded-full"></div>
+          <p>Terms and Conditions</p>
+          <div className="h-1 w-1 bg-green-1 rounded-full"></div>
+          <p>Privacy Policy</p>
+        </div>
+      </div>
+    </form>
+  );
+}
+
+export default SetPassword;
