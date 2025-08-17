@@ -1,0 +1,290 @@
+"use client";
+import React, { useEffect, useRef, useState } from "react";
+import Image from "next/image";
+import AuthImage from "@/assets/images/auth-image.png";
+import chevDown from "@/assets/icons/chev-down-icon.svg";
+import countries from "country-list-with-dial-code-and-flag";
+import { useClickOutside } from "@/custom-hooks/useClickOutside";
+import GoogleIcon from "@/assets/icons/google-icon.svg";
+import mailIcon from "@/assets/icons/email-icon.svg";
+import { parsePhoneNumberFromString } from "libphonenumber-js";
+import { BeatLoader } from "react-spinners";
+import { useSendOtpMutation } from "@/store/services/authService";
+import toast from "react-hot-toast";
+import { useAppDispatch } from "@/store/store";
+import { setOtpInfo } from "@/store/reducers/authReducer";
+import { useRouter } from "next/navigation";
+
+export type Body = {
+  email?: string;
+  phoneNumber?: string;
+};
+
+export const validatePhone = (phone: string): boolean => {
+  const phoneNumber = parsePhoneNumberFromString(phone);
+  return phoneNumber ? phoneNumber.isValid() : false;
+};
+
+function Signup() {
+  const router = useRouter();
+  const dispatch = useAppDispatch();
+  const optionsRef = useRef<HTMLDivElement | null>(null);
+  const [search, setSearch] = useState("");
+  const [withEmail, setWithEmail] = useState(false);
+  const [withPhone, setWithPhone] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
+  const allCountries = countries.getAll();
+  const [emailError, setEmailError] = useState("");
+  const [phoneError, setPhoneError] = useState("");
+  const [countryCodeError, setCountryCodeError] = useState("");
+  const [email, setEmail] = useState("");
+  const [countryCode, setCountryCode] = useState("");
+  const [phone, setPhone] = useState("");
+  const [countryName, setCountryName] = useState("");
+  const simplified = allCountries.map(({ name, dial_code }) => ({
+    name,
+    dial_code,
+  }));
+  const [sendOtp, { isLoading, isSuccess, isError, data, error }] =
+    useSendOtpMutation();
+  useClickOutside(optionsRef, () => {
+    setIsOpen(false);
+  });
+  const handleSendOtp = () => {
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    let body: Body = {};
+    if (withEmail) {
+      if (email.trim().length === 0) {
+        setEmailError("Email is required*");
+      } else if (regex.test(email) === false) {
+        setEmailError("Please enter a valid email");
+      } else {
+        setEmailError("");
+        body = { ...body, email };
+      }
+    }
+    if (withPhone) {
+      if (countryCode.trim().length === 0) {
+        setCountryCodeError("Country code is required*");
+      } else {
+        setCountryCodeError("");
+      }
+      if (phone.trim().length === 0) {
+        setPhoneError("Phone number is required*");
+      } else if (validatePhone(phone) === false) {
+        setPhoneError("Please enter valid phone number");
+      } else {
+        setPhoneError("");
+        body = { ...body, phoneNumber: phone };
+      }
+    }
+    if (emailError === "" && phoneError === "" && countryCodeError === "") {
+      sendOtp(body);
+    }
+  };
+
+  useEffect(() => {
+    if (isSuccess) {
+      toast.success(data?.message);
+      dispatch(
+        setOtpInfo({
+          type: withEmail ? "email" : "phone",
+          phone,
+          email,
+        })
+      );
+      const timer = setTimeout(() => {
+        router.push("/verify-otp");
+      }, 1500);
+
+      return () => clearTimeout(timer);
+    }
+    if (isError && "data" in error) {
+      toast.error(
+        (error?.data as { message?: string })?.message ||
+          "something went wrong!"
+      );
+    }
+  }, [isSuccess, isError, data, error]);
+  return (
+    <div className="w-screen h-screen flex min-h-[818px]">
+      {/* Left section */}
+      <div className="w-[60%] pl-8 xl:pl-24   ">
+        <Image
+          src={AuthImage}
+          alt="auth-image"
+          className="h-full w-full object-cover "
+        />
+      </div>
+      {/* Right section */}
+      <div className="w-[50%] px-[50px] xl:px-[150px] pt-[80px]">
+        <h1 className="text-black-1 font-medium text-[22px] w-[334px]  leading-[30px] ">
+          Your local marketplace for Products and Services
+        </h1>
+        <p className="font-normal text-[16px] text-gray-8">Let’s get started</p>
+
+        {/* email */}
+        {withEmail && (
+          <div className="space-y-2 mt-5">
+            <p
+              className={`text-[14px] font-normal  ${
+                emailError ? "text-red-1" : "text-gray-8"
+              }`}
+            >
+              Email
+            </p>
+            <input
+              type="email"
+              value={email}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                setEmail(e.target.value)
+              }
+              className={`h-[28px] text-[14px] text-gray-8  font-normal focus:outline-none w-full ${
+                emailError ? "border-red-1" : "border-gray-9"
+              } border-b-[1px] `}
+            />
+            {emailError && (
+              <p className="text-red-1 text-[14px] font-normal">{emailError}</p>
+            )}
+          </div>
+        )}
+
+        {/* phone */}
+        {withPhone && (
+          <div>
+            <div className="mt-5">
+              <div className="text-[14px] font-normal text-gray-8">
+                Country code
+              </div>
+              <div ref={optionsRef} className="relative inline-block w-full">
+                <div
+                  className="pb-1 w-full flex items-center border-b-[1px] border-gray-9 justify-between mt-1 cursor-pointer"
+                  onClick={() => {
+                    setIsOpen(!isOpen);
+                  }}
+                >
+                  <h2 className="text-[15px] font-normal text-gray-8">
+                    {countryCode && countryName
+                      ? `${countryName} (${countryCode})`
+                      : "Select country code"}
+                  </h2>
+                  <Image
+                    src={chevDown}
+                    alt="chev-down"
+                    className="h-[16px] w-[12px]"
+                    height={100}
+                    width={100}
+                  />
+                </div>
+                {isOpen && (
+                  <div className="mt-1">
+                    <input
+                      type="text"
+                      placeholder="Search country..."
+                      className="w-full px-4 font-light py-2 outline-none  text-sm border border-gray-200 rounded-md  "
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)}
+                    />
+
+                    <div className="absolute z-20  text-gray-8 w-full text-[14px] bg-white border   max-h-[450px] overflow-scroll hide-scrollbar  border-gray-200 rounded-md shadow-md mt-2">
+                      {simplified
+                        ?.filter((c) =>
+                          c.name.toLowerCase().includes(search.toLowerCase())
+                        )
+                        ?.map((data, index) => (
+                          <div
+                            onClick={() => {
+                              setCountryName(data?.name);
+                              setCountryCode(data?.dial_code);
+                              setPhone(data?.dial_code);
+                              setIsOpen(false);
+                            }}
+                            className="text-[14px]  text-gray-8 px-4 py-2 text-sm cursor-pointer font-light hover:bg-gray-100"
+                            key={index}
+                          >{`(${data.dial_code}) ${data.name}`}</div>
+                        ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+            {countryCodeError && (
+              <p className="text-red-1 text-[14px] font-normal">
+                {countryCodeError}
+              </p>
+            )}
+            <div className="space-y-2 mt-5">
+              <p className="text-[14px] font-normal text-gray-8">
+                Phone number
+              </p>
+              <input
+                type="phone"
+                value={phone}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                  setPhone(e.target.value);
+                }}
+                className={`h-[28px] text-[14px] text-gray-8  font-normal focus:outline-none w-full ${
+                  phoneError ? "border-red-1" : "border-gray-9"
+                } border-b-[1px] `}
+              />
+              {phoneError && (
+                <p className="text-red-1 text-[14px] font-normal">
+                  {phoneError}
+                </p>
+              )}
+            </div>
+          </div>
+        )}
+
+        <button
+          onClick={handleSendOtp}
+          disabled={isLoading}
+          className="mt-6 h-[52px] w-full rounded-[12px] text-white font-medium text-[16px]  bg-green-1 cursor-pointer"
+        >
+          {isLoading ? <BeatLoader color="white" size={8} /> : "Continue"}
+        </button>
+        <div className="flex gap-[10px] items-center text-[#19191999] text-[16px] font-normal mt-5">
+          <div className="w-full h-[1px] bg-gray-2"></div>
+          or
+          <div className="w-full h-[1px] bg-gray-2"></div>
+        </div>
+        <button
+          disabled={isLoading}
+          className="mt-6 h-[52px] w-full rounded-[12px] text-white    bg-blue-1 flex items-center justify-center gap-2 text-[15px] font-normal cursor-pointer"
+        >
+          <Image src={GoogleIcon} alt="google_icon" />{" "}
+          <h3>Continue with Google</h3>
+        </button>
+        <button
+          disabled={isLoading}
+          onClick={() => {
+            setWithEmail(!withEmail);
+            setWithPhone(!withPhone);
+          }}
+          className="mt-6 h-[52px] w-full rounded-[12px] text-black    bg-gray-10 flex items-center justify-center gap-2 text-[15px] font-normal cursor-pointer"
+        >
+          <Image src={mailIcon} alt="mail_icon" />{" "}
+          <h3>Continue with {withEmail ? "Phone" : "Email"}</h3>
+        </button>
+
+        <div className="text-center font-normal text-[12px] text-gray-8 mt-5">
+          Already have an account? <span className="text-green-1">Sign in</span>
+        </div>
+        <div className="flex justify-center mt-[80px]">
+          <div className="h-[30px] w-[70px] bg-green-1 rounded-[6px] text-white flex items-center justify-center text-[18px] font-semibold">
+            Knayf
+          </div>
+        </div>
+        <div className="flex justify-center items-center font-[400] text-[12px] text-green-1 gap-[6px] mt-3">
+          <p>Contact</p>
+          <div className="h-1 w-1 bg-green-1 rounded-full"></div>
+          <p>Terms and Conditions</p>
+          <div className="h-1 w-1 bg-green-1 rounded-full"></div>
+          <p>Privacy Policy</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default Signup;
