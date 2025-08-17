@@ -1,9 +1,7 @@
 "use client";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
-import AuthImage from "@/assets/images/auth-image.png";
 import { BeatLoader } from "react-spinners";
-import toast from "react-hot-toast";
 import { useAppDispatch, useAppSelector } from "@/store/store";
 import { useRouter } from "next/navigation";
 import greenTick from "@/assets/icons/green-tick-icon.svg";
