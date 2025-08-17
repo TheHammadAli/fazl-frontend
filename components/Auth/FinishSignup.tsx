@@ -165,7 +165,7 @@ function FinishSignup({ password }: { password: string }) {
           "something went wrong!"
       );
     }
-  }, [isSuccess, isError, data, error]);
+  }, [isSuccess, isError, data, error, router]);
 
   return (
     <div className="w-[50%] px-[50px] xl:px-[140px] pt-[70px]  ">
