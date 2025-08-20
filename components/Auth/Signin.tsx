@@ -7,7 +7,8 @@ import { useAppDispatch } from "@/store/store";
 import { useRouter } from "next/navigation";
 import { useSigninMutation } from "@/store/services/authService";
 import toast from "react-hot-toast";
-import { setUser } from "@/store/reducers/authReducer";
+import { setToken } from "@/store/reducers/authReducer";
+import { useDictionary } from "@/dictionaries/DictionaryProvider";
 
 export type Body = {
   email?: string;
@@ -27,17 +28,21 @@ function Signin() {
 
   const handleSignin = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    let isValid: boolean = true;
     if (email.trim() === "") {
       setEmailError("Email is required*");
+      isValid = false;
     }
     if (password.trim() === "") {
       setPasswordError("Password is required*");
+      isValid = false;
     } else {
+      isValid = true;
       setEmailError("");
       setPasswordError("");
     }
 
-    if (emailError === "" && passwordError === "") {
+    if (isValid) {
       const body: Body = { email, password };
       signin(body);
     }
@@ -46,7 +51,8 @@ function Signin() {
   useEffect(() => {
     if (isSuccess) {
       toast.success(data?.message);
-      dispatch(setUser(data?.data));
+      console.log(data?.data);
+      dispatch(setToken(data?.data?.accessToken));
       const timer = setTimeout(() => {
         router.push("/welcome");
       }, 1500);
@@ -63,7 +69,7 @@ function Signin() {
   return (
     <div className="w-screen h-screen flex min-h-[818px]">
       {/* Left section */}
-      <div className="w-[60%] pl-8 xl:pl-24 ">
+      <div className="hidden lg:block lg:w-[60%] pl-8 xl:pl-24 ">
         <Image
           src={AuthImage}
           alt="auth-image"
@@ -73,13 +79,13 @@ function Signin() {
       {/* Right section */}
       <form
         onSubmit={handleSignin}
-        className="w-[50%] px-[50px] xl:px-[150px] pt-[80px] flex flex-col justify-between"
+        className="w-full lg:w-[50%] px-5 sm:px-[50px] xl:px-[150px] pt-[80px] flex flex-col items-center lg:justify-between"
       >
-        <div>
-          <h1 className="text-black-1 font-medium text-[22px] w-[334px]  leading-[30px] ">
+        <div className="max-w-[500px] lg:max-w-full   w-full">
+          <h1 className="text-black-1 font-medium text-[22px] text-center  leading-[30px] ">
             Sign in
           </h1>
-          <p className="font-light text-[14px] text-gray-8">
+          <p className="font-light text-[14px] text-center text-gray-8">
             Sign in to your account
           </p>
 
@@ -148,7 +154,7 @@ function Signin() {
             disabled={false}
             className="mt-6 h-[52px] w-full rounded-[12px] text-white font-medium text-[16px]  bg-green-1 cursor-pointer"
           >
-            {false ? <BeatLoader color="white" size={8} /> : "Continue"}
+            {isLoading ? <BeatLoader color="white" size={8} /> : "Continue"}
           </button>
 
           <div className="text-center font-normal text-[12px] text-gray-8 mt-5">
@@ -164,10 +170,10 @@ function Signin() {
         <div className="mb-20">
           <div className="flex justify-center mt-[80px]">
             <div className="h-[30px] w-[70px] bg-green-1 rounded-[6px] text-white flex items-center justify-center text-[18px] font-semibold">
-              Knayf
+              market
             </div>
           </div>
-          <div className="flex justify-center items-center font-[400] text-[12px] text-green-1 gap-[6px] mt-3">
+          <div className="flex flex-wrap justify-center items-center font-[400] text-[12px] text-green-1 gap-[6px] mt-3">
             <p>Contact</p>
             <div className="h-1 w-1 bg-green-1 rounded-full"></div>
             <p>Terms and Conditions</p>

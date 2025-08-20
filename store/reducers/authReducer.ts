@@ -2,27 +2,24 @@ import { createSlice } from "@reduxjs/toolkit";
 import { setCookie, getCookie } from "cookies-next";
 // import { deleteCookie } from "cookies-next";
 
-// type lernerSignin = {
-//   legalName: string;
-//   email: string;
-// };
-// let lerner_signin_information: lernerSignin = {
-//   legalName: "",
-//   email: "",
-// };
-
-let otpInfo = {
+type otpInfoTypes = {
+  type: string;
+  phone: string;
+  email: string;
+};
+let otpInfo: otpInfoTypes = {
   type: "",
   phone: "",
   email: "",
 };
 let confirmedPwd: boolean = false;
-let user = {};
+let token: string = "";
 
 if (typeof window !== "undefined") {
   const otpData = localStorage.getItem("otpInfo");
   const confirmedPwdData = localStorage.getItem("confirmedPwd");
-  user = getCookie("user") || {};
+  const cookieToken = getCookie("token");
+  token = typeof cookieToken === "string" ? cookieToken : "";
   if (otpData) {
     otpInfo = JSON.parse(otpData);
   }
@@ -37,11 +34,7 @@ const authSlice = createSlice({
   initialState: {
     otpInfo: otpInfo,
     confirmedPwd: confirmedPwd,
-    user: user,
-    // personalInformation: {},
-    // signInLearnerInformation: lerner_signin_information
-    //   ? lerner_signin_information
-    //   : {},
+    token: token,
   },
   reducers: {
     setOtpInfo: (state, action) => {
@@ -52,13 +45,13 @@ const authSlice = createSlice({
       state.confirmedPwd = action.payload;
       localStorage.setItem("confirmedPwd", action.payload);
     },
-    setUser: (state, action) => {
-      state.user = action.payload;
-      setCookie("user", JSON.stringify(action.payload));
+    setToken: (state, action) => {
+      state.token = action.payload;
+      setCookie("token", action.payload);
     },
   },
 });
 
-export const { setOtpInfo, setConfirmPwd, setUser } = authSlice.actions;
+export const { setOtpInfo, setConfirmPwd, setToken } = authSlice.actions;
 
 export default authSlice.reducer;

@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable @next/next/no-img-element */
 import React, { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import chevDown from "@/assets/icons/chev-down-icon.svg";
@@ -12,6 +13,7 @@ import { validatePhone } from "./SendOtp";
 import { useSignupMutation } from "@/store/services/authService";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
+import dummyProfile from "@/assets/images/profile-placehonder.png";
 
 function FinishSignup({ password }: { password: string }) {
   const router = useRouter();
@@ -19,7 +21,7 @@ function FinishSignup({ password }: { password: string }) {
     email: emailData,
     phone: phoneData,
     type,
-  } = useAppSelector((state) => state.authReducer.otpInfo);
+  } = useAppSelector((state) => state?.authReducer?.otpInfo);
   const countryRef = useRef<HTMLDivElement | null>(null);
   const locationRef = useRef<HTMLDivElement | null>(null);
   const [isOpen, setIsOpen] = useState(false);
@@ -40,6 +42,7 @@ function FinishSignup({ password }: { password: string }) {
     useSignupMutation();
   const [locationError, setLocationError] = useState("");
   const [phoneError, setPhoneError] = useState("");
+  const [profile, setProfile] = useState<string | null>(null);
   const [countryCodeError, setCountryCodeError] = useState("");
   const [search, setSearch] = useState("");
   const [locationSearch, setLocationSearch] = useState("");
@@ -50,7 +53,7 @@ function FinishSignup({ password }: { password: string }) {
   const [lastName, setLastName] = useState("");
   const [firstNameError, setFirstNameError] = useState("");
   const [lastNameError, setLastNameError] = useState("");
-
+  const [mounted, setMounted] = useState(false);
   const simplified = allCountries.map(({ name, dial_code }) => ({
     name,
     dial_code,
@@ -77,10 +80,14 @@ function FinishSignup({ password }: { password: string }) {
   useClickOutside(locationRef, () => {
     setIsLocationOpen(false);
   });
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    let isValid: boolean = true;
     const checkField = (
       value: string,
       setter: React.Dispatch<React.SetStateAction<string>>,
@@ -88,14 +95,17 @@ function FinishSignup({ password }: { password: string }) {
     ) => {
       if (value.trim() === "") {
         setter(message);
+        isValid = false;
       } else {
         setter("");
       }
     };
+
     checkField(firstName, setFirstNameError, "First name is required*");
     checkField(lastName, setLastNameError, "Last name is required*");
     if (Object.keys(location).length === 0) {
       setLocationError("Location is required*");
+      isValid = false;
     } else {
       setLocationError("");
     }
@@ -103,8 +113,10 @@ function FinishSignup({ password }: { password: string }) {
     if (type === "phone") {
       if (email.trim() === "") {
         setEmailError("Email is required*");
+        isValid = false;
       } else if (!regex.test(email)) {
         setEmailError("Please enter a valid email");
+        isValid = false;
       } else {
         setEmailError("");
       }
@@ -115,20 +127,15 @@ function FinishSignup({ password }: { password: string }) {
 
       if (phone.trim() === "") {
         setPhoneError("Phone number is required*");
+        isValid = false;
       } else if (validatePhone(phone) === false) {
         setPhoneError("Please enter valid phone number");
+        isValid = false;
       } else {
         setPhoneError("");
       }
     }
-    if (
-      !emailError &&
-      !phoneError &&
-      !countryCodeError &&
-      !locationError &&
-      !firstNameError &&
-      !lastNameError
-    ) {
+    if (isValid) {
       const payload = {
         email: type === "email" ? emailData : email,
         password: password,
@@ -168,19 +175,48 @@ function FinishSignup({ password }: { password: string }) {
   }, [isSuccess, isError, data, error, router]);
 
   return (
-    <div className="w-[50%] px-[50px] xl:px-[140px] pt-[70px]  ">
-      <form onSubmit={handleSubmit} className="">
-        <h1 className="text-black-1 font-medium text-[22px] w-[334px]  leading-[30px] ">
+    <div className="lg:w-[50%] px-5 sm:px-[50px] xl:px-[140px] pt-[70px]  ">
+      <form
+        onSubmit={handleSubmit}
+        className="max-w-[500px] flex flex-col items-center lg:items-start lg:max-w-full"
+      >
+        <h1 className="text-black-1 font-medium text-[22px] lg:w-[334px]  leading-[30px] ">
           Finish Signing up{" "}
         </h1>
-        <p className=" text-[16px] font-light text-gray-8">
-          {type === "email" ? emailData : phoneData}
-        </p>{" "}
-        <div className="mt-5 flex gap-[14px] items-center  ">
-          <div className="h-[62px] font-medium text-[16px] text-black-2 rounded-[22px] w-[62px] bg-[#E6FBFB] flex items-center justify-center">
-            NM
+        {mounted && (
+          <p className=" text-[16px] font-light text-gray-8">
+            {type === "email" ? emailData : phoneData}
+          </p>
+        )}
+        <div className="mt-5 flex gap-[14px] items-center  w-full ">
+          <div className="h-[62px] overflow-hidden  font-medium text-[16px] text-black-2 rounded-[22px] w-[62px] bg-[#E6FBFB] flex items-center justify-center">
+            {typeof profile === "string" ? (
+              <img
+                src={profile ?? ""}
+                alt=""
+                className="object-cover h-full w-full"
+              />
+            ) : firstName && lastName ? (
+              firstName.slice(0, 1) + lastName.slice(0, 1)
+            ) : (
+              <Image
+                src={dummyProfile}
+                alt="profile"
+                className="h-full w-full object-cover"
+              />
+            )}
           </div>
-          <input type="file" className="hidden" id="profile-photo" />
+          <input
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => {
+              if (e.target.files && e.target.files.length > 0) {
+                setProfile(URL.createObjectURL(e.target.files[0]));
+              }
+            }}
+            id="profile-photo"
+          />
           <label
             htmlFor="profile-photo"
             className="text-[14px] font-medium text-green-1 underline cursor-pointer"
@@ -189,7 +225,7 @@ function FinishSignup({ password }: { password: string }) {
           </label>
         </div>
         {/* first name */}
-        <div className="space-y-1 mt-5">
+        <div className="space-y-1 mt-5 w-full">
           <p
             className={`text-[14px] font-normal  ${
               firstNameError ? "text-red-1" : "text-gray-8"
@@ -212,7 +248,7 @@ function FinishSignup({ password }: { password: string }) {
           )}
         </div>
         {/* last name */}
-        <div className="space-y-1 mt-5">
+        <div className="space-y-1 mt-5 w-full">
           <p
             className={`text-[14px] font-normal  ${
               lastNameError ? "text-red-1" : "text-gray-8"
@@ -235,8 +271,8 @@ function FinishSignup({ password }: { password: string }) {
           )}
         </div>
         {/* email address */}
-        {type === "phone" && (
-          <div className="space-y-1 mt-5">
+        {mounted && type === "phone" && (
+          <div className="space-y-1 mt-5 w-full">
             <p
               className={`text-[14px] font-normal  ${
                 emailError ? "text-red-1" : "text-gray-8"
@@ -258,9 +294,9 @@ function FinishSignup({ password }: { password: string }) {
           </div>
         )}
         {/* phone number */}
-        {type === "email" && (
-          <div>
-            <div className="mt-5">
+        {mounted && type === "email" && (
+          <div className="w-full">
+            <div className="mt-5 w-full">
               <div
                 className={`text-[14px] font-normal  ${
                   countryCodeError ? "text-red-1" : "text-gray-8"
@@ -354,9 +390,9 @@ function FinishSignup({ password }: { password: string }) {
           </div>
         )}
         {/* location */}
-        <div className="mt-5">
+        <div className="mt-5 w-full">
           <div
-            className={`text-[14px] font-normal  ${
+            className={`text-[14px] font-normal w-full ${
               locationError ? "text-red-1" : "text-gray-8"
             }`}
           >
@@ -428,7 +464,7 @@ function FinishSignup({ password }: { password: string }) {
             )}
           </div>
         </div>
-        <div className="flex items-center gap-2 mt-1">
+        <div className="flex items-center gap-2 mt-1 w-full">
           <Image
             src={locationIcon}
             className="h-[13px] w-[11px]"
@@ -438,8 +474,8 @@ function FinishSignup({ password }: { password: string }) {
             Choose location on map
           </p>
         </div>
-        <div className=" font-light text-[14px] text-gray-11 mt-5 max-w-[306px]">
-          By selecting Agree and continue, I agree to Knayf’s{" "}
+        <div className="w-full font-light text-[14px] text-gray-11 mt-5 lg:max-w-[306px]">
+          By selecting Agree and continue, I agree to market’s{" "}
           <span className="hover:underline text-green-1 font-medium ">
             Terms of Service
           </span>{" "}
@@ -455,12 +491,12 @@ function FinishSignup({ password }: { password: string }) {
         >
           {isLoading ? <BeatLoader color="white" size={8} /> : "Continue"}
         </button>
-        <div className="flex justify-center mt-[80px]">
+        <div className="flex justify-center mt-[80px] w-full">
           <div className="h-[30px] w-[70px] bg-green-1 rounded-[6px] text-white flex items-center justify-center text-[18px] font-semibold">
-            Knayf
+            market
           </div>
         </div>
-        <div className=" flex justify-center items-center font-[400] text-[12px] text-green-1 gap-[6px] mt-3">
+        <div className="w-full flex justify-center items-center font-[400] text-[12px] text-green-1 gap-[6px] mt-3">
           <p>Contact</p>
           <div className="h-1 w-1 bg-green-1 rounded-full"></div>
           <p>Terms and Conditions</p>

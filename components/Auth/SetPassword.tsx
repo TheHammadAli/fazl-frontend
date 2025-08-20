@@ -86,20 +86,20 @@ function SetPassword({
   return (
     <form
       onSubmit={handleSubmit}
-      className="w-[40%] flex flex-col justify-between px-[50px] xl:px-[100px] pt-[80px]"
+      className="w-full lg:w-[50%] flex flex-col lg:justify-between px-5 sm:px-[50px] xl:px-[150px] pt-[80px]"
     >
-      <div>
-        <h1 className="text-black-1 font-medium text-[22px] w-[334px]  leading-[30px] ">
+      <div className="w-full flex flex-col items-center lg:items-start">
+        <h1 className="text-black-1 font-medium text-[22px] w-[334px]  leading-[30px] text-center lg:text-left">
           Create password{" "}
         </h1>
-        <p className="font-normal text-[16px] text-gray-8">
-          Enter the verification code we just sent to
+        <p className="font-normal text-[16px] text-gray-8 text-center lg:text-left">
+          Enter your new password
         </p>
         <p className="font-normal text-[16px] text-gray-8 -mt-1">
           {isClient ? (type === "email" ? email : phone) : ""}
         </p>
         {/* password */}
-        <div className="space-y-2 mt-5">
+        <div className="space-y-2 mt-5 w-full max-w-[500px] lg:max-w-full">
           <p
             className={`text-[14px] font-normal
             ${passwordError ? "text-red-1" : "text-gray-8"}
@@ -132,8 +132,8 @@ function SetPassword({
           </p>
         </div>
         {password !== "" && (
-          <div className="mt-3 space-y-2">
-            <div className="flex items-center gap-[4px]">
+          <div className="mt-3 space-y-2 w-full  max-w-[500px] lg:max-w-full">
+            <div className="flex items-center gap-[4px] ">
               <Image
                 src={validationStatus.length ? greenTick : redCross}
                 alt="validation status"
@@ -181,7 +181,7 @@ function SetPassword({
         )}
 
         {/* confirm password */}
-        <div className="space-y-2 mt-5">
+        <div className="space-y-2 mt-5 w-full  max-w-[500px] lg:max-w-full">
           <p
             className={`text-[14px] font-normal
             ${confirmPasswordError ? "text-red-1" : "text-gray-8"}
@@ -220,15 +220,15 @@ function SetPassword({
         <button
           type="submit"
           disabled={false}
-          className="mt-6 h-[52px] w-full rounded-[12px] text-white font-medium text-[16px]  bg-green-1 cursor-pointer"
+          className="mt-6  max-w-[500px] lg:max-w-full h-[52px] w-full rounded-[12px] text-white font-medium text-[16px]  bg-green-1 cursor-pointer"
         >
           {false ? <BeatLoader color="white" size={8} /> : "Continue"}
         </button>
       </div>
-      <div className="mb-16">
+      <div className="w-full lg:mb-16">
         <div className="flex justify-center mt-[80px]">
           <div className="h-[30px] w-[70px] bg-green-1 rounded-[6px] text-white flex items-center justify-center text-[18px] font-semibold">
-            Knayf
+            market
           </div>
         </div>
         <div className="flex justify-center items-center font-[400] text-[12px] text-green-1 gap-[6px] mt-3">

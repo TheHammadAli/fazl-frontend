@@ -40,6 +40,11 @@ function VerifyOtp() {
       error: verifyError,
     },
   ] = useVerifyOtpMutation();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -108,7 +113,7 @@ function VerifyOtp() {
   return (
     <div className="w-screen h-screen flex min-h-[100vh]">
       {/* Left section */}
-      <div className="w-[60%] pl-8 xl:pl-24 ">
+      <div className="hidden lg:block lg:w-[60%] pl-8 xl:pl-24 ">
         <Image
           src={AuthImage}
           alt="auth-image"
@@ -118,31 +123,33 @@ function VerifyOtp() {
       {/* Right section */}
       <form
         onSubmit={handleSubmit}
-        className="w-[50%] px-[50px] xl:px-[150px] pt-[80px] flex flex-col justify-between"
+        className="w-full lg:w-[50%] px-5 sm:px-[50px] xl:px-[150px] pt-[80px] flex flex-col justify-between"
       >
-        <div>
+        <div className="w-full flex flex-col items-center lg:items-start">
           {" "}
-          <h1 className="text-black-1 font-medium text-[22px] w-[334px]  leading-[30px] ">
+          <h1 className="text-black-1 text-center lg:text-left font-medium text-[22px] w-[334px]  leading-[30px] ">
             OTP Verification{" "}
           </h1>
-          <p className="font-light text-[16px] text-gray-8">
+          <p className="font-light text-[16px] text-gray-8 text-center lg:text-left">
             Enter the verification code we just sent to
           </p>
-          <p className=" text-[16px] font-light text-gray-8">
-            +92 332 525 8828.
-          </p>
-          <div className="flex gap-2 mt-6">
+          {mounted && (
+            <p className=" text-[16px] font-light text-gray-8 text-center lg:text-left">
+              {(type === "email" ? email || "" : phone) || "-"}
+            </p>
+          )}
+          <div className="flex justify-center  gap-2 mt-6 w-full max-w-[500px] lg:max-w-full">
             <InputForOtp otp={otp} setOtp={setOtp} />
-            <div className="h-[52px] w-[52px] min-w-[52px] bg-gray-4 rounded-[12px] text-[14px] font-normal text-center"></div>
-            <div className="h-[52px] hidden lg:block w-[52px] min-w-[52px] bg-gray-4 rounded-[12px] text-[14px] font-normal text-center"></div>
+            {/* <div className="h-[52px] w-[52px] min-w-[52px] bg-gray-4 rounded-[12px] text-[14px] font-normal text-center"></div>
+            <div className="h-[52px] hidden lg:block w-[52px] min-w-[52px] bg-gray-4 rounded-[12px] text-[14px] font-normal text-center"></div> */}
           </div>
           <div
-            className={`text-center text-[#121212BF] text-[14px] font-semibold mt-5 `}
+            className={`text-center text-[#121212BF] text-[14px] font-semibold mt-5 w-full`}
           >
             00:{timer < 10 ? `0${timer}` : timer} Sec
           </div>
           <div
-            className={`font-light text-[13px] text-gray-8 mt-5 leading-none ${
+            className={`font-light text-center lg:text-start text-[13px] text-gray-8 mt-5 leading-none w-full ${
               timer > 0 && "pointer-events-none opacity-50 "
             }`}
           >
@@ -158,7 +165,7 @@ function VerifyOtp() {
           <button
             type="submit"
             disabled={otp.length < 4 || isSendOtpLoading}
-            className="mt-6 h-[52px] w-full rounded-[12px] text-white font-medium text-[16px]  bg-green-1 cursor-pointer disabled:opacity-50"
+            className="mt-6 w-full max-w-[500px] lg:max-w-full h-[52px]  rounded-[12px] text-white font-medium text-[16px]  bg-green-1 cursor-pointer disabled:opacity-50"
           >
             {isVerifyLoading ? (
               <BeatLoader color="white" size={8} />
@@ -167,13 +174,13 @@ function VerifyOtp() {
             )}
           </button>
         </div>
-        <div className="">
+        <div className="w-full">
           <div className="flex justify-center -mt-28">
             <div className="h-[30px] w-[70px] bg-green-1 rounded-[6px] text-white flex items-center justify-center text-[18px] font-semibold">
-              Knayf
+              market
             </div>
           </div>
-          <div className="flex justify-center items-center font-[400] text-[12px] text-green-1 gap-[6px] mt-3">
+          <div className="flex flex-wrap justify-center items-center font-[400] text-[12px] text-green-1 gap-[6px] mt-3">
             <p>Contact</p>
             <div className="h-1 w-1 bg-green-1 rounded-full"></div>
             <p>Terms and Conditions</p>
