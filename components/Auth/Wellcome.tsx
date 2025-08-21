@@ -6,7 +6,6 @@ import Arrow from "@/assets/icons/right-gray-arrow-icon.svg";
 function Wellcome() {
   return (
     <div className="w-screen h-screen lg:flex lg:min-h-[100vh]">
-      {/* Left section */}
       <div className="w-full lg:w-[60%] lg:pl-8 xl:pl-24 ">
         <Image
           src={AuthImage}
@@ -14,7 +13,6 @@ function Wellcome() {
           className="h-[360px] lg:h-full w-full object-cover"
         />
       </div>
-      {/* Right section */}
       <div className="w-ful px-5  lg:w-[50%] sm:px-[50px] xl:px-[150px] pt-5 lg:pt-[80px] lg:flex lg:flex-col justify-between">
         <div className="w-full flex flex-col items-center lg:items-start">
           {" "}
