@@ -146,7 +146,12 @@ function Signin() {
             </p>
           </div>
           <div className="flex justify-end pt-4 text-[14px] font-normal text-green-1 ">
-            <p className="cursor-pointer w-max">Forgot password?</p>
+            <p
+              className="cursor-pointer w-max hover:underline"
+              onClick={() => router.push("/forget-password")}
+            >
+              Forgot password?
+            </p>
           </div>
           <button
             type="submit"
