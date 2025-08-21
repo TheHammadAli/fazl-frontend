@@ -8,7 +8,6 @@ import { useRouter } from "next/navigation";
 import { useSigninMutation } from "@/store/services/authService";
 import toast from "react-hot-toast";
 import { setToken } from "@/store/reducers/authReducer";
-import { useDictionary } from "@/dictionaries/DictionaryProvider";
 
 export type Body = {
   email?: string;
