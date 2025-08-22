@@ -50,7 +50,6 @@ function Signin() {
   useEffect(() => {
     if (isSuccess) {
       toast.success(data?.message);
-      console.log(data?.data);
       dispatch(setToken(data?.data?.accessToken));
       const timer = setTimeout(() => {
         router.push("/welcome");

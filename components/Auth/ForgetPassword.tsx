@@ -1,18 +1,11 @@
 "use client";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import AuthImage from "@/assets/images/auth-image.png";
-import chevDown from "@/assets/icons/chev-down-icon.svg";
-import countries from "country-list-with-dial-code-and-flag";
-import { useClickOutside } from "@/custom-hooks/useClickOutside";
-import GoogleIcon from "@/assets/icons/google-icon.svg";
-import mailIcon from "@/assets/icons/email-icon.svg";
 import { parsePhoneNumberFromString } from "libphonenumber-js";
 import { BeatLoader } from "react-spinners";
-import { useSendOtpMutation } from "@/store/services/authService";
+import { useForgotPasswordMutation } from "@/store/services/authService";
 import toast from "react-hot-toast";
-import { useAppDispatch } from "@/store/store";
-import { setOtpInfo } from "@/store/reducers/authReducer";
 import { useRouter } from "next/navigation";
 
 export type Body = {
@@ -27,14 +20,11 @@ export const validatePhone = (phone: string): boolean => {
 
 function ForgetPassword() {
   const router = useRouter();
-  const dispatch = useAppDispatch();
-  const optionsRef = useRef<HTMLDivElement | null>(null);
-  const [withEmail, setWithEmail] = useState(false);
   const [emailError, setEmailError] = useState("");
   const [email, setEmail] = useState("");
 
-  const [sendOtp, { isLoading, isSuccess, isError, data, error }] =
-    useSendOtpMutation();
+  const [forgotPassword, { isLoading, isSuccess, isError, data, error }] =
+    useForgotPasswordMutation();
 
   const handleSendOtp = () => {
     const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -48,26 +38,19 @@ function ForgetPassword() {
       isValid = false;
     } else {
       setEmailError("");
-      body = { ...body, email };
+      body = { email: email };
     }
 
     if (isValid) {
-      sendOtp(body);
+      forgotPassword(body);
     }
   };
 
   useEffect(() => {
     if (isSuccess) {
       toast.success(data?.message);
-      //   dispatch(
-      //     setOtpInfo({
-      //       type: withEmail ? "email" : "phone",
-      //       phone,
-      //       email,
-      //     })
-      //   );
       const timer = setTimeout(() => {
-        router.push("/verify-otp");
+        router.push("/reset-password?token=" + encodeURIComponent(data?.data));
       }, 1500);
 
       return () => clearTimeout(timer);
@@ -80,7 +63,7 @@ function ForgetPassword() {
     }
   }, [isSuccess, isError, data, error]);
   return (
-    <div className="w-screen h-screen lg:flex min-h-[818px] hide-scrollbar pt-[50px] lg:pt-0">
+    <div className="w-screen h-screen lg:flex lg:min-h-[818px] hide-scrollbar pt-[50px] lg:pt-0">
       {/* Left section */}
       <div className=" hidden lg:block lg:w-[60%] lg:pl-8 xl:pl-24   ">
         <Image
@@ -90,9 +73,9 @@ function ForgetPassword() {
         />
       </div>
       {/* Right section */}
-      <div className="w-full flex justify-center lg:justify-start  lg:w-[50%] px-5  sm:px-[50px] xl:px-[150px] lg:pt-[80px] ">
-        <div className=" w-full flex flex-col  items-center  lg:items-start max-w-[500px] lg:max-w-full">
-          <h1 className="text-black-1   font-medium text-[22px] text-center lg:text-start w-[334px]  leading-[30px] ">
+      <div className="w-full h-full  flex flex-col items-center lg:items-start  justify-between  lg:w-[50%] px-5  sm:px-[50px] xl:px-[150px] lg:pt-[80px] ">
+        <div className=" w-full flex flex-col   items-center  lg:items-start max-w-[500px] lg:max-w-full">
+          <h1 className="text-black-1   font-medium text-[22px] text-center lg:text-start  leading-[30px] ">
             Forget password
           </h1>
           <p className="font-normal text-[16px] text-gray-8"></p>
@@ -127,7 +110,9 @@ function ForgetPassword() {
           >
             {isLoading ? <BeatLoader color="white" size={8} /> : "Continue"}
           </button>
-          <div className="flex justify-center mt-[80px] w-full">
+        </div>
+        <div className="w-full h-max mb-10 ">
+          <div className="flex justify-center  w-full">
             <div className="h-[30px] w-[70px] bg-green-1 rounded-[6px] text-white flex items-center justify-center text-[18px] font-semibold">
               market
             </div>

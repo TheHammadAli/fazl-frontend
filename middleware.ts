@@ -24,6 +24,8 @@ export function middleware(request: NextRequest) {
     `/${locale}/verify-otp`,
     `/${locale}/signup-instructor`,
     `/${locale}/forget-password`,
+    `/${locale}/verify-email`,
+    `/${locale}/reset-password`,
   ];
 
   function checkPathStartsWith(path: string) {

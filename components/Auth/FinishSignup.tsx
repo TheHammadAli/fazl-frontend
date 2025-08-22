@@ -150,7 +150,23 @@ function FinishSignup({ password }: { password: string }) {
           ],
         },
       };
-      signup(payload);
+      const formData = new FormData();
+      (Object.keys(payload) as (keyof typeof payload)[]).forEach((key) => {
+        const value = payload[key];
+        if (value !== undefined) {
+          if (key === "location") {
+            formData.append(key, JSON.stringify(value));
+          } else {
+            formData.append(key, String(value));
+          }
+        }
+      });
+
+      if (profile && typeof profile === "string") {
+        formData.append("image", profile);
+      }
+
+      signup(formData);
     }
   };
 
