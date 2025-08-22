@@ -72,14 +72,30 @@ function SetPassword({
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    let valid = true;
 
     if (password === "") {
       setPasswordError("Password is required*");
+      valid = false;
     }
     if (confirmPassword === "") {
       setConfirmPasswordError("Confirm password is required*");
+      valid = false;
     }
-    if (!passwordError && !confirmPasswordError) {
+    if (password !== confirmPassword) {
+      setConfirmPasswordError("Passwords do not match.");
+      valid = false;
+    }
+
+    if (
+      !validationStatus.length ||
+      !validationStatus.specialCharacter ||
+      !validationStatus.noSpaces
+    ) {
+      setPasswordError("Password must meet all requirements.");
+      valid = false;
+    }
+    if (valid) {
       dispatch(setConfirmPwd(true));
     }
   };

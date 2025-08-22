@@ -45,6 +45,7 @@ const authSlice = createSlice({
       state.confirmedPwd = action.payload;
       localStorage.setItem("confirmedPwd", action.payload);
     },
+
     setToken: (state, action) => {
       state.token = action.payload;
       setCookie("token", action.payload);

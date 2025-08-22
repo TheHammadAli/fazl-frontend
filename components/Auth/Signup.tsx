@@ -18,12 +18,11 @@ function Signup() {
         />
       </div>
 
-      {/* {confirmedPwd ? ( */}
-      <FinishSignup password={password} />
-
-      {/* ) : (
+      {confirmedPwd ? (
+        <FinishSignup password={password} />
+      ) : (
         <SetPassword password={password} setPassword={setPassword} />
-      )} */}
+      )}
     </div>
   );
 }

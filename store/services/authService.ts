@@ -1,7 +1,4 @@
-import { sign, verify } from "crypto";
 import { baseApi } from "../baseApi";
-import VerifyOtp from "@/components/Auth/VerifyOtp";
-import { register } from "module";
 
 // Define or import these interfaces from the correct location
 
@@ -21,6 +18,14 @@ export const authService = baseApi.injectEndpoints({
         body,
       }),
     }),
+    // this is for resed
+    verifyEmail: build.mutation({
+      query: (body) => ({
+        url: "/auth/verify-email",
+        method: "POST",
+        body,
+      }),
+    }),
     signup: build.mutation({
       query: (body) => ({
         url: "/users/createUser",
@@ -35,9 +40,26 @@ export const authService = baseApi.injectEndpoints({
         body,
       }),
     }),
+    forgotPassword: build.mutation({
+      query: (body) => ({
+        url: "/auth/forgot-password",
+        method: "POST",
+        body,
+      }),
+    }),
+    resetPassword: build.mutation({
+      query: (body) => ({
+        url: "/auth/reset-password",
+        method: "PUT",
+        body,
+      }),
+    }),
   }),
 });
 export const {
+  useResetPasswordMutation,
+  useVerifyEmailMutation,
+  useForgotPasswordMutation,
   useSendOtpMutation,
   useVerifyOtpMutation,
   useSignupMutation,
