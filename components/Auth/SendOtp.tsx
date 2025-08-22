@@ -71,6 +71,7 @@ function Signup() {
         setCountryCodeError("Country code is required*");
         isValid = false;
       } else {
+        isValid = true;
         setCountryCodeError("");
       }
       if (phone.trim().length === 0) {
@@ -78,7 +79,9 @@ function Signup() {
         isValid = false;
       } else if (validatePhone(phone) === false) {
         setPhoneError("Please enter valid phone number");
+        isValid = false;
       } else {
+        isValid = true;
         setPhoneError("");
         body = { ...body, phoneNumber: phone };
       }
@@ -112,9 +115,9 @@ function Signup() {
     }
   }, [isSuccess, isError, data, error]);
   return (
-    <div className="w-screen h-screen lg:flex min-h-[818px] hide-scrollbar pt-[50px] lg:pt-0">
+    <div className="w-screen h-screen lg:flex min-h-[818px] hide-scrollbar   pt-[50px] lg:pt-0">
       {/* Left section */}
-      <div className=" hidden lg:block lg:w-[60%] lg:pl-8 xl:pl-24   ">
+      <div className=" hidden  lg:block lg:w-[55%]  lg:pl-8 xl:pl-16   ">
         <Image
           src={AuthImage}
           alt="auth-image"
@@ -122,7 +125,7 @@ function Signup() {
         />
       </div>
       {/* Right section */}
-      <div className="w-full flex justify-center lg:justify-start  lg:w-[50%] px-5  sm:px-[50px] xl:px-[150px] lg:pt-[80px] ">
+      <div className="w-full flex  justify-center lg:justify-start   lg:w-[45%] px-5  sm:px-[50px] xl:px-[140px] lg:pt-[80px] ">
         <div className=" w-full flex flex-col  items-center  lg:items-start max-w-[500px] lg:max-w-full">
           <h1 className="text-black-1   font-medium text-[22px] text-center lg:text-start w-[334px]  leading-[30px] ">
             Your local marketplace for Products and Services
@@ -283,7 +286,7 @@ function Signup() {
               onClick={() => {
                 router.push("/signin");
               }}
-              className="text-green-1 cursor-pointer"
+              className="text-green-1 cursor-pointer hover:underline"
             >
               Sign in
             </span>

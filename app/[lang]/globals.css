@@ -27,12 +27,13 @@
   --color-orange:#EE6134;
   --color-red-1:#E92440;
   --color-blue-1:#4286F8;
+  --font-plex:'IBM Plex Sans Variable', sans-serif;
 
 }
 
 
 body {
-  font-family: 'IBM Plex Sans Variable', sans-serif;
+  /* font-family: var(--font-plex) */
   
 }
 .hide-scrollbar {

@@ -54,9 +54,16 @@ export const authService = baseApi.injectEndpoints({
         body,
       }),
     }),
+    getLocations: build.query({
+      query: (params) => ({
+        url: `/search/autocomplete-locations?q=${new URLSearchParams(params)}`,
+        method: "GET",
+      }),
+    }),
   }),
 });
 export const {
+  useGetLocationsQuery,
   useResetPasswordMutation,
   useVerifyEmailMutation,
   useForgotPasswordMutation,

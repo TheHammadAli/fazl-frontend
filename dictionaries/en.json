@@ -1,3 +1,19 @@
 {
-    "currentLanguage": "en"
+    "currentLanguage": "en",
+    "placeholders": {
+        "market": "market",
+        "contact": "Contact",
+        "terms_condition": "Terms and Conditions",
+        "privacy_policy": "Privacy Policy"
+    },
+    "info_messages": {
+        "welcome_market": "Welcome to market",
+        "discover_market": "The marketplace to discover, sell, and grow",
+        "locally_globally": "- locally and globally.",
+        "list_product": "List a Product or Item",
+        "sell_physical": "Sell physical goods through your own shop — from electronics to clothing and more.",
+        "list_service": "List a Service",
+        "offer_expertise": "Offer your expertise — from home repairs to graphic design, and everything in between."
+    },
+    "error_messages": {}
 }

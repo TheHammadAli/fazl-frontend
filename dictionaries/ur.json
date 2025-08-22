@@ -1,3 +1,19 @@
 {
-    "currentLanguage": "ur"
+    "currentLanguage": "ur",
+    "placeholders": {
+        "market": "مارکیٹ",
+        "contact": "رابطہ",
+        "terms_condition": "قوانین اور شرائط",
+        "privacy_policy": "رازداری کی پالیسی"
+    },
+    "info_messages": {
+        "welcome_market": "مارکیٹ میں خوش آمدید",
+        "discover_market": "مقامی اور عالمی سطح پر - دریافت کرنے، فروخت کرنے اور بڑھنے کے لیے بازار",
+        "locally_globally": "- مقامی اور عالمی سطح پر۔",
+        "list_product": "ایک پروڈکٹ یا آئٹم کی فہرست بنائیں",
+        "sell_physical": "اپنی دکان کے ذریعے جسمانی سامان بیچیں — الیکٹرانکس سے لے کر کپڑوں تک اور بہت کچھ۔",
+        "list_service": "ایک سروس کی فہرست بنائیں",
+        "offer_expertise": "اپنی مہارت پیش کریں — گھر کی مرمت سے لے کر گرافک ڈیزائن تک، اور اس کے درمیان سب کچھ۔"
+    },
+    "error_messages": {}
 }

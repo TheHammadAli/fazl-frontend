@@ -347,7 +347,10 @@ function FinishSignup({ password }: { password: string }) {
                       placeholder="Search country..."
                       className="w-full px-4 font-light py-2 outline-none  text-sm border border-gray-200 rounded-md  "
                       value={search}
-                      onChange={(e) => setSearch(e.target.value)}
+                      onChange={(e) => {
+                        setSearch(e.target.value);
+                        console.log(e.target);
+                      }}
                     />
                     <div className=" border   max-h-[250px] overflow-scroll hide-scrollbar  border-gray-200 rounded-md shadow-md mt-2">
                       {filteredCountryCodes.length > 0 ? (
