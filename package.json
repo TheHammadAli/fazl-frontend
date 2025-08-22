@@ -23,6 +23,7 @@
     "react-otp-input": "^3.1.1",
     "react-redux": "^9.2.0",
     "react-spinners": "^0.17.0",
+    "use-debounce": "^10.0.5",
     "world-countries-capitals": "^3.4.0"
   },
   "devDependencies": {

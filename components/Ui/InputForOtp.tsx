@@ -11,11 +11,11 @@ function InputForOtp({ otp, setOtp }: InputForOtpProps) {
     <OtpInput
       containerStyle={"gap-2"}
       inputStyle={
-        "h-[52px] w-[52px] min-w-[52px] outline-none border border-black-1 rounded-[12px] text-[14px] font-normal text-center"
+        "h-[40px] md:h-[52px] w-[40px] min-w-[40px] md:w-[52px] md:min-w-[52px] outline-none border border-black-1 rounded-[12px] text-[14px] font-normal text-center"
       }
       value={otp}
       onChange={setOtp}
-      numInputs={4}
+      numInputs={6}
       renderSeparator={false}
       renderInput={(props) => <input {...props} />}
     />
