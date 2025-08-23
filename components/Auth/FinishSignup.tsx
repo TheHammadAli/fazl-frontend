@@ -10,10 +10,24 @@ import { locations } from "@/assets/content/locations";
 import { BeatLoader } from "react-spinners";
 import { useAppSelector } from "@/store/store";
 import { validatePhone } from "./SendOtp";
-import { useSignupMutation } from "@/store/services/authService";
+import {
+  useGetLocationsQuery,
+  useSignupMutation,
+} from "@/store/services/authService";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import dummyProfile from "@/assets/images/profile-placehonder.png";
+import { useDebounce } from "use-debounce";
+
+interface Location {
+  description?: string;
+
+  type?: string;
+  coordinates?: {
+    lat?: number;
+    lng?: number;
+  };
+}
 
 function FinishSignup({ password }: { password: string }) {
   const router = useRouter();
@@ -29,15 +43,7 @@ function FinishSignup({ password }: { password: string }) {
   const allCountries = countries.getAll();
   const [countryName, setCountryName] = useState("");
   const [countryCode, setCountryCode] = useState("");
-  const [location, setLocation] = useState<{
-    name?: string;
-    subtitle?: string;
-    type?: string;
-    coordinates?: {
-      latitude?: number;
-      longitude?: number;
-    };
-  }>({});
+  const [location, setLocation] = useState<Location>({});
   const [signup, { isLoading, isSuccess, isError, error, data }] =
     useSignupMutation();
   const [locationError, setLocationError] = useState("");
@@ -59,19 +65,26 @@ function FinishSignup({ password }: { password: string }) {
     dial_code,
   }));
 
+  const [debouncedLocationSearch] = useDebounce(locationSearch, 500);
+
+  const {
+    data: locationsData,
+    isLoading: isLocationsLoading,
+    isSuccess: isLocationsSuccess,
+    isFetching: isLocationsFetching,
+  } = useGetLocationsQuery(
+    {
+      q: debouncedLocationSearch,
+    },
+    { skip: locationSearch.trim() == "" || locationSearch == null }
+  );
+
+  console.log(locationsData, "testing");
   const filteredCountryCodes =
     search === ""
       ? simplified
       : simplified?.filter((c) =>
           c.name.toLowerCase().includes(search.toLowerCase())
-        );
-  const filteredLocations =
-    locationSearch === ""
-      ? locations
-      : locations?.filter(
-          (c) =>
-            c.name.toLowerCase().includes(locationSearch) ||
-            c.subtitle?.toLowerCase().includes(locationSearch)
         );
 
   useClickOutside(countryRef, () => {
@@ -141,13 +154,10 @@ function FinishSignup({ password }: { password: string }) {
         password: password,
         name: firstName + " " + lastName,
         phone: type === "phone" ? phoneData : phone,
-        address: location?.name + " " + location?.subtitle,
+        address: location?.description,
         location: {
           type: "Point",
-          coordinates: [
-            location?.coordinates?.latitude,
-            location?.coordinates?.longitude,
-          ],
+          coordinates: [location?.coordinates?.lat, location?.coordinates?.lng],
         },
       };
       const formData = new FormData();
@@ -169,6 +179,7 @@ function FinishSignup({ password }: { password: string }) {
       signup(formData);
     }
   };
+  console.log(locationsData);
 
   useEffect(() => {
     if (isSuccess) {
@@ -349,7 +360,6 @@ function FinishSignup({ password }: { password: string }) {
                       value={search}
                       onChange={(e) => {
                         setSearch(e.target.value);
-                        console.log(e.target);
                       }}
                     />
                     <div className=" border   max-h-[250px] overflow-scroll hide-scrollbar  border-gray-200 rounded-md shadow-md mt-2">
@@ -425,7 +435,9 @@ function FinishSignup({ password }: { password: string }) {
               }}
             >
               <h2 className="text-[15px] font-normal text-gray-8">
-                {location.name ? location.name : "Choose location"}
+                {location?.description
+                  ? location.description
+                  : "Choose location"}
               </h2>
               <Image
                 src={chevDown}
@@ -445,34 +457,56 @@ function FinishSignup({ password }: { password: string }) {
                   onChange={(e) => setLocationSearch(e.target.value)}
                 />
                 <div className="max-h-[250px] border overflow-scroll border-gray-200 rounded-md shadow-md mt-2">
-                  {filteredLocations?.length > 0 ? (
-                    filteredLocations?.map((data, index) => (
-                      <div
-                        onClick={() => {
-                          setLocation(data);
-                          setIsLocationOpen(false);
-                        }}
-                        className="text-[15px]  text-gray-8 px-4 py-2 text-sm cursor-pointer font-light hover:bg-gray-100"
-                        key={index}
-                      >
-                        <div className="flex items-center gap-2">
-                          <Image
-                            src={locationIcon}
-                            alt=""
-                            className="h-[18px] w-[14px]"
-                          />
-                          <div>
-                            <h1 className="font-medium">{data.name}</h1>
-                            <h2>{data.subtitle}</h2>
+                  {!isLocationsLoading &&
+                    !isLocationsFetching &&
+                    locationsData?.data?.length > 0 &&
+                    locationsData?.data?.map(
+                      (data: Location, index: number) => (
+                        <div
+                          onClick={() => {
+                            setLocation(data);
+                            setIsLocationOpen(false);
+                          }}
+                          className="text-[15px]  text-gray-8 px-4 py-2 text-sm cursor-pointer font-light hover:bg-gray-100"
+                          key={index}
+                        >
+                          <div className="flex items-center gap-2">
+                            <Image
+                              src={locationIcon}
+                              alt=""
+                              className="h-[18px] w-[14px]"
+                            />
+                            <div>
+                              <h2>{data?.description}</h2>
+                            </div>
                           </div>
                         </div>
+                      )
+                    )}
+                  {!isLocationsLoading &&
+                    !isLocationsFetching &&
+                    locationsData?.data?.length === 0 && (
+                      <div className="text-[15px]  text-gray-8 px-4 py-2 text-sm cursor-pointer font-light hover:bg-gray-100">
+                        No locations found
                       </div>
-                    ))
-                  ) : (
-                    <div className="text-[15px]  text-gray-8 px-4 py-2 text-sm cursor-pointer font-light hover:bg-gray-100">
-                      No locations found
+                    )}
+                  {(isLocationsLoading || isLocationsFetching) && (
+                    <div className="w-full space-y-1">
+                      {Array.from({ length: 5 }).map((_, index) => (
+                        <div
+                          key={index}
+                          className="bg-gray-100 h-[40px] animate-pulse"
+                        ></div>
+                      ))}
                     </div>
                   )}
+                  {!locationsData &&
+                    !isLocationsLoading &&
+                    !isLocationsFetching && (
+                      <div className="text-[15px]  text-gray-8 px-4 py-2 text-sm cursor-pointer font-light hover:bg-gray-100">
+                        No locations found
+                      </div>
+                    )}
                 </div>
               </div>
             )}
