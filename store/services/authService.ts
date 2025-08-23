@@ -55,10 +55,14 @@ export const authService = baseApi.injectEndpoints({
       }),
     }),
     getLocations: build.query({
-      query: (params) => ({
-        url: `/search/autocomplete-locations?q=${new URLSearchParams(params)}`,
-        method: "GET",
-      }),
+      query: (params) => {
+        console.log("API params 👉", params);
+
+        return {
+          url: `/search/autocomplete-locations?${new URLSearchParams(params)}`,
+          method: "GET",
+        };
+      },
     }),
   }),
 });
