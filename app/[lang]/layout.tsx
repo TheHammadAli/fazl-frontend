@@ -28,11 +28,11 @@ export default async function RootLayout({
   const dictionary = await getDictionary(lang);
   return (
     <html
-      className={"font-plex"}
+      className={"font-plex "}
       lang={lang}
       dir={lang === "en" ? "ltr" : "rtl"}
     >
-      <body className={`  `}>
+      <body className={``}>
         <DictionaryProvider dictionary={dictionary}>
           {children}
         </DictionaryProvider>

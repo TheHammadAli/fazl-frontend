@@ -13,6 +13,7 @@
   --color-green-1:#007781;
   --color-green-2:#3C9197;
   --color-green-3:#C7F1EE;
+  --color-green-4:#E6FBFB;
   --color-gray-1:#828484;
   --color-gray-2:#D3D3D3;
   --color-gray-3:#747474;
@@ -24,6 +25,7 @@
   --color-gray-9: #E5E5E5;
   --color-gray-10: #F6F6F6;
   --color-gray-11:#727272;
+  --color-gray-12: #EEF2F3;
   --color-orange:#EE6134;
   --color-red-1:#E92440;
   --color-blue-1:#4286F8;
@@ -32,10 +34,7 @@
 }
 
 
-body {
-  /* font-family: var(--font-plex) */
-  
-}
+
 .hide-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;

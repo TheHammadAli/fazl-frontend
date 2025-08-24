@@ -4,7 +4,26 @@
         "market": "مارکیٹ",
         "contact": "رابطہ",
         "terms_condition": "قوانین اور شرائط",
-        "privacy_policy": "رازداری کی پالیسی"
+        "privacy_policy": "رازداری کی پالیسی",
+        "view_my_profile": "پروفائل میں دیکھیں",
+        "my_cart": "میری ٹوکری",
+        "my_orders": "میرے آرڈر",
+        "my_requests": "میری درخواستیں",
+        "my_jobs": "میری نوکریاں",
+        "company": "کمپنی",
+        "terms": "قوانین",
+        "privacy": "رازداری",
+        "settings": "سیٹنگز",
+        "about_market": "مارکیٹ کے بارے میں",
+        "logout": "لاگ آؤٹ",
+        "profile": "پروفائل",
+        "add_photo": "تصویر شامل کریں",
+        "firstname": "پہلا نام",
+        "Lastname": "آخری نام",
+        "email_address": "ای میل ایڈریس",
+        "choose_location": "مقام منتخب کریں",
+        "choose_map_location": "نقشے پر مقام منتخب کریں",
+        "save": "محفوظ کریں"
     },
     "info_messages": {
         "welcome_market": "مارکیٹ میں خوش آمدید",
@@ -15,5 +34,20 @@
         "list_service": "ایک سروس کی فہرست بنائیں",
         "offer_expertise": "اپنی مہارت پیش کریں — گھر کی مرمت سے لے کر گرافک ڈیزائن تک، اور اس کے درمیان سب کچھ۔"
     },
-    "error_messages": {}
+    "pages": {
+        "home": "صفحہ اول",
+        "services": "خدمات",
+        "selling": "فروخت",
+        "feed": "فیڈ",
+        "chat": "گفتگو",
+        "updates": "تازہ ترین",
+        "profile": "پروفائل"
+    },
+    "error_messages": {
+        "firstname_required": "پہلا نام ضروری ہے*",
+        "lastname_required": "آخری نام ضروری ہے*",
+        "email_required": "ای میل ضروری ہے*",
+        "location_required": "مقام ضروری ہے*",
+        "valid_email": "براہ کرم درست ای میل درج کریں"
+    }
 }

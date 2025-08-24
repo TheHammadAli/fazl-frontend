@@ -115,7 +115,7 @@ function Signup() {
     }
   }, [isSuccess, isError, data, error]);
   return (
-    <div className="w-screen h-screen lg:flex min-h-[818px] hide-scrollbar   pt-[50px] lg:pt-0">
+    <div className="w-screen h-screen lg:flex min-h-[818px] hide-scrollbar  pt-[50px] lg:pt-0">
       {/* Left section */}
       <div className=" hidden  lg:block lg:w-[55%]  lg:pl-8 xl:pl-16   ">
         <Image
