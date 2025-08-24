@@ -3,8 +3,27 @@
     "placeholders": {
         "market": "market",
         "contact": "Contact",
-        "terms_condition": "Terms and Conditions",
-        "privacy_policy": "Privacy Policy"
+        "terms_condition": "terms & conditions",
+        "privacy_policy": "privacy policy",
+        "view_my_profile": "View my profile",
+        "my_cart": "My cart",
+        "my_orders": "My orders",
+        "my_requests": "My requests",
+        "my_jobs": "My jobs",
+        "company": "Company",
+        "terms": "Terms",
+        "privacy": "Privacy",
+        "settings": "Settings",
+        "about_market": "About market",
+        "logout": "Logout",
+        "profile": "Profile",
+        "add_photo": "Add photo",
+        "firstname": "First name",
+        "Lastname": "Last name",
+        "email_address": "Email address",
+        "choose_location": "Choose location",
+        "choose_map_location": "Choose location map ",
+        "save": "Save"
     },
     "info_messages": {
         "welcome_market": "Welcome to market",
@@ -15,5 +34,20 @@
         "list_service": "List a Service",
         "offer_expertise": "Offer your expertise — from home repairs to graphic design, and everything in between."
     },
-    "error_messages": {}
+    "pages": {
+        "home": "Home",
+        "services": "Services",
+        "selling": "Selling",
+        "feed": "Feed",
+        "chat": "Chat",
+        "updates": "Updates",
+        "profile": "Profile"
+    },
+    "error_messages": {
+        "firstname_required": "First name is required*",
+        "lastname_required": "Last name is required*",
+        "email_required": "Email is required*",
+        "location_required": "Location is required*",
+        "valid_email": "Please enter a valid email"
+    }
 }

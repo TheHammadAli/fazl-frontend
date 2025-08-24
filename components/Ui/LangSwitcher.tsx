@@ -78,7 +78,7 @@ export default function LangSwitcher() {
                     currentLanguage === locale ? "text-green-1" : "text-black"
                   }`}
                 >
-                  {locale === "en" ? "English" : "العربية"}
+                  {locale === "en" ? "English" : "اردو"}
                 </button>
               </div>
             );

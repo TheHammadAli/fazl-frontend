@@ -42,6 +42,9 @@ export function middleware(request: NextRequest) {
     }${pathname}${urlParams}`;
     return NextResponse.redirect(new URL(pathname, request.url));
   }
+  if (token && (pathname === "/" || pathname === `/${locale}`)) {
+    return NextResponse.redirect(new URL(`/${locale}/home`, request.url));
+  }
 
   if (token && checkPathStartsWith(pathname)) {
     return NextResponse.redirect(new URL(`/${locale}`, request.url));
