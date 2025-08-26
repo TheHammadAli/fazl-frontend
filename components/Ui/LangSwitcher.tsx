@@ -57,7 +57,7 @@ export default function LangSwitcher() {
         <Image src={langSwitcher} className="  " alt="lang-switcher-icon" />
         <div className="text-[14px] text-black-1 font-normal">
           {" "}
-          {currentLanguage === "en" ? "English" : "العربية"}
+          {currentLanguage === "en" ? "English" : "اردو"}
         </div>
         <Image src={chevDown} className="w-[12px]" alt="chevron-down-icon" />
       </div>
