@@ -7,7 +7,8 @@ import { useAppDispatch } from "@/store/store";
 import { useRouter } from "next/navigation";
 import { useSigninMutation } from "@/store/services/authService";
 import toast from "react-hot-toast";
-import { setToken } from "@/store/reducers/authReducer";
+import { setToken, setUserId } from "@/store/reducers/authReducer";
+import { setCookie } from "cookies-next";
 
 export type Body = {
   email?: string;
@@ -50,10 +51,12 @@ function Signin() {
   useEffect(() => {
     if (isSuccess) {
       toast.success(data?.message);
+      console.log(data?.data);
       dispatch(setToken(data?.data?.accessToken));
+      dispatch(setUserId(data?.data?.user?.id));
       const timer = setTimeout(() => {
         router.push("/welcome");
-      }, 1500);
+      }, 800);
 
       return () => clearTimeout(timer);
     }
