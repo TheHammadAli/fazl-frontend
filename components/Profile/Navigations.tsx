@@ -1,7 +1,7 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Image, { StaticImageData } from "next/image";
-import dummyProfile from "@/assets/images/dummy-profile-image.jpg";
+import dummyProfile from "@/assets/images/profile-placehonder.png";
 import chevron from "@/assets/icons/chev-down-icon.svg";
 import { useDictionary } from "@/dictionaries/DictionaryProvider";
 
@@ -9,8 +9,9 @@ import privacyIcon from "@/assets/icons/privacy-policy.svg";
 import settingIcon from "@/assets/icons/settings.svg";
 import aboutIcon from "@/assets/icons/about.svg";
 import { useRouter } from "next/navigation";
-import { useAppDispatch } from "@/store/store";
+import { useAppDispatch, useAppSelector } from "@/store/store";
 import { logout } from "@/store/reducers/authReducer";
+import { useGetUserDetailQuery } from "@/store/services/profileService";
 interface Tab {
   title: string;
   icon: StaticImageData;
@@ -33,6 +34,19 @@ function Navigations({
   const { pages, placeholders } = useDictionary();
   const router = useRouter();
   const dispatch = useAppDispatch();
+  const { userId } = useAppSelector((state) => state.authReducer);
+  const [mounted, setMounted] = useState(false);
+  const {
+    data: profileData,
+    isLoading: profileLoading,
+    isFetching: profileFetching,
+    isError: profileError,
+    refetch,
+  } = useGetUserDetailQuery(userId, { skip: userId === "" });
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+  console.log(profileData);
   return (
     <div
       className={`w-full md:min-w-[160px] lg:w-[322px] h-full ltr:border-r-[1px] rtl:border-l-[1px] border-gray-9 pt-8 `}
@@ -53,15 +67,30 @@ function Navigations({
           className={`flex justify-between md:justify-center lg:justify-between  `}
         >
           <div className={`flex  md:flex-col lg:flex-row items-center gap-2 `}>
-            <Image
-              src={dummyProfile}
-              alt="profile"
-              className="h-12 w-12 rounded-full object-cover"
-            />
+            {mounted && (profileLoading || profileFetching) ? (
+              <div className="rounded-full bg-gray-200 h-12 w-12"></div>
+            ) : (
+              <Image
+                src={
+                  profileData?.data?.image &&
+                  !profileData?.data?.image.includes("default-avatar")
+                    ? `${profileData?.data?.image}?t=${new Date().getTime()}`
+                    : dummyProfile
+                }
+                alt="profile"
+                height={100}
+                width={100}
+                className="h-12 w-12 rounded-full object-cover"
+              />
+            )}
             <div>
-              <h2 className="text-black-1 font-medium text-[15px]">
-                Nouman Malik
-              </h2>
+              {mounted && (profileLoading || profileFetching) ? (
+                <div className="w-[80px] h-[15px] rounded-full bg-gray-200 animate-pulse"></div>
+              ) : (
+                <h2 className="text-black-1 font-medium text-[15px]">
+                  {profileData?.data?.name ?? ""}
+                </h2>
+              )}
               <h4 className="font-light text-[15px] text-gray-8">
                 {placeholders.view_my_profile}
               </h4>
