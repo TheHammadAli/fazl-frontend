@@ -260,7 +260,7 @@ function ProfileInfo({ toggle, setToggle }: ProfileInfoTypes) {
                 <Image
                   src={dummyProfile}
                   alt="profile"
-                  className="h-[100px] w-[100px] object-cover"
+                  className="h-full w-full object-cover"
                 />
               )}
             </div>
