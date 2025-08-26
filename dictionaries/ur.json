@@ -23,7 +23,8 @@
         "email_address": "ای میل ایڈریس",
         "choose_location": "مقام منتخب کریں",
         "choose_map_location": "نقشے پر مقام منتخب کریں",
-        "save": "محفوظ کریں"
+        "save": "محفوظ کریں",
+        "name": "نام"
     },
     "info_messages": {
         "welcome_market": "مارکیٹ میں خوش آمدید",
@@ -44,6 +45,7 @@
         "profile": "پروفائل"
     },
     "error_messages": {
+        "name_required": "نام ضروری ہے*",
         "firstname_required": "پہلا نام ضروری ہے*",
         "lastname_required": "آخری نام ضروری ہے*",
         "email_required": "ای میل ضروری ہے*",

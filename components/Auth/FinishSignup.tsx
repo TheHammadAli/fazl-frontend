@@ -48,7 +48,7 @@ function FinishSignup({ password }: { password: string }) {
     useSignupMutation();
   const [locationError, setLocationError] = useState("");
   const [phoneError, setPhoneError] = useState("");
-  const [profile, setProfile] = useState<string | null>(null);
+  const [profile, setProfile] = useState<File | null>(null);
   const [countryCodeError, setCountryCodeError] = useState("");
   const [search, setSearch] = useState("");
   const [locationSearch, setLocationSearch] = useState("");
@@ -79,7 +79,6 @@ function FinishSignup({ password }: { password: string }) {
     { skip: locationSearch.trim() == "" || locationSearch == null }
   );
 
-  console.log(locationsData, "testing");
   const filteredCountryCodes =
     search === ""
       ? simplified
@@ -172,14 +171,12 @@ function FinishSignup({ password }: { password: string }) {
         }
       });
 
-      if (profile && typeof profile === "string") {
+      if (profile && profile !== null) {
         formData.append("image", profile);
       }
-
       signup(formData);
     }
   };
-  console.log(locationsData);
 
   useEffect(() => {
     if (isSuccess) {
@@ -217,9 +214,9 @@ function FinishSignup({ password }: { password: string }) {
         )}
         <div className="mt-5 flex gap-[14px] items-center  w-full ">
           <div className="h-[62px] overflow-hidden  font-medium text-[16px] text-black-2 rounded-[22px] w-[62px] bg-[#E6FBFB] flex items-center justify-center">
-            {typeof profile === "string" ? (
+            {profile !== null ? (
               <img
-                src={profile ?? ""}
+                src={profile !== null ? URL.createObjectURL(profile) : ""}
                 alt=""
                 className="object-cover h-full w-full"
               />
@@ -239,7 +236,7 @@ function FinishSignup({ password }: { password: string }) {
             className="hidden"
             onChange={(e) => {
               if (e.target.files && e.target.files.length > 0) {
-                setProfile(URL.createObjectURL(e.target.files[0]));
+                setProfile(e.target.files[0]);
               }
             }}
             id="profile-photo"

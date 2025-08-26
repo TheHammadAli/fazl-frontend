@@ -1,22 +1,29 @@
+"use client";
 import { useDictionary } from "@/dictionaries/DictionaryProvider";
 import React, { useEffect, useRef, useState } from "react";
 import chevron from "@/assets/icons/chev-down-icon.svg";
 import Image from "next/image";
+import toast from "react-hot-toast";
 import { useClickOutside } from "@/custom-hooks/useClickOutside";
 import locationIcon from "@/assets/icons/location-icon.svg";
-import {
-  useGetLocationsQuery,
-  useSignupMutation,
-} from "@/store/services/authService";
-// import { useRouter } from "next/navigation";
-// import { useAppSelector } from "@/store/store";
-import countries from "country-list-with-dial-code-and-flag";
+import { useGetLocationsQuery } from "@/store/services/authService";
 import { useDebounce } from "use-debounce";
-import { validatePhone } from "../Auth/SendOtp";
 import dummyProfile from "@/assets/images/profile-placehonder.png";
 import chevDown from "@/assets/icons/chev-down-icon.svg";
 import { BeatLoader } from "react-spinners";
+import { useAppSelector } from "@/store/store";
 
+import {
+  useGetUserDetailQuery,
+  useUpdateProfileMutation,
+} from "@/store/services/profileService";
+import dynamic from "next/dynamic";
+const ProfileInfoSkeleton = dynamic(
+  () => import("@/components/Profile/ProfileInfoSkelton"),
+  {
+    ssr: false,
+  }
+);
 interface Location {
   description?: string;
 
@@ -31,69 +38,89 @@ interface ProfileInfoTypes {
   setToggle: (value: boolean) => void;
 }
 function ProfileInfo({ toggle, setToggle }: ProfileInfoTypes) {
+  const { userId } = useAppSelector((state) => state.authReducer);
+  const {
+    data: profileData,
+    isLoading: profileLoading,
+    isFetching: profileFetching,
+    isError: profileError,
+    refetch,
+  } = useGetUserDetailQuery(userId, { skip: userId === "" });
+
   const { placeholders, error_messages } = useDictionary();
-  // const router = useRouter();
-  // const {
-  //   email: emailData,
-  //   phone: phoneData,
-  //   type,
-  // } = useAppSelector((state) => state?.authReducer?.otpInfo);
-  const countryRef = useRef<HTMLDivElement | null>(null);
   const locationRef = useRef<HTMLDivElement | null>(null);
-  // const [isOpen, setIsOpen] = useState(false);
   const [isLocationOpen, setIsLocationOpen] = useState(false);
-  const allCountries = countries.getAll();
-  // const [countryName, setCountryName] = useState("");
-  const [countryCode, setCountryCode] = useState("");
   const [location, setLocation] = useState<Location>({});
-  const [signup, { isLoading, isSuccess, isError, error, data }] =
-    useSignupMutation();
+  const [updateProfile, { isLoading, isSuccess, isError, error, data }] =
+    useUpdateProfileMutation();
+
   const [locationError, setLocationError] = useState("");
-  // const [phoneError, setPhoneError] = useState("");
-  const [profile, setProfile] = useState<string | null>(null);
-  // const [countryCodeError, setCountryCodeError] = useState("");
-  // const [search, setSearch] = useState("");
+  const [profile, setProfile] = useState<File | null>(null);
   const [locationSearch, setLocationSearch] = useState("");
-  const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [emailError, setEmailError] = useState("");
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [firstNameError, setFirstNameError] = useState("");
-  const [lastNameError, setLastNameError] = useState("");
-  // const simplified = allCountries.map(({ name, dial_code }) => ({
-  //   name,
-  //   dial_code,
-  // }));
-
+  const [name, setName] = useState("");
+  const [nameError, setNameError] = useState("");
   const [debouncedLocationSearch] = useDebounce(locationSearch, 500);
+  const [mounted, setMounted] = useState(false);
 
   const {
     data: locationsData,
     isLoading: isLocationsLoading,
-    isSuccess: isLocationsSuccess,
     isFetching: isLocationsFetching,
   } = useGetLocationsQuery(
     {
       q: debouncedLocationSearch,
     },
-    { skip: locationSearch.trim() == "" || locationSearch == null }
+    { skip: locationSearch?.trim() == "" || locationSearch == null }
   );
 
-  // const filteredCountryCodes =
-  //   search === ""
-  //     ? simplified
-  //     : simplified?.filter((c) =>
-  //         c.name.toLowerCase().includes(search.toLowerCase())
-  //       );
-
-  // useClickOutside(countryRef, () => {
-  //   setIsOpen(false);
-  // });
   useClickOutside(locationRef, () => {
     setIsLocationOpen(false);
   });
 
+  useEffect(() => {
+    if (profileData?.data) {
+      console.log("wofff");
+      const { email, name, address, location, image } = profileData?.data;
+
+      setEmail(email ?? "");
+      setName(name ?? "");
+      setLocation(
+        location
+          ? {
+              coordinates: {
+                lat: location?.coordinates?.[0],
+                lng: location.coordinates?.[1],
+              },
+              description: address,
+              type: "Point",
+            }
+          : {}
+      );
+      if (!image || image.includes("default-avatar")) {
+        setProfile(null);
+      } else {
+        setProfile(image);
+      }
+    }
+  }, [profileData, profileData?.data?.image]);
+
+  useEffect(() => {
+    if (isSuccess) {
+      toast.success(data?.message);
+      refetch();
+    }
+    if (isError && "data" in error) {
+      toast.error(
+        (error?.data as { message?: string })?.message ||
+          "something went wrong!"
+      );
+    }
+  }, [isSuccess, isError, data, error, refetch]);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -103,7 +130,7 @@ function ProfileInfo({ toggle, setToggle }: ProfileInfoTypes) {
       setter: React.Dispatch<React.SetStateAction<string>>,
       message: string
     ) => {
-      if (value.trim() === "") {
+      if (value?.trim() === "") {
         setter(message);
         isValid = false;
       } else {
@@ -111,8 +138,7 @@ function ProfileInfo({ toggle, setToggle }: ProfileInfoTypes) {
       }
     };
 
-    checkField(firstName, setFirstNameError, error_messages.firstname_required);
-    checkField(lastName, setLastNameError, error_messages.lastname_required);
+    checkField(name, setNameError, error_messages.name_required);
     if (Object.keys(location).length === 0) {
       setLocationError(error_messages.location_required);
       isValid = false;
@@ -120,7 +146,6 @@ function ProfileInfo({ toggle, setToggle }: ProfileInfoTypes) {
       setLocationError("");
     }
 
-    // if (type === "phone") {
     if (email.trim() === "") {
       setEmailError(error_messages.email_required);
       isValid = false;
@@ -130,28 +155,10 @@ function ProfileInfo({ toggle, setToggle }: ProfileInfoTypes) {
     } else {
       setEmailError("");
     }
-    // }
 
-    // if (type === "email") {
-    // checkField(countryCode, setCountryCodeError, "Country code is required*");
-
-    // if (phone.trim() === "") {
-    //   setPhoneError("Phone number is required*");
-    //   isValid = false;
-    // } else if (validatePhone(phone) === false) {
-    //   setPhoneError("Please enter valid phone number");
-    //   isValid = false;
-    // } else {
-    //   setPhoneError("");
-    // }
-    // }
     if (isValid) {
       const payload = {
-        // email: type === "email" ?
-        emailData: email,
-        password: "ddddd",
-        name: firstName + " " + lastName,
-        // phone: type === "phone" ? phoneData : phone,
+        name: name,
         address: location?.description,
         location: {
           type: "Point",
@@ -170,13 +177,29 @@ function ProfileInfo({ toggle, setToggle }: ProfileInfoTypes) {
         }
       });
 
-      if (profile && typeof profile === "string") {
+      if (profile && typeof profile !== "string") {
         formData.append("image", profile);
       }
-
-      // signup(formData);
+      // for (const pair of formData.entries()) {
+      //   console.log(pair[0] + ", " + pair[1]);
+      // }
+      updateProfile({ formData, id: userId });
     }
   };
+  if (!mounted) {
+    return null;
+  }
+  if (profileLoading || profileFetching) {
+    return <div className="w-full  h-max">{<ProfileInfoSkeleton />} </div>;
+  }
+  if (profileError) {
+    return (
+      <div className="w-full  h-full flex items-center  text-red-1 justify-center">
+        Error while loading profile
+      </div>
+    );
+  }
+
   return (
     <div className="w-full  h-max">
       <div className="px-6 xl:px-0 h-[61px] border-b-[1px] border-gray-9 bg-white w-full  flex justify-center">
@@ -205,22 +228,34 @@ function ProfileInfo({ toggle, setToggle }: ProfileInfoTypes) {
             alt="chevron"
             className="-rotate-90 rtl:rotate-90"
           />
-          <span className="text-green-1">Nouman Malik</span>
+          <span className="text-green-1">{mounted ? name : ""}</span>
         </div>
       </div>
       {/*Edit Profile Info */}
       <div className=" px-6 xl:px-0 flex justify-center">
-        <form onSubmit={handleSubmit} className="w-full  max-w-[520px]  ">
+        <form
+          onSubmit={handleSubmit}
+          className={`w-full  max-w-[520px] ${
+            isLoading && "pointer-events-none"
+          }`}
+        >
           <div className="mt-5 flex gap-[14px] items-center  w-full ">
             <div className="h-[62px] overflow-hidden  font-medium text-[16px] text-black-2 rounded-[22px] w-[62px] bg-[#E6FBFB] flex items-center justify-center">
-              {typeof profile === "string" ? (
+              {mounted && profile !== null ? (
+                // eslint-disable-next-line @next/next/no-img-element
                 <img
-                  src={profile ?? ""}
+                  src={
+                    profile !== null
+                      ? typeof profile === "string"
+                        ? `${profile}?t=${new Date().getTime()}`
+                        : URL.createObjectURL(profile)
+                      : ""
+                  }
                   alt=""
                   className="object-cover h-full w-full"
                 />
-              ) : firstName && lastName ? (
-                firstName.slice(0, 1) + lastName.slice(0, 1)
+              ) : name ? (
+                name.slice(0, 2)
               ) : (
                 <Image
                   src={dummyProfile}
@@ -235,7 +270,7 @@ function ProfileInfo({ toggle, setToggle }: ProfileInfoTypes) {
               className="hidden"
               onChange={(e) => {
                 if (e.target.files && e.target.files.length > 0) {
-                  setProfile(URL.createObjectURL(e.target.files[0]));
+                  setProfile(e.target.files[0]);
                 }
               }}
               id="profile-photo"
@@ -247,52 +282,29 @@ function ProfileInfo({ toggle, setToggle }: ProfileInfoTypes) {
               {placeholders.add_photo}
             </label>
           </div>
-          {/* first name */}
+          {/*  name */}
           <div className="space-y-1 mt-5 w-full">
             <p
               className={`text-[14px] font-normal  ${
-                firstNameError ? "text-red-1" : "text-gray-8"
+                nameError ? "text-red-1" : "text-gray-8"
               }`}
             >
-              {placeholders.firstname}
+              {placeholders.name}
             </p>
             <input
               type="text"
-              value={firstName}
+              value={name}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                setFirstName(e.target.value)
+                setName(e.target.value)
               }
               className="h-[28px] text-[15px] text-black-1 font-normal focus:outline-none w-full border-gray-9 border-b-[1px] "
             />
-            {firstNameError && (
-              <p className="text-red-1 text-[14px] font-normal">
-                {firstNameError}
-              </p>
+            {nameError && (
+              <p className="text-red-1 text-[14px] font-normal">{nameError}</p>
             )}
           </div>
           {/* last name */}
-          <div className="space-y-1 mt-5 w-full">
-            <p
-              className={`text-[14px] font-normal  ${
-                lastNameError ? "text-red-1" : "text-gray-8"
-              }`}
-            >
-              {placeholders.Lastname}
-            </p>
-            <input
-              type="text"
-              value={lastName}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                setLastName(e.target.value)
-              }
-              className="h-[28px] text-[15px] text-black-1  font-normal focus:outline-none w-full border-gray-9 border-b-[1px] "
-            />
-            {lastNameError && (
-              <p className="text-red-1 text-[14px] font-normal">
-                {lastNameError}
-              </p>
-            )}
-          </div>
+
           {/* email address */}
           {/* {mounted && type === "phone" && ( */}
           <div className="space-y-1 mt-5 w-full">
@@ -308,112 +320,15 @@ function ProfileInfo({ toggle, setToggle }: ProfileInfoTypes) {
               onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                 setEmail(e.target.value)
               }
+              disabled
               value={email}
-              className="h-[28px] text-[15px] text-black-1  font-normal focus:outline-none w-full border-gray-9 border-b-[1px] "
+              className="h-[28px] text-[15px] text-black-1 disabled:text-gray-6  font-normal focus:outline-none w-full border-gray-9 border-b-[1px] "
             />
             {emailError && (
               <p className="text-red-1 text-[14px] font-normal">{emailError}</p>
             )}
           </div>
-          {/* )} */}
-          {/* phone number
-          {mounted && type === "email" && (
-            <div className="w-full">
-              <div className="mt-5 w-full">
-                <div
-                  className={`text-[14px] font-normal  ${
-                    countryCodeError ? "text-red-1" : "text-gray-8"
-                  }`}
-                >
-                  Country code
-                </div>
-                <div ref={countryRef} className="relative inline-block w-full">
-                  <div
-                    className="pb-1 w-full flex items-center border-b-[1px] border-gray-9 justify-between mt-1 cursor-pointer"
-                    onClick={() => {
-                      setIsOpen(!isOpen);
-                    }}
-                  >
-                    <h2 className="text-[15px] font-normal text-gray-8">
-                      {countryCode && countryName
-                        ? `${countryName} (${countryCode})`
-                        : "Select country code"}
-                    </h2>
-                    <Image
-                      src={chevDown}
-                      alt="chev-down"
-                      className="h-[16px] w-[12px]"
-                      height={100}
-                      width={100}
-                    />
-                  </div>
-                  {isOpen && (
-                    <div className="absolute z-20  text-gray-8 w-full text-[14px] bg-white pt-1">
-                      <input
-                        type="text"
-                        placeholder="Search country..."
-                        className="w-full px-4 font-light py-2 outline-none  text-sm border border-gray-200 rounded-md  "
-                        value={search}
-                        onChange={(e) => {
-                          setSearch(e.target.value);
-                        }}
-                      />
-                      <div className=" border   max-h-[250px] overflow-scroll hide-scrollbar  border-gray-200 rounded-md shadow-md mt-2">
-                        {filteredCountryCodes.length > 0 ? (
-                          filteredCountryCodes?.map((data, index) => (
-                            <div
-                              onClick={() => {
-                                setCountryName(data?.name);
-                                setCountryCode(data?.dial_code);
-                                setPhone(data?.dial_code);
-                                setIsOpen(false);
-                              }}
-                              className="text-[14px]  text-gray-8 px-4 py-2 text-sm cursor-pointer font-light hover:bg-gray-100"
-                              key={index}
-                            >{`(${data.dial_code}) ${data.name}`}</div>
-                          ))
-                        ) : (
-                          <div className="text-[14px]  text-gray-8 px-4 py-2 text-sm cursor-pointer font-light">
-                            No country found
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                  {countryCodeError && (
-                    <p className="text-red-1 text-[14px] font-normal">
-                      {countryCodeError}
-                    </p>
-                  )}
-                </div>
-              </div>
 
-              <div className="space-y-2 mt-5">
-                <p
-                  className={`text-[14px] font-normal  ${
-                    phoneError ? "text-red-1" : "text-gray-8"
-                  }`}
-                >
-                  Phone number
-                </p>
-                <input
-                  type="phone"
-                  value={phone}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                    setPhone(e.target.value);
-                  }}
-                  className={`h-[28px] text-[14px] text-gray-8  font-normal focus:outline-none w-full ${
-                    phoneError ? "border-red-1" : "border-gray-9"
-                  } border-b-[1px] `}
-                />
-                {phoneError && (
-                  <p className="text-red-1 text-[14px] font-normal">
-                    {phoneError}
-                  </p>
-                )}
-              </div>
-            </div>
-          )} */}
           {/* location */}
           <div className="mt-5 w-full">
             <div
@@ -524,18 +439,19 @@ function ProfileInfo({ toggle, setToggle }: ProfileInfoTypes) {
               {placeholders.choose_map_location}
             </p>
           </div>
-          <div></div>{" "}
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="mt-6  h-[55px] w-[222px] rounded-[12px] text-white font-medium text-[16px]  bg-green-1 cursor-pointer"
-          >
-            {isLoading ? (
-              <BeatLoader color="white" size={8} />
-            ) : (
-              placeholders.save
-            )}
-          </button>
+          <div className="flex justify-center sm:justify-start lg:justify-end">
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="mt-6  h-[55px] w-full sm:w-[222px] rounded-[12px] text-white font-medium text-[16px]  bg-green-1 cursor-pointer"
+            >
+              {isLoading ? (
+                <BeatLoader color="white" size={8} />
+              ) : (
+                placeholders.save
+              )}
+            </button>
+          </div>
         </form>
       </div>
     </div>

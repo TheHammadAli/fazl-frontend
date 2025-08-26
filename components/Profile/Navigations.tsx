@@ -9,6 +9,8 @@ import privacyIcon from "@/assets/icons/privacy-policy.svg";
 import settingIcon from "@/assets/icons/settings.svg";
 import aboutIcon from "@/assets/icons/about.svg";
 import { useRouter } from "next/navigation";
+import { useAppDispatch } from "@/store/store";
+import { logout } from "@/store/reducers/authReducer";
 interface Tab {
   title: string;
   icon: StaticImageData;
@@ -30,7 +32,7 @@ function Navigations({
 }: NavigationsTypes) {
   const { pages, placeholders } = useDictionary();
   const router = useRouter();
-
+  const dispatch = useAppDispatch();
   return (
     <div
       className={`w-full md:min-w-[160px] lg:w-[322px] h-full ltr:border-r-[1px] rtl:border-l-[1px] border-gray-9 pt-8 `}
@@ -140,6 +142,10 @@ function Navigations({
       </div>
       <div
         className={`px-4 xl:px-6 py-4 flex items-center gap-2 cursor-pointer `}
+        onClick={() => {
+          dispatch(logout());
+          router.refresh();
+        }}
       >
         <Image src={privacyIcon} alt="icon" className="" />
         <h2 className="font-medium text-black-1 text-[15px] first-letter:capitalize">

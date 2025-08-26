@@ -1,5 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { setCookie, getCookie } from "cookies-next";
+import { use } from "react";
 // import { deleteCookie } from "cookies-next";
 
 type otpInfoTypes = {
@@ -14,12 +15,15 @@ let otpInfo: otpInfoTypes = {
 };
 let confirmedPwd: boolean = false;
 let token: string = "";
+let userId: string = "";
 
 if (typeof window !== "undefined") {
   const otpData = localStorage.getItem("otpInfo");
   const confirmedPwdData = localStorage.getItem("confirmedPwd");
   const cookieToken = getCookie("token");
+  const id = getCookie("userId");
   token = typeof cookieToken === "string" ? cookieToken : "";
+  userId = typeof id === "string" ? id : "";
   if (otpData) {
     otpInfo = JSON.parse(otpData);
   }
@@ -35,6 +39,7 @@ const authSlice = createSlice({
     otpInfo: otpInfo,
     confirmedPwd: confirmedPwd,
     token: token,
+    userId: userId,
   },
   reducers: {
     setOtpInfo: (state, action) => {
@@ -50,9 +55,22 @@ const authSlice = createSlice({
       state.token = action.payload;
       setCookie("token", action.payload);
     },
+    setUserId: (state, action) => {
+      state.userId = action.payload;
+      setCookie("userId", action.payload);
+    },
+    logout: (state) => {
+      state.token = "";
+      state.userId = "";
+      localStorage.removeItem("otpInfo");
+      localStorage.removeItem("confirmedPwd");
+      setCookie("token", "");
+      setCookie("userId", "");
+    },
   },
 });
 
-export const { setOtpInfo, setConfirmPwd, setToken } = authSlice.actions;
+export const { setOtpInfo, setConfirmPwd, setToken, setUserId, logout } =
+  authSlice.actions;
 
 export default authSlice.reducer;

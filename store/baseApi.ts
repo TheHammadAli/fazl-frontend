@@ -1,95 +1,30 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { BASE_URL } from "@/assets/content/constants";
+import { getToken } from "@/utils/getToken";
 // import { getToken } from "../utils/getToken";
 
-const excludeToken = [""];
+const excludeToken = [
+  "sendOtp",
+  "verifyOtp",
+  "verifyEmail",
+  "signup",
+  "forgotPassword",
+  "resetPassword",
+  "getLocations",
+];
+
 export const baseApi = createApi({
   baseQuery: fetchBaseQuery({
     baseUrl: BASE_URL,
     prepareHeaders: (headers, { endpoint }) => {
-      // const token = getToken();
-      // if (!excludeToken.includes(endpoint) && token) {
-      //   headers.set("Authorization", `bearer ${token}`);
-      // }
+      const token = getToken();
+      if (!excludeToken.includes(endpoint) && token) {
+        headers.set("Authorization", `Bearer ${token}`);
+      }
       return headers;
     },
   }),
-  tagTypes: [
-    "COURSES",
-    "SINGLEGROUP",
-    "CATEGORIES",
-    "CATEGORIES_WITHOUT_TOKEN",
-    "SUBCATEGORIES",
-    "SUBCATEGORIES_WITHOUT_TOKEN",
-    "COURSES",
-    "TOPICS",
-    "LEVELS",
-    "SERVICES_COUNTS",
-    "SLOTS",
-    "SESSIONS",
-    "COURSE_METADATA",
-    "GROUPS",
-    "ALL_FOCUSES",
-    "PVT_CLASS_SLOTS",
-    "PVT_CLASS_PACKAGES",
-    "PRIVATE_CLASSES",
-    "PVT_CLASS_DETAILS",
-    "SINGLE_COURSE_DETAILS",
-    "RESOURCE",
-    "REVIEWS",
-    "REPLIES",
-    "ALL_POST",
-    "FOLLOWS",
-    "FOLLOWS_FOLLOWING_COUNT",
-    "ENROLLED_LEARNERS",
-    "PROFILE_DATA",
-    "ALL_TAGS",
-    "ALL_POST_TAG",
-    "SINGLE_DETAILED_CLUB",
-    "DRAFTS",
-    "SEEN_ALL_MESSAGES",
-    "ALL_CHATS",
-    "SINGLE_CHATS",
-    "SINGLE_POST_THREAD",
-    "JOINED_SERVICES",
-    "PROFILE-DETAILS",
-    "PAYMENT-DETAILS",
-    "CLUB_LEARNERS",
-    "CLUB_LEARNERS_BY_REPORTS",
-    "REPORTS",
-    "CLUB_RESOURCES_BY_REPORTS",
-    "CLUBS",
-    "LEARNERS_CLUBS",
-    "INSTRUCTOR_SERVICES",
-    "INSTRUCTOR-APPROVALS",
-    "COURSES_APPROVALS",
-    "CLASSES_APPROVALS",
-    "CLUBS_APPROVALS",
-    "INSTRUCTOR_SERVICES",
-    "PROMOTIONS",
-    "ENROLL_PAYMENT",
-    "CLASS_ENROLL_PAYMENT",
-    "JOIN_CLUB",
-    "SEEN_ALL_ANNOUNCEMENTS",
-    "FEATURED_SERVICES",
-    "DELETE_SERVICE",
-    "TRAFFIC_CONVERSION",
-    "PERFORMANCE_BADGES",
-    "SCHEDULE",
-    "UNREAD_COUNT",
-    "READ_NOTIFICATION",
-    "NOTIFICATION_READ",
-    "APPROVED_INSTRUCTORS",
-    "SHOW_RESULTS_PROMOS",
-    "MILESTONES",
-    "SESSION_CHAT",
-    "CLASS_RESCHEDULE_REQUEST",
-    "CLASS_EXTRA_CHARGES",
-    "COURSE_CANCEL",
-    "COURSE_RESCHEDULE",
-    "REJECT_SERVICES",
-    "BOOKING_INFO",
-  ],
+  tagTypes: ["profile"],
   endpoints: (builder) => ({}),
 });
 

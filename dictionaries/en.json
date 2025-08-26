@@ -23,7 +23,8 @@
         "email_address": "Email address",
         "choose_location": "Choose location",
         "choose_map_location": "Choose location map ",
-        "save": "Save"
+        "save": "Save",
+        "name": "Name"
     },
     "info_messages": {
         "welcome_market": "Welcome to market",
@@ -44,6 +45,7 @@
         "profile": "Profile"
     },
     "error_messages": {
+        "name_required": "Name is required*",
         "firstname_required": "First name is required*",
         "lastname_required": "Last name is required*",
         "email_required": "Email is required*",

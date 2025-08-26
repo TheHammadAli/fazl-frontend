@@ -11,6 +11,7 @@ import MyRequests from "./MyRequests";
 import MyJobs from "./MyJobs";
 import Settings from "./Settings";
 import ProfileInfo from "./ProfileInfo";
+import { useGetUserDetailQuery } from "@/store/services/profileService";
 
 type tabsComponentsTypes = {
   my_cart: React.JSX.Element;
