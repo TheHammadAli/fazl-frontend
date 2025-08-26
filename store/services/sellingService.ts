@@ -9,15 +9,14 @@ export const profileService = baseApi.injectEndpoints({
       }),
       invalidatesTags: [],
     }),
-    // getUserDetail: build.query({
-    //   query: (id) => {
-    //     return {
-    //       url: `/users/detail/${id}`,
-    //       method: "GET",
-    //     };
-    //   },
-    //   providesTags: ["profile"],
-    // }),
+    getUsersShops: build.query({
+      query: () => {
+        return {
+          url: `/shops/userShops`,
+          method: "GET",
+        };
+      },
+    }),
   }),
 });
-export const { useCreateShopMutation } = profileService;
+export const { useCreateShopMutation, useGetUsersShopsQuery } = profileService;

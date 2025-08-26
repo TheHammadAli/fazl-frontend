@@ -29,7 +29,11 @@
         "private_listing": "نجی فہرست",
         "create_shop": "دکان بنائیں",
         "promote_shop": " اس دکان کو فروغ دیں",
-        "later": "بعد میں"
+        "later": "بعد میں",
+        "total": "کل",
+        "shop": "دکان",
+        "shops": "دکانیں",
+        "filter": "فلٹر"
     },
     "info_messages": {
         "welcome_market": "مارکیٹ میں خوش آمدید",
@@ -69,6 +73,8 @@
         "location_required": "مقام ضروری ہے*",
         "shop_location_required": "دکان کا مقام ضروری ہے*",
         "valid_email": "براہ کرم درست ای میل درج کریں",
-        "description_required": "وضاحت ضروری ہے*"
+        "description_required": "وضاحت ضروری ہے*",
+        "shop_error": "دکانوں کی فہرست حاصل کرنے میں خرابی",
+        "no_shops_data": "کوئی دکان دستیاب نہیں ہے"
     }
 }

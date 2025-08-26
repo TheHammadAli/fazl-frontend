@@ -29,7 +29,11 @@
         "private_listing": "Private listing",
         "create_shop": "Create shop",
         "promote_shop": "Promote this shop",
-        "later": "Later"
+        "later": "Later",
+        "total": "Total",
+        "shop": "Shop",
+        "shops": "Shops",
+        "filter": "Filter"
     },
     "info_messages": {
         "welcome_market": "Welcome to market",
@@ -69,6 +73,8 @@
         "location_required": "Location is required*",
         "shop_location_required": "Shop location is required*",
         "valid_email": "Please enter a valid email",
-        "description_required": "Description is required*"
+        "description_required": "Description is required*",
+        "shop_error": "Error while getting shops list",
+        "no_shops_data": "No shops are available"
     }
 }

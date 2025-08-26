@@ -3,12 +3,18 @@ import React, { useState } from "react";
 import Tabs from "../Ui/Tabs";
 import { useDictionary } from "@/dictionaries/DictionaryProvider";
 import { useRouter } from "next/navigation";
+import PrivateListings from "./PrivateListings";
+import MyShops from "./MyShops";
 
 function Selling() {
   const tabs = ["my_shops", "private_listing"];
   const [activeTab, setActiveTab] = useState<string>(tabs[0]);
   const { placeholders } = useDictionary();
   const router = useRouter();
+  const tabsComponents: { [key: string]: React.ReactNode } = {
+    my_shops: <MyShops />,
+    private_listing: <PrivateListings />,
+  };
 
   return (
     <div className="p-6">
@@ -21,6 +27,7 @@ function Selling() {
           {placeholders.create_shop}
         </div>
       </div>
+      <div>{tabsComponents[activeTab]}</div>
     </div>
   );
 }
