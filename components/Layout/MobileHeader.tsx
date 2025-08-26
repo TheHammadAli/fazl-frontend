@@ -6,16 +6,27 @@ import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
 import Image from "next/image";
 import logo from "@/assets/icons/logo-with-text.svg";
 import { useDictionary } from "@/dictionaries/DictionaryProvider";
-import dummyProfile from "@/assets/images/dummy-profile-image.jpg";
+import dummyProfile from "@/assets/images/profile-placehonder.png";
 import { links } from "@/assets/content/links";
 import { usePathname, useRouter } from "next/navigation";
 import copyRight from "@/assets/icons/copyright.svg";
 import LangSwitcher from "../Ui/LangSwitcher";
+import { useGetUserDetailQuery } from "@/store/services/profileService";
+import { useAppSelector } from "@/store/store";
 export default function MobileHeader() {
+  const { userId } = useAppSelector((state) => state.authReducer);
+
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const router = useRouter();
   const path = usePathname();
   const { pages, placeholders, currentLanguage } = useDictionary();
+  const {
+    data: profileData,
+    isLoading: profileLoading,
+    isFetching: profileFetching,
+    isError: profileError,
+    refetch,
+  } = useGetUserDetailQuery(userId, { skip: userId === "" });
   return (
     <header className="bg-white  h-[80px] flex items-center  lg:hidden border-b-[1px] border-gray-9 ">
       <div className="px-5 w-full max-w-7xl mx-auto  ">
@@ -97,7 +108,16 @@ export default function MobileHeader() {
                     className=" flex items-center gap-3 py-3 hover:bg-green-3 cursor-pointer"
                   >
                     <Image
-                      src={dummyProfile}
+                      src={
+                        profileData?.data?.image &&
+                        !profileData?.data?.image.includes("default-avatar")
+                          ? `${
+                              profileData?.data?.image
+                            }?t=${new Date().getTime()}`
+                          : dummyProfile
+                      }
+                      height={100}
+                      width={100}
                       alt="icon"
                       className={`h-[26px] w-[26px] rounded-full object-cover ${
                         path.includes("/profile") &&

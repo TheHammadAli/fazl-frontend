@@ -4,11 +4,22 @@ import { useDictionary } from "@/dictionaries/DictionaryProvider";
 import React from "react";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import dummyProfile from "@/assets/images/dummy-profile-image.jpg";
+import dummyProfile from "@/assets/images/profile-placehonder.png";
 import copyRight from "@/assets/icons/copyright.svg";
 import LangSwitcher from "../Ui/LangSwitcher";
+import { useAppSelector } from "@/store/store";
+import { useGetUserDetailQuery } from "@/store/services/profileService";
 function Sidebar() {
+  const { userId } = useAppSelector((state) => state.authReducer);
+
   const { placeholders, pages } = useDictionary();
+  const {
+    data: profileData,
+    isLoading: profileLoading,
+    isFetching: profileFetching,
+    isError: profileError,
+    refetch,
+  } = useGetUserDetailQuery(userId, { skip: userId === "" });
   const path = usePathname();
   const router = useRouter();
   return (
@@ -52,7 +63,14 @@ function Sidebar() {
             className="px-[14px] flex items-center gap-3 py-3 hover:bg-green-3 cursor-pointer"
           >
             <Image
-              src={dummyProfile}
+              src={
+                profileData?.data?.image &&
+                !profileData?.data?.image.includes("default-avatar")
+                  ? `${profileData?.data?.image}?t=${new Date().getTime()}`
+                  : dummyProfile
+              }
+              height={100}
+              width={100}
               alt="icon"
               className={`h-[26px] w-[26px] rounded-full object-cover ${
                 path.includes("/profile") && "border-[2px] border-green-1"
