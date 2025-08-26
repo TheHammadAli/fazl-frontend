@@ -24,7 +24,12 @@
         "choose_location": "Choose location",
         "choose_map_location": "Choose location map ",
         "save": "Save",
-        "name": "Name"
+        "name": "Name",
+        "my_shops": "My shops",
+        "private_listing": "Private listing",
+        "create_shop": "Create shop",
+        "promote_shop": "Promote this shop",
+        "later": "Later"
     },
     "info_messages": {
         "welcome_market": "Welcome to market",
@@ -33,7 +38,17 @@
         "list_product": "List a Product or Item",
         "sell_physical": "Sell physical goods through your own shop — from electronics to clothing and more.",
         "list_service": "List a Service",
-        "offer_expertise": "Offer your expertise — from home repairs to graphic design, and everything in between."
+        "offer_expertise": "Offer your expertise — from home repairs to graphic design, and everything in between.",
+        "add_shop_details": "Add your shop details",
+        "fill_details": "Please fill the details to create a shop.",
+        "add_logo": "Add shop logo",
+        "shop_name": "Shop name",
+        "shop_email": "Shop email address",
+        "shop_location": "Shop location",
+        "describe_shop": "Describe your shop",
+        "enter_shop": "Enter shop",
+        "shop_created": "Shop created",
+        "created_description": "Add physical products or anything that you want to sell in this shop."
     },
     "pages": {
         "home": "Home",
@@ -46,10 +61,14 @@
     },
     "error_messages": {
         "name_required": "Name is required*",
+        "shop_name_required": "Shop name is required*",
         "firstname_required": "First name is required*",
         "lastname_required": "Last name is required*",
         "email_required": "Email is required*",
+        "shop_email_required": "Shop email is required*",
         "location_required": "Location is required*",
-        "valid_email": "Please enter a valid email"
+        "shop_location_required": "Shop location is required*",
+        "valid_email": "Please enter a valid email",
+        "description_required": "Description is required*"
     }
 }

@@ -1,10 +1,10 @@
-import Selling from "@/components/Selling/Selling";
+import CreateShop from "@/components/Selling/CreateShop";
 import React from "react";
 
 function page() {
   return (
     <div>
-      <Selling />
+      <CreateShop />
     </div>
   );
 }
