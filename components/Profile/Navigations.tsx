@@ -41,7 +41,6 @@ function Navigations({
     isLoading: profileLoading,
     isFetching: profileFetching,
     isError: profileError,
-    refetch,
   } = useGetUserDetailQuery(userId, { skip: userId === "" });
   useEffect(() => {
     setMounted(true);
