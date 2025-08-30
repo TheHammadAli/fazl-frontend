@@ -76,7 +76,7 @@ function ForgetPassword() {
       <div className="w-full h-full  flex flex-col items-center lg:items-start  justify-between  lg:w-[50%] px-5  sm:px-[50px] xl:px-[150px] lg:pt-[80px] ">
         <div className=" w-full flex flex-col   items-center  lg:items-start max-w-[500px] lg:max-w-full">
           <h1 className="text-black-1   font-medium text-[22px] text-center lg:text-start  leading-[30px] ">
-            Forget password
+            Forgot password
           </h1>
           <p className="font-normal text-[16px] text-gray-8"></p>
           Enter your email.

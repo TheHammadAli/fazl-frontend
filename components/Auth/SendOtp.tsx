@@ -50,7 +50,9 @@ function Signup() {
   useClickOutside(optionsRef, () => {
     setIsOpen(false);
   });
-  const handleSendOtp = () => {
+  const handleSendOtp = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
     const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     let isValid: boolean = true;
     let body: Body = {};
@@ -125,7 +127,10 @@ function Signup() {
         />
       </div>
       {/* Right section */}
-      <div className="w-full flex  justify-center lg:justify-start   lg:w-[45%] px-5  sm:px-[50px] xl:px-[140px] lg:pt-[80px] ">
+      <form
+        onSubmit={handleSendOtp}
+        className="w-full flex  justify-center lg:justify-start   lg:w-[45%] px-5  sm:px-[50px] xl:px-[140px] lg:pt-[80px] "
+      >
         <div className=" w-full flex flex-col  items-center  lg:items-start max-w-[500px] lg:max-w-full">
           <h1 className="text-black-1   font-medium text-[22px] text-center lg:text-start w-[334px]  leading-[30px] ">
             Your local marketplace for Products and Services
@@ -250,7 +255,7 @@ function Signup() {
           )}
 
           <button
-            onClick={handleSendOtp}
+            type="submit"
             disabled={isLoading}
             className="mt-6 h-[52px] w-full rounded-[12px] text-white font-medium text-[16px]  bg-green-1 cursor-pointer"
           >
@@ -304,7 +309,7 @@ function Signup() {
             <p>Privacy Policy</p>
           </div>
         </div>
-      </div>
+      </form>
     </div>
   );
 }

@@ -33,9 +33,25 @@
         "total": "Total",
         "shop": "Shop",
         "shops": "Shops",
-        "filter": "Filter"
+        "filter": "Filter",
+        "create_service": "Create service",
+        "video_tab": "Video",
+        "photos_tab": "Photos",
+        "upload_photos": "Upload photos",
+        "upload_video": "Upload video",
+        "upload": "Upload",
+        "title": "Title",
+        "describe_service": "Describe your service",
+        "category": "Category",
+        "price": "Price",
+        "choose_category": "Choose category",
+        "fix_rate": "Fix rate",
+        "hourly_basis": "Hourly basis",
+        "hour": "hour"
     },
     "info_messages": {
+        "set_price": "How would you like to set your price?",
+        "catch_your_buyer": "Catch your buyers’ eye - use quality photos and videos.",
         "welcome_market": "Welcome to market",
         "discover_market": "The marketplace to discover, sell, and grow",
         "locally_globally": "- locally and globally.",
@@ -50,8 +66,9 @@
         "shop_email": "Shop email address",
         "shop_location": "Shop location",
         "describe_shop": "Describe your shop",
-        "enter_shop": "Enter shop",
+        "enter_shop": "Create shop",
         "shop_created": "Shop created",
+        "sell_product": "Sell product",
         "created_description": "Add physical products or anything that you want to sell in this shop."
     },
     "pages": {

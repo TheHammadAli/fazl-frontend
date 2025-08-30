@@ -26,6 +26,7 @@ export function middleware(request: NextRequest) {
     `/${locale}/forget-password`,
     `/${locale}/verify-email`,
     `/${locale}/reset-password`,
+    `/${locale}/set-password`,
   ];
 
   function checkPathStartsWith(path: string) {
@@ -53,6 +54,7 @@ export function middleware(request: NextRequest) {
   if (!token && !checkPathStartsWith(pathname)) {
     return NextResponse.redirect(new URL(`/${locale}/signin`, request.url));
   }
+
   return NextResponse.next();
 }
 export const config = {

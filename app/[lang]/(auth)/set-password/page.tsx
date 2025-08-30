@@ -1,10 +1,10 @@
-import Services from "@/components/Services/Services";
+import SetPassword from "@/components/Auth/SetPassword";
 import React from "react";
 
 function page() {
   return (
     <div>
-      <Services />
+      <SetPassword />
     </div>
   );
 }
