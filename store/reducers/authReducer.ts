@@ -7,11 +7,13 @@ type otpInfoTypes = {
   type: string;
   phone: string;
   email: string;
+  password: string;
 };
 let otpInfo: otpInfoTypes = {
   type: "",
   phone: "",
   email: "",
+  password: "",
 };
 let confirmedPwd: boolean = false;
 let token: string = "";

@@ -16,6 +16,7 @@ function InputForOtp({ otp, setOtp }: InputForOtpProps) {
       value={otp}
       onChange={setOtp}
       numInputs={6}
+      inputType="tel"
       renderSeparator={false}
       renderInput={(props) => <input {...props} />}
     />

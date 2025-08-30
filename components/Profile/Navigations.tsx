@@ -172,7 +172,7 @@ function Navigations({
         className={`px-4 xl:px-6 py-4 flex items-center gap-2 cursor-pointer `}
         onClick={() => {
           dispatch(logout());
-          router.refresh();
+          router.push("/en/signin");
         }}
       >
         <Image src={privacyIcon} alt="icon" className="" />

@@ -66,8 +66,9 @@
         "shop_email": "Shop email address",
         "shop_location": "Shop location",
         "describe_shop": "Describe your shop",
-        "enter_shop": "Enter shop",
+        "enter_shop": "Create shop",
         "shop_created": "Shop created",
+        "sell_product": "Sell product",
         "created_description": "Add physical products or anything that you want to sell in this shop."
     },
     "pages": {
