@@ -186,7 +186,7 @@ function CreateShop() {
                 {profile !== null ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
-                    src={URL.createObjectURL(profile) ?? ""}
+                    src={URL.createObjectURL(profile as Blob) ?? ""}
                     alt=""
                     className="object-cover h-full w-full"
                   />
