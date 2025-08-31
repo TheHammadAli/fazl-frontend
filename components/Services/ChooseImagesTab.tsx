@@ -2,23 +2,26 @@ import { useDictionary } from "@/dictionaries/DictionaryProvider";
 import React, { useState } from "react";
 import Image from "next/image";
 import crossImage from "@/assets/icons/cross-icon.svg";
+interface Props {
+  images: File[];
+  setImages: React.Dispatch<React.SetStateAction<File[]>>;
+}
 
-function ChooseImagesTab() {
+function ChooseImagesTab({ images, setImages }: Props) {
   const { pages, placeholders } = useDictionary();
-  const [files, setFiles] = useState<File[]>([]);
   const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files) return;
     const selectedFiles = Array.from(e.target.files);
 
-    setFiles((prev) => [...prev, ...selectedFiles].slice(0, 5));
+    setImages((prev) => [...prev, ...selectedFiles].slice(0, 5));
   };
   const removeImage = (index: number) => {
-    setFiles((prev) => prev.filter((_, i) => i !== index));
+    setImages((prev) => prev.filter((_, i) => i !== index));
   };
   return (
     <div>
       <div className="mt-5 flex gap-2 flex-wrap">
-        {files.map((file, index) => (
+        {images.map((file, index) => (
           <div
             key={index}
             className="relative h-[126px] w-[126px] rounded-[12px] overflow-hidden"
@@ -47,7 +50,7 @@ function ChooseImagesTab() {
             </div>
           </div>
         ))}
-        {files.length < 5 && (
+        {images.length < 5 && (
           <div className="h-[126px] min-w-[126px]  flex items-center justify-center ">
             <label
               htmlFor="photo-upload"
@@ -68,7 +71,7 @@ function ChooseImagesTab() {
                 />
               </svg>
 
-              {files.length == 0 && (
+              {images.length == 0 && (
                 <h1 className="font-medium text-green-1 text-[16px]">
                   {placeholders.upload_photos}
                 </h1>
@@ -86,7 +89,7 @@ function ChooseImagesTab() {
         )}
       </div>
       <div className="w-full flex mt-4 items-center justify-center text-[14px] font-normal text-green-2">
-        {files.length}/5
+        {images.length}/5
       </div>
     </div>
   );

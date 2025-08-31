@@ -17,6 +17,27 @@ export const profileService = baseApi.injectEndpoints({
         };
       },
     }),
+    getAllCategories: build.query({
+      query: () => {
+        return {
+          url: `/categories`,
+          method: "GET",
+        };
+      },
+    }),
+    addService: build.mutation({
+      query: (body) => ({
+        url: "/services/create",
+        method: "POST",
+        body,
+      }),
+    }),
   }),
 });
-export const { useCreateShopMutation, useGetUsersShopsQuery } = profileService;
+
+export const {
+  useAddServiceMutation,
+  useCreateShopMutation,
+  useGetUsersShopsQuery,
+  useGetAllCategoriesQuery,
+} = profileService;

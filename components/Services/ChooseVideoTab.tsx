@@ -4,29 +4,31 @@ import { useDictionary } from "@/dictionaries/DictionaryProvider";
 import React, { useState } from "react";
 import Image from "next/image";
 import crossImage from "@/assets/icons/cross-icon.svg";
-
-function ChooseVideoTab() {
+interface Props {
+  video: File | null;
+  setVideo: React.Dispatch<React.SetStateAction<File | null>>;
+}
+function ChooseVideoTab({ video, setVideo }: Props) {
   const { pages, placeholders } = useDictionary();
-  const [file, setFile] = useState<File | null>(null);
 
   const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return;
     const selectedFile = e.target.files[0];
-    setFile(selectedFile);
+    setVideo(selectedFile);
   };
 
   const removeVideo = () => {
-    setFile(null);
+    setVideo(null);
   };
 
   return (
     <div>
       <div className="mt-5 flex gap-2 flex-wrap">
         {/* Video Preview */}
-        {file && (
+        {video && (
           <div className="relative h-[126px] w-[126px] rounded-[12px] overflow-hidden">
             <video
-              src={URL.createObjectURL(file)}
+              src={URL.createObjectURL(video)}
               className="object-cover h-full w-full"
               controls
             />
@@ -50,7 +52,7 @@ function ChooseVideoTab() {
         )}
 
         {/* Upload Button */}
-        {!file && (
+        {!video && (
           <div className="h-[126px] min-w-[126px] flex items-center justify-center">
             <label
               htmlFor="video-upload"
@@ -88,7 +90,7 @@ function ChooseVideoTab() {
 
       {/* Counter */}
       <div className="w-full flex mt-4 items-center justify-center text-[14px] font-normal text-green-2">
-        {file ? "1/1" : "0/1"}
+        {video ? "1/1" : "0/1"}
       </div>
     </div>
   );
