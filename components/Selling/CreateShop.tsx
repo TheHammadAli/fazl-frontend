@@ -166,7 +166,7 @@ function CreateShop() {
         </div>
       </div>
       <div className=" px-6 xl:px-0 flex justify-center">
-        {true ? (
+        {status === "success" ? (
           <ShopCreated id={createdData?.id} />
         ) : (
           <form

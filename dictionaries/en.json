@@ -29,6 +29,7 @@
         "private_listing": "Private listing",
         "create_shop": "Create shop",
         "promote_shop": "Promote this shop",
+        "boost_service": "Boost service",
         "later": "Later",
         "total": "Total",
         "shop": "Shop",
@@ -47,7 +48,10 @@
         "choose_category": "Choose category",
         "fix_rate": "Fix rate",
         "hourly_basis": "Hourly basis",
-        "hour": "hour"
+        "hourly": "hour",
+        "fixed": "Fixed",
+        "Rs": "Rs",
+        "continue": "Continue"
     },
     "info_messages": {
         "set_price": "How would you like to set your price?",
@@ -68,8 +72,10 @@
         "describe_shop": "Describe your shop",
         "enter_shop": "Create shop",
         "shop_created": "Shop created",
+        "service_created": "Service created",
         "sell_product": "Sell product",
-        "created_description": "Add physical products or anything that you want to sell in this shop."
+        "created_description": "Add physical products or anything that you want to sell in this shop.",
+        "most_listings": "The more listings you have, the easier it is for buyers to find you in market’s feed."
     },
     "pages": {
         "home": "Home",
@@ -82,6 +88,7 @@
     },
     "error_messages": {
         "name_required": "Name is required*",
+        "title_required": "Title is required*",
         "shop_name_required": "Shop name is required*",
         "firstname_required": "First name is required*",
         "lastname_required": "Last name is required*",
@@ -92,6 +99,9 @@
         "valid_email": "Please enter a valid email",
         "description_required": "Description is required*",
         "shop_error": "Error while getting shops list",
-        "no_shops_data": "No shops are available"
+        "no_shops_data": "No shops are available",
+        "no_categories": "No categories are available",
+        "price_required": "Price is required*",
+        "category_required": "Category is required*"
     }
 }

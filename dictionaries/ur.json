@@ -25,6 +25,7 @@
         "choose_map_location": "نقشے پر مقام منتخب کریں",
         "save": "محفوظ کریں",
         "name": "نام",
+        "boost_service": "سروس کو فروغ دیں",
         "my_shops": "میری دکانیں",
         "private_listing": "نجی فہرست",
         "create_shop": "دکان بنائیں",
@@ -47,7 +48,10 @@
         "choose_category": "زمرہ منتخب کریں",
         "fix_rate": "مقررہ ریٹ",
         "hourly_basis": "فی گھنٹہ بنیاد",
-        "hour": "گھنٹہ"
+        "hourly": "گھنٹہ",
+        "Rs": "روپے",
+        "fixed": "مقررہ",
+        "continue": "مستمر کریں"
     },
     "info_messages": {
         "set_price": "آپ اپنی قیمت کس طرح مقرر کرنا چاہیں گے؟",
@@ -68,8 +72,10 @@
         "describe_shop": "اپنی دکان کی وضاحت کریں",
         "enter_shop": "دکان بناییں",
         "shop_created": "دکان بنایا گیا ہے",
+        "service_created": "سروس بنایا گیا ہے",
         "created_description": "اس دکان میں وہ تمام فزیکل مصنوعات یا چیزیں شامل کریں جو آپ بیچنا چاہتے ہیں۔",
-        "sell_product": "پروڈکٹ فروخت کریں"
+        "sell_product": "پروڈکٹ فروخت کریں",
+        "most_listings": "جتنی زیادہ آپ کی فہرستیں ہوں گی، خریداروں کے لیے مارکیٹ کی فیڈ میں آپ کو تلاش کرنا اتنا ہی آسان ہوگا۔"
     },
     "pages": {
         "home": "صفحہ اول",
@@ -82,6 +88,7 @@
     },
     "error_messages": {
         "name_required": "نام ضروری ہے*",
+        "title_required": "عنوان ضروری ہے*",
         "shop_name_required": "دکان کا نام ضروری ہے*",
         "firstname_required": "پہلا نام ضروری ہے*",
         "lastname_required": "آخری نام ضروری ہے*",
@@ -92,6 +99,9 @@
         "valid_email": "براہ کرم درست ای میل درج کریں",
         "description_required": "وضاحت ضروری ہے*",
         "shop_error": "دکانوں کی فہرست حاصل کرنے میں خرابی",
-        "no_shops_data": "کوئی دکان دستیاب نہیں ہے"
+        "no_shops_data": "کوئی دکان دستیاب نہیں ہے",
+        "no_categories": "کوئی زمرے دستیاب نہیں ہیں",
+        "price_required": "قیمت ضروری ہے*",
+        "category_required": "زمرہ ضروری ہے*"
     }
 }
