@@ -144,7 +144,6 @@ function CreateShop() {
       });
 
       if (profile && profile !== null) {
-        console.log("working");
         formData.append("image", profile);
       }
       formData.delete("address");

@@ -7,8 +7,14 @@ import { useAppDispatch } from "@/store/store";
 import { useRouter } from "next/navigation";
 import { useSigninMutation } from "@/store/services/authService";
 import toast from "react-hot-toast";
-import { setToken, setUserId } from "@/store/reducers/authReducer";
+import {
+  setProfileCompleted,
+  setToken,
+  setUserId,
+} from "@/store/reducers/authReducer";
 import { setCookie } from "cookies-next";
+import { BASE_URL } from "@/assets/content/constants";
+import GoogleIcon from "@/assets/icons/google-icon.svg";
 
 export type Body = {
   email?: string;
@@ -51,11 +57,21 @@ function Signin() {
   useEffect(() => {
     if (isSuccess) {
       toast.success(data?.message);
-      console.log(data?.data);
-      dispatch(setToken(data?.data?.accessToken));
+      dispatch(
+        setToken({
+          accessToken: data?.data?.accessToken,
+          refreshToken: data?.data?.refreshToken,
+        })
+      );
       dispatch(setUserId(data?.data?.user?.id));
       const timer = setTimeout(() => {
-        router.push("/welcome");
+        if (!data?.data?.user?.phone || data?.data?.user?.phone === "") {
+          dispatch(setProfileCompleted(false));
+          router.push("/complete-info");
+        } else {
+          dispatch(setProfileCompleted(true));
+          router.push("/welcome");
+        }
       }, 800);
 
       return () => clearTimeout(timer);
@@ -67,6 +83,7 @@ function Signin() {
       );
     }
   }, [isSuccess, isError, data, error]);
+
   return (
     <div className="w-screen h-screen flex min-h-[818px]">
       {/* Left section */}
@@ -161,6 +178,14 @@ function Signin() {
             className="mt-6 h-[52px] w-full rounded-[12px] text-white font-medium text-[16px]  bg-green-1 cursor-pointer"
           >
             {isLoading ? <BeatLoader color="white" size={8} /> : "Continue"}
+          </button>
+          <button
+            type="button"
+            onClick={() => router.push(`${BASE_URL}/auth/google`)}
+            className="mt-6 h-[52px] w-full rounded-[12px] text-white    bg-blue-1 flex items-center justify-center gap-2 text-[15px] font-normal cursor-pointer"
+          >
+            <Image src={GoogleIcon} alt="google_icon" />{" "}
+            <h3>Continue with Google</h3>
           </button>
 
           <div className="text-center font-normal text-[12px] text-gray-8 mt-5">

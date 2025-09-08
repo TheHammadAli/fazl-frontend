@@ -81,7 +81,6 @@ function ProfileInfo({ toggle, setToggle }: ProfileInfoTypes) {
 
   useEffect(() => {
     if (profileData?.data) {
-      console.log("wofff");
       const { email, name, address, location, image } = profileData?.data;
 
       setEmail(email ?? "");
@@ -180,9 +179,7 @@ function ProfileInfo({ toggle, setToggle }: ProfileInfoTypes) {
       if (profile && typeof profile !== "string") {
         formData.append("image", profile);
       }
-      // for (const pair of formData.entries()) {
-      //   console.log(pair[0] + ", " + pair[1]);
-      // }
+
       updateProfile({ formData, id: userId });
     }
   };

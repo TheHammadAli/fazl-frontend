@@ -14,6 +14,7 @@ import toast from "react-hot-toast";
 import { useAppDispatch } from "@/store/store";
 import { setOtpInfo } from "@/store/reducers/authReducer";
 import { useRouter } from "next/navigation";
+import { BASE_URL } from "@/assets/content/constants";
 
 export type Body = {
   email?: string;
@@ -266,13 +267,16 @@ function Signup() {
             or
             <div className="w-full h-[1px] bg-gray-2"></div>
           </div>
+
           <button
-            disabled={isLoading}
+            type="button"
+            onClick={() => router.push(`${BASE_URL}/auth/google`)}
             className="mt-6 h-[52px] w-full rounded-[12px] text-white    bg-blue-1 flex items-center justify-center gap-2 text-[15px] font-normal cursor-pointer"
           >
             <Image src={GoogleIcon} alt="google_icon" />{" "}
             <h3>Continue with Google</h3>
           </button>
+
           <button
             disabled={isLoading}
             onClick={() => {

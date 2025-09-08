@@ -17,7 +17,6 @@ function MyShops() {
   const { data, isLoading, isFetching, isError, error } =
     useGetUsersShopsQuery("");
   const loading = isLoading || isFetching;
-  console.log(data);
   if (isError) {
     return (
       <div className="h-[80vh] flex items-center justify-center w-full text-red-1">
