@@ -45,7 +45,6 @@ function Navigations({
   useEffect(() => {
     setMounted(true);
   }, []);
-  console.log(profileData);
   return (
     <div
       className={`w-full md:min-w-[160px] lg:w-[322px] h-full ltr:border-r-[1px] rtl:border-l-[1px] border-gray-9 pt-8 `}

@@ -1,5 +1,6 @@
+import CompleteInfo from "@/components/Auth/CompleteInfo";
 import { createSlice } from "@reduxjs/toolkit";
-import { setCookie, getCookie } from "cookies-next";
+import { setCookie, getCookie, deleteCookie } from "cookies-next";
 import { use } from "react";
 // import { deleteCookie } from "cookies-next";
 
@@ -18,14 +19,19 @@ let otpInfo: otpInfoTypes = {
 let confirmedPwd: boolean = false;
 let token: string = "";
 let userId: string = "";
+let refToken: string = "";
+let profileCompleted: boolean = false;
 
 if (typeof window !== "undefined") {
   const otpData = localStorage.getItem("otpInfo");
   const confirmedPwdData = localStorage.getItem("confirmedPwd");
   const cookieToken = getCookie("token");
+  const refreshToken = getCookie("refreshToken");
   const id = getCookie("userId");
+  const completeProfile = getCookie("profileCompleted");
   token = typeof cookieToken === "string" ? cookieToken : "";
   userId = typeof id === "string" ? id : "";
+  refToken = typeof refreshToken === "string" ? refreshToken : "";
   if (otpData) {
     otpInfo = JSON.parse(otpData);
   }
@@ -34,6 +40,11 @@ if (typeof window !== "undefined") {
   } else {
     confirmedPwd = false;
   }
+  if (completeProfile === "true") {
+    profileCompleted = true;
+  } else {
+    profileCompleted = false;
+  }
 }
 const authSlice = createSlice({
   name: "authSlice",
@@ -41,7 +52,9 @@ const authSlice = createSlice({
     otpInfo: otpInfo,
     confirmedPwd: confirmedPwd,
     token: token,
+    refreshToken: refToken,
     userId: userId,
+    profileCompleted: profileCompleted,
   },
   reducers: {
     setOtpInfo: (state, action) => {
@@ -54,25 +67,46 @@ const authSlice = createSlice({
     },
 
     setToken: (state, action) => {
-      state.token = action.payload;
-      setCookie("token", action.payload);
+      state.token = action.payload.accessToken;
+      state.refreshToken = action.payload.refreshToken;
+      setCookie("token", action.payload.accessToken);
+      setCookie("refreshToken", action.payload.refreshToken);
     },
+
     setUserId: (state, action) => {
       state.userId = action.payload;
       setCookie("userId", action.payload);
     },
+    setProfileCompleted: (state, action) => {
+      state.profileCompleted = action.payload;
+      setCookie("profileCompleted", action.payload);
+    },
     logout: (state) => {
       state.token = "";
+      state.refreshToken = "";
       state.userId = "";
+      state.profileCompleted = false;
+      state.otpInfo = { type: "", phone: "", email: "", password: "" };
+      state.confirmedPwd = false;
+
       localStorage.removeItem("otpInfo");
       localStorage.removeItem("confirmedPwd");
-      setCookie("token", "");
-      setCookie("userId", "");
+
+      deleteCookie("token");
+      deleteCookie("refreshToken");
+      deleteCookie("userId");
+      deleteCookie("profileCompleted");
     },
   },
 });
 
-export const { setOtpInfo, setConfirmPwd, setToken, setUserId, logout } =
-  authSlice.actions;
+export const {
+  setOtpInfo,
+  setConfirmPwd,
+  setToken,
+  setUserId,
+  logout,
+  setProfileCompleted,
+} = authSlice.actions;
 
 export default authSlice.reducer;

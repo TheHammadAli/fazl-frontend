@@ -9,6 +9,7 @@ export const profileService = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["profile"],
     }),
+
     getUserDetail: build.query({
       query: (id) => {
         return {
@@ -20,5 +21,8 @@ export const profileService = baseApi.injectEndpoints({
     }),
   }),
 });
-export const { useGetUserDetailQuery, useUpdateProfileMutation } =
-  profileService;
+export const {
+  useGetUserDetailQuery,
+  useUpdateProfileMutation,
+  useLazyGetUserDetailQuery,
+} = profileService;

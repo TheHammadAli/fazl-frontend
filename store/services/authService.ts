@@ -56,17 +56,27 @@ export const authService = baseApi.injectEndpoints({
     }),
     getLocations: build.query({
       query: (params) => {
-        console.log("API params 👉", params);
-
         return {
           url: `/search/autocomplete-locations?${new URLSearchParams(params)}`,
           method: "GET",
         };
       },
     }),
+    getUserWithProvidedToken: build.query({
+      query: ({ token }) => {
+        return {
+          url: `/auth/getCurrentUser`,
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        };
+      },
+    }),
   }),
 });
 export const {
+  useGetUserWithProvidedTokenQuery,
   useGetLocationsQuery,
   useResetPasswordMutation,
   useVerifyEmailMutation,
