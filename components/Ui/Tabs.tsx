@@ -4,9 +4,15 @@ interface TabsProps {
   tabs: string[];
   activeTab: string;
   setActiveTab: (value: string) => void;
+  paddingX?: string;
 }
 
-function Tabs({ tabs, activeTab, setActiveTab }: TabsProps) {
+function Tabs({
+  tabs,
+  activeTab,
+  setActiveTab,
+  paddingX = "px-[14px]",
+}: TabsProps) {
   const { placeholders } = useDictionary();
   type PlaceholderKey = keyof typeof placeholders;
 
@@ -17,7 +23,7 @@ function Tabs({ tabs, activeTab, setActiveTab }: TabsProps) {
           <div
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`h-[38px] -mb-[1px] flex items-center px-[14px] text-[14px] cursor-pointer  border-b-[2px] transition-all ${
+            className={`h-[38px] -mb-[1px] flex items-center ${paddingX} text-[14px] cursor-pointer  border-b-[2px] transition-all ${
               tab === activeTab
                 ? "font-medium text-green-1 border-green-1"
                 : "font-normal text-gray-8 border-transparent"

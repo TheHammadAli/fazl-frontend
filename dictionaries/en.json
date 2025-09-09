@@ -13,6 +13,9 @@
         "company": "Company",
         "terms": "Terms",
         "privacy": "Privacy",
+        "about": "About",
+        "about_us": "About us",
+        "edit": "Edit",
         "settings": "Settings",
         "about_market": "About market",
         "logout": "Logout",
@@ -29,6 +32,7 @@
         "private_listing": "Private listing",
         "create_shop": "Create shop",
         "promote_shop": "Promote this shop",
+        "orders": "Orders",
         "boost_service": "Boost service",
         "later": "Later",
         "total": "Total",
@@ -51,7 +55,10 @@
         "hourly": "hour",
         "fixed": "Fixed",
         "Rs": "Rs",
-        "continue": "Continue"
+        "continue": "Continue",
+        "total_orders": "Total orders",
+        "products_sold": "Products sold",
+        "list_product": "List product"
     },
     "info_messages": {
         "set_price": "How would you like to set your price?",

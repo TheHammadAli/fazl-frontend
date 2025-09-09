@@ -31,6 +31,9 @@
         "create_shop": "دکان بنائیں",
         "promote_shop": " اس دکان کو فروغ دیں",
         "later": "بعد میں",
+        "edit": "ترمیم کریں",
+        "about": "بارے میں",
+        "about_us": "ہمارے بارے میں",
         "total": "کل",
         "shop": "دکان",
         "shops": "دکانیں",
@@ -42,6 +45,7 @@
         "upload_video": "ویدیو اپ لوڈ کریں",
         "upload": "اپ لوڈ کریں",
         "title": "عنوان",
+        "orders": "آرڈرز",
         "describe_service": "اپنی سروس کی وضاحت کریں",
         "category": "زمرہ",
         "price": "قیمت",
@@ -51,7 +55,10 @@
         "hourly": "گھنٹہ",
         "Rs": "روپے",
         "fixed": "مقررہ",
-        "continue": "مستمر کریں"
+        "continue": "مستمر کریں",
+        "total_orders": "کل آرڈر",
+        "products_sold": "کل پروڈکٹ",
+        "list_product": "مصنوعات شامل کریں"
     },
     "info_messages": {
         "set_price": "آپ اپنی قیمت کس طرح مقرر کرنا چاہیں گے؟",
