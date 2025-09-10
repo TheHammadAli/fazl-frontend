@@ -34,6 +34,8 @@
         "promote_shop": "Promote this shop",
         "orders": "Orders",
         "boost_service": "Boost service",
+        "boost_product": "Boost product",
+        "list_another": "List another product",
         "later": "Later",
         "total": "Total",
         "shop": "Shop",
@@ -58,7 +60,18 @@
         "continue": "Continue",
         "total_orders": "Total orders",
         "products_sold": "Products sold",
-        "list_product": "List product"
+        "list_product": "List product",
+        "sell_product": "Sell product",
+        "add_parameter": "Add Parameter",
+        "confirm": "Confirm",
+        "parameter_name": "Parameter name",
+        "parameter_value": "Parameter value",
+        "delete": "Delete",
+        "add_value": "Add another value",
+        "type": "Type",
+        "choose_type": "Choose type",
+        "classified": "Classified",
+        "retail": "Retail"
     },
     "info_messages": {
         "set_price": "How would you like to set your price?",
@@ -77,9 +90,11 @@
         "shop_email": "Shop email address",
         "shop_location": "Shop location",
         "describe_shop": "Describe your shop",
+        "describe_product": "Describe your product",
         "enter_shop": "Create shop",
         "shop_created": "Shop created",
         "service_created": "Service created",
+        "product_listed": "Product listed",
         "sell_product": "Sell product",
         "created_description": "Add physical products or anything that you want to sell in this shop.",
         "most_listings": "The more listings you have, the easier it is for buyers to find you in market’s feed."
@@ -109,6 +124,9 @@
         "no_shops_data": "No shops are available",
         "no_categories": "No categories are available",
         "price_required": "Price is required*",
-        "category_required": "Category is required*"
+        "category_required": "Category is required*",
+        "type_required": "Type is required*",
+        "video_required": "Please add a video of your product*",
+        "parameter_required": "Please add at least one parameter*"
     }
 }
