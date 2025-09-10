@@ -6,15 +6,15 @@ import filterIcon from "@/assets/icons/filter-icon.svg";
 import { useGetUsersShopsQuery } from "@/store/services/sellingService";
 import noImageAvtar from "@/assets/images/no-image-av.png";
 import MyShopsSkeleton from "./MyShopsSkelton";
-import { useRouter } from "next/navigation";
+import productImage from "@/assets/images/product-image.jpg";
+import ratingIcons from "@/assets/icons/rating-icons.svg";
 interface shopTypes {
   title: string;
   id: string;
   image: string;
   description: string;
 }
-function MyShops() {
-  const router = useRouter();
+function ShopProductsList() {
   const { placeholders, error_messages } = useDictionary();
   const { data, isLoading, isFetching, isError, error } =
     useGetUsersShopsQuery("");
@@ -28,10 +28,12 @@ function MyShops() {
   }
 
   return (
-    <div>
-      <div className="flex justify-between items-center px-3.5 mt-6">
+    <div className="px-5 md:px-6">
+      <div className="flex justify-between items-center md:px-3.5 mt-4">
         <div>
-          <h1 className="text-black-1 text-[16px]">{placeholders.total}</h1>
+          <h1 className="text-black-1 font-medium text-[16px]">
+            {placeholders.total}
+          </h1>
           {loading ? (
             <div className="h-[14px] rounded-full w-[50px] bg-gray-200 animate-pulses"></div>
           ) : (
@@ -48,36 +50,32 @@ function MyShops() {
       </div>
 
       {/* listing  */}
-      {!loading && data?.data.length > 0 && (
-        <div className="grid grid-cols-1 xs:grid-cols-2  sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5 mt-5">
-          {data?.data.map((shop: shopTypes, index: number) => {
-            return (
-              <div
-                key={index}
-                className="px-2 py-[34px] border-[2px] rounded-[24px] border-gray-9 flex flex-col gap-3 items-center cursor-pointer"
-                onClick={() =>
-                  router.push(`/selling/shop-detail?id=${shop?.id}`)
-                }
-              >
+      {/* {!loading && data?.data.length > 0 && ( */}
+      <div className="grid grid-cols-2 xl:grid-cols-3 gap-2 md:gap-5 mt-4">
+        {Array.from({ length: 6 }).map((shop, index) => {
+          return (
+            <div key={index} className="">
+              <div className="h-[180px] sm:h-[230px] rounded-[16px] overflow-hidden">
                 <Image
-                  src={shop?.image ? shop?.image : noImageAvtar}
-                  alt="shop_image"
-                  height={100}
-                  width={100}
-                  className="h-[86px] w-[86px] rounded-full object-cover bg-gray-4"
+                  src={productImage}
+                  alt={"product_img"}
+                  className="h-full w-full object-cover"
                 />
-                <h2 className="font-medium  text-[16px] text-black-3 text-center">
-                  {shop?.title ?? ""}
-                </h2>
-                <p className="w-[160px] truncate -mt-1 leading-none text-[14px] text-center text-gray-13">
-                  {shop.description}
-                </p>
               </div>
-            );
-          })}
-        </div>
-      )}
-      {
+              <h2 className="text-black-1 font-medium text-[16px] mt-3">
+                Men’s Blue Jeans High...
+              </h2>
+              <div className="flex gap-2">
+                <Image src={ratingIcons} alt="rating_icon" />
+                <span className="text-gray-8 text-[14px] font-normal">(8)</span>
+              </div>
+              <h2 className="text-green-1 font-normal text-[16px]">Rs 1500</h2>
+            </div>
+          );
+        })}
+      </div>
+      {/* )} */}
+      {/* {
         // no data found
         !loading && data?.data?.length === 0 && (
           <div className="h-[80vh] flex items-center justify-center w-full text-black-1">
@@ -85,9 +83,9 @@ function MyShops() {
           </div>
         )
       }
-      {loading && <MyShopsSkeleton />}
+      {loading && <MyShopsSkeleton />} */}
     </div>
   );
 }
 
-export default MyShops;
+export default ShopProductsList;

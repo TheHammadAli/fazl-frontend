@@ -63,6 +63,12 @@ function Signin() {
           refreshToken: data?.data?.refreshToken,
         })
       );
+      localStorage.setItem(
+        "user",
+        JSON.stringify({
+          user: data?.data?.user,
+        })
+      );
       dispatch(setUserId(data?.data?.user?.id));
       const timer = setTimeout(() => {
         if (!data?.data?.user?.phone || data?.data?.user?.phone === "") {

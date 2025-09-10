@@ -32,10 +32,28 @@ export const profileService = baseApi.injectEndpoints({
         body,
       }),
     }),
+    getShopDetail: build.query({
+      query: (id) => {
+        return {
+          url: `/shops/detail/${id}`,
+          method: "GET",
+        };
+      },
+    }),
+
+    listProduct: build.mutation({
+      query: ({ id, formData, type }) => ({
+        url: `/products/${id}/${type}`,
+        method: "POST",
+        body: formData,
+      }),
+    }),
   }),
 });
 
 export const {
+  useListProductMutation,
+  useGetShopDetailQuery,
   useAddServiceMutation,
   useCreateShopMutation,
   useGetUsersShopsQuery,
