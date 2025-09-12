@@ -2,15 +2,18 @@
 import React, { useState } from "react";
 import Tabs from "../Ui/Tabs";
 import { useDictionary } from "@/dictionaries/DictionaryProvider";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import PrivateListings from "./PrivateListings";
 import ShopProductsList from "./ShopProductsList";
+import { useGetShopProductsQuery } from "@/store/services/sellingService";
 
 function ShopProducts() {
   const tabs = ["shop", "orders"];
   const [activeTab, setActiveTab] = useState<string>(tabs[0]);
   const { placeholders } = useDictionary();
   const router = useRouter();
+  const id = useSearchParams().get("id");
+
   const tabsComponents: { [key: string]: React.ReactNode } = {
     shop: <ShopProductsList />,
     orders: <PrivateListings />,

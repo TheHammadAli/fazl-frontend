@@ -1,6 +1,20 @@
 {
     "currentLanguage": "en",
     "placeholders": {
+        "pay_now": "Pay now",
+        "choose_payment": "Choose payment",
+        "payment": "Payment",
+        "delivery_detail": "Delivery details",
+        "self_pickup": "Self pickup",
+        "delivery": "Delivery",
+        "description": "Description",
+        "message_seller": "Message seller",
+        "all": "All",
+        "search_for": "Search for",
+        "product": "product",
+        "products": "products",
+        "services": "services",
+        "service": "service",
         "market": "market",
         "contact": "Contact",
         "terms_condition": "terms & conditions",
@@ -74,6 +88,9 @@
         "retail": "Retail"
     },
     "info_messages": {
+        "receive_order": "How would you like to receive your order?",
+        "tell_sellers": "Tell sellers what you’re looking for and get replies fast.",
+        "broadcast_request": "Broadcast a request",
         "set_price": "How would you like to set your price?",
         "catch_your_buyer": "Catch your buyers’ eye - use quality photos and videos.",
         "welcome_market": "Welcome to market",
@@ -122,6 +139,7 @@
         "description_required": "Description is required*",
         "shop_error": "Error while getting shops list",
         "no_shops_data": "No shops are available",
+        "no_product_data": "No products are available",
         "no_categories": "No categories are available",
         "price_required": "Price is required*",
         "category_required": "Category is required*",

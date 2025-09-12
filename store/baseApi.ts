@@ -59,7 +59,6 @@ export const baseQueryWithReauth: BaseQueryFn<
       api,
       extraOptions
     )) as { data: { data: { accessToken: string; refreshToken: string } } };
-    console.log(refreshResult);
     if (refreshResult?.data) {
       api.dispatch(
         setToken({

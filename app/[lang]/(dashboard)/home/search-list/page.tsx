@@ -1,10 +1,10 @@
+import SearchList from "@/components/Home/SearchList";
 import React from "react";
-import HomeSection from "@/components/Home/HomeSection";
 
 function page() {
   return (
     <div>
-      <HomeSection />
+      <SearchList />
     </div>
   );
 }

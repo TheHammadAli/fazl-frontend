@@ -23,7 +23,7 @@ function Tabs({
           <div
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`h-[38px] -mb-[1px] flex items-center ${paddingX} text-[14px] cursor-pointer  border-b-[2px] transition-all ${
+            className={`h-[38px] capitalize -mb-[1px] flex items-center ${paddingX} text-[14px] cursor-pointer  border-b-[2px] transition-all ${
               tab === activeTab
                 ? "font-medium text-green-1 border-green-1"
                 : "font-normal text-gray-8 border-transparent"

@@ -21,7 +21,6 @@ export default function ShopDetail() {
     typeof window !== "undefined"
       ? JSON.parse(localStorage.getItem("user") || "{}")
       : {};
-  console.log(userData, "user data");
 
   const { user } = userData;
   const {
@@ -32,8 +31,6 @@ export default function ShopDetail() {
   } = useGetShopDetailQuery(id, {
     skip: !id,
   });
-
-  console.log(shop, "testing the shop");
 
   useEffect(() => {
     if (!id) {
