@@ -11,7 +11,6 @@ export function middleware(request: NextRequest) {
   const token = request.cookies.get("token")?.value || "";
   const completeProfile =
     request.cookies.get("profileCompleted")?.value === "true";
-  console.log(completeProfile, typeof completeProfile);
   const urlParams = "?" + new URLSearchParams(params);
   let pathname = request.nextUrl.pathname;
   const locale = request.cookies.get("lang")?.value || "en";

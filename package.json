@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@fontsource-variable/ibm-plex-sans": "^5.2.6",
-    "@headlessui/react": "^2.2.7",
+    "@headlessui/react": "^2.2.8",
     "@heroicons/react": "^2.2.0",
     "@reduxjs/toolkit": "^2.8.2",
     "cookies-next": "^6.1.0",
