@@ -8,13 +8,16 @@ import noImageAvtar from "@/assets/images/no-image-av.png";
 import ratingIcons from "@/assets/icons/rating-icons.svg";
 import { useSearchParams } from "next/navigation";
 import ProductSkeleton from "./ProductsSkelton";
+import { useRouter } from "next/navigation";
 interface productTypes {
+  id: string;
   title: string;
   images: string[];
   price: number | string;
 }
 
 function ShopProductsList() {
+  const router = useRouter();
   const { placeholders, error_messages } = useDictionary();
   const id = useSearchParams().get("id");
   const {
@@ -54,7 +57,13 @@ function ShopProductsList() {
         <div className="grid grid-cols-2 xl:grid-cols-3 gap-2 md:gap-5 mt-4">
           {products?.data?.map((product: productTypes, index: number) => {
             return (
-              <div key={index} className="">
+              <div
+                key={index}
+                className=" cursor-pointer"
+                onClick={() =>
+                  router.push(`/selling/product-detail?id=${product?.id}`)
+                }
+              >
                 <div className="h-[180px] sm:h-[230px] rounded-[16px] overflow-hidden">
                   <Image
                     src={product?.images?.[0] ?? noImageAvtar}

@@ -11,12 +11,14 @@ export type PriceModalTypes = {
   selectedPrice: priceTypes;
   setSelectedPrice: (price: priceTypes) => void;
   setIsPriceOpen: (price: boolean) => void;
+  type?: string;
 };
 
 function PriceModal({
   selectedPrice,
   setSelectedPrice,
   setIsPriceOpen,
+  type,
 }: PriceModalTypes) {
   const { placeholders, error_messages, info_messages } = useDictionary();
   const [price, setPrice] = useState(selectedPrice.price);
@@ -49,41 +51,47 @@ function PriceModal({
         />
       </div>
       <div className="px-5">
-        <h2 className="text-[14px] font-normal text-gray-8 my-3">
-          {info_messages.set_price}
-        </h2>
+        {type === "service" && (
+          <h2 className="text-[14px] font-normal text-gray-8 my-3">
+            {info_messages.set_price}
+          </h2>
+        )}
         {/* fix */}
-        <div className="flex gap-2 items-center">
-          <div
-            className={`h-[18px] w-[18px] ${
-              selectedPrice?.paymentType === "fixed"
-                ? "border-[4px] border-green-1"
-                : "border-[1px] border-gray-9"
-            } rounded-full cursor-pointer`}
-            onClick={() =>
-              setSelectedPrice({ ...selectedPrice, paymentType: "fixed" })
-            }
-          ></div>
-          <div className="text-[15px] text-black-1">
-            {placeholders.fix_rate}
+        {type === "service" && (
+          <div className="flex gap-2 items-center">
+            <div
+              className={`h-[18px] w-[18px] ${
+                selectedPrice?.paymentType === "fixed"
+                  ? "border-[4px] border-green-1"
+                  : "border-[1px] border-gray-9"
+              } rounded-full cursor-pointer`}
+              onClick={() =>
+                setSelectedPrice({ ...selectedPrice, paymentType: "fixed" })
+              }
+            ></div>
+            <div className="text-[15px] text-black-1">
+              {placeholders.fix_rate}
+            </div>
           </div>
-        </div>
+        )}
         {/* hourly */}
-        <div className="flex gap-2 items-center mt-2">
-          <div
-            className={`h-[18px] w-[18px] ${
-              selectedPrice?.paymentType === "hourly"
-                ? "border-[4px] border-green-1"
-                : "border-[1px] border-gray-9"
-            } rounded-full cursor-pointer`}
-            onClick={() =>
-              setSelectedPrice({ ...selectedPrice, paymentType: "hourly" })
-            }
-          ></div>
-          <div className="text-[15px] text-black-1">
-            {placeholders.hourly_basis}
+        {type === "service" && (
+          <div className="flex gap-2 items-center mt-2">
+            <div
+              className={`h-[18px] w-[18px] ${
+                selectedPrice?.paymentType === "hourly"
+                  ? "border-[4px] border-green-1"
+                  : "border-[1px] border-gray-9"
+              } rounded-full cursor-pointer`}
+              onClick={() =>
+                setSelectedPrice({ ...selectedPrice, paymentType: "hourly" })
+              }
+            ></div>
+            <div className="text-[15px] text-black-1">
+              {placeholders.hourly_basis}
+            </div>
           </div>
-        </div>
+        )}
 
         <div className="space-y-1 mt-5 w-full">
           <p
@@ -108,14 +116,16 @@ function PriceModal({
               placeholder={`${placeholders.Rs}0.00`}
               className="h-[28px] rtl:pl-12 ltr:pr-14 text-[15px] text-black-1 placeholder:text-black-1 font-normal focus:outline-none w-full [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none "
             />
-            <p className="absolute top-1/2 rtl:left-0  -translate-y-1/2  ltr:right-0">
-              -/
-              {
-                placeholders?.[
-                  selectedPrice?.paymentType as keyof typeof placeholders
-                ]
-              }
-            </p>
+            {type === "service" && (
+              <p className="absolute top-1/2 rtl:left-0  -translate-y-1/2  ltr:right-0">
+                -/
+                {
+                  placeholders?.[
+                    selectedPrice?.paymentType as keyof typeof placeholders
+                  ]
+                }
+              </p>
+            )}
           </div>
 
           {priceError && (

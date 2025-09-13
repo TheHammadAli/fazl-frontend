@@ -27,7 +27,7 @@ function TypeModal({ type, setType, setIsTypeOpen }: typeModal) {
       </div>
       <div className="px-5 pb-4">
         <h2 className="text-[14px] font-normal text-gray-8 my-3">
-          {info_messages.set_price}
+          {placeholders.select_listing}
         </h2>
         {/* fix */}
         <div className="flex gap-2 items-center">
@@ -54,6 +54,16 @@ function TypeModal({ type, setType, setIsTypeOpen }: typeModal) {
           <div className="text-[15px] text-black-1">
             {placeholders.classified}
           </div>
+        </div>
+        <div className="flex justify-end py-2">
+          <button
+            disabled={type === ""}
+            // type="submit"
+            onClick={() => setIsTypeOpen(false)}
+            className="bg-green-1 disabled:opacity-50 cursor-pointer text-white h-[34px] w-[80px] rounded-[6px] flex items-center justify-center"
+          >
+            {placeholders.confirm}
+          </button>
         </div>
       </div>
     </div>

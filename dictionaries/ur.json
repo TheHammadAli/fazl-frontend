@@ -1,6 +1,10 @@
 {
     "currentLanguage": "ur",
     "placeholders": {
+        "select_listing": "لسٹنگ کی قسم منتخب کریں",
+        "update": "ترمیم کریں",
+        "edit_product": "پروڈکٹ کو ترمیم کریں",
+        "delete_product": "پروڈکٹ کو حذف کریں",
         "pay_now": "ابھی ادائیگی کریں",
         "choose_payment": "ادائیگی منتخب کریں",
         "payment": "ادائیگی",
@@ -46,6 +50,7 @@
         "private_listing": "نجی فہرست",
         "create_shop": "دکان بنائیں",
         "promote_shop": " اس دکان کو فروغ دیں",
+        "promote_product": "اس پروڈکٹ کو فروغ دیں",
         "later": "بعد میں",
         "edit": "ترمیم کریں",
         "about": "بارے میں",
@@ -81,7 +86,8 @@
         "parameter_name": "پیرامیٹر نام",
         "parameter_value": "پیرامیٹر مقدار",
         "delete": "حذف کریں",
-        "add_value": "ایک اور قیمت شامل کریں",
+        "add_another_value": "ایک اور ویلیو شامل کریں",
+        "add_value": "ویلیو شامل کریں",
         "type": "قسم",
         "choose_type": "قسم منتخب کریں",
         "classified": "درجہ بند",
@@ -117,6 +123,7 @@
         "most_listings": "جتنی زیادہ آپ کی فہرستیں ہوں گی، خریداروں کے لیے مارکیٹ کی فیڈ میں آپ کو تلاش کرنا اتنا ہی آسان ہوگا۔"
     },
     "pages": {
+        "private_listing": "نجی فہرست",
         "home": "صفحہ اول",
         "services": "خدمات",
         "selling": "فروخت",

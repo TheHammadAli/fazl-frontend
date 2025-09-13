@@ -9,8 +9,11 @@ import { useGetProductDetailQuery } from "@/store/services/homeService";
 import { useSearchParams } from "next/navigation";
 import noImageAvtar from "@/assets/images/no-image-av.png";
 import { useClickOutside } from "@/custom-hooks/useClickOutside";
+import { useGetShopDetailQuery } from "@/store/services/sellingService";
+import threeDots from "@/assets/icons/three-dots.svg";
+import { useRouter } from "next/navigation";
 export type ProductDetailProps = {
-  setStep?: (val: "product" | "cart") => void;
+  //   setStep?: (val: "product" | "cart") => void;
   product: {
     data: {
       id: string;
@@ -32,24 +35,38 @@ export type ProductDetailProps = {
     image?: string;
     ownerId?: string;
   };
-  selectedVariants: Record<string, unknown>;
-  setSelectedVariants?: React.Dispatch<
-    React.SetStateAction<Record<string, unknown>>
-  >;
+  //   selectedVariants: Record<string, unknown>;
+  //   setSelectedVariants?: React.Dispatch<
+  //     React.SetStateAction<Record<string, unknown>>
+  //   >;
 };
-function ProductDetail({
-  setStep,
-  product,
-  selectedVariants,
-  setSelectedVariants,
-}: ProductDetailProps) {
+function ProductDetail() {
+  const id = useSearchParams().get("id");
+  const router = useRouter();
+
+  const {
+    data: product,
+    isLoading,
+    isFetching,
+    isSuccess,
+  } = useGetProductDetailQuery(id, {
+    skip: !id,
+  });
+  const { data: shopDetail } = useGetShopDetailQuery(product?.data?.shopId, {
+    skip: !isSuccess,
+  });
+  const shopData = shopDetail?.data;
   const { pages, placeholders, info_messages, error_messages } =
     useDictionary();
   const ref = React.useRef<HTMLDivElement>(null);
   const [toggle, setToggle] = useState(-1);
+  const [isEdit, setIsEdit] = useState(false);
 
   useClickOutside(ref, () => {
     setToggle(-1);
+  });
+  useClickOutside(ref, () => {
+    setIsEdit(false);
   });
 
   return (
@@ -57,7 +74,13 @@ function ProductDetail({
       <div className="h-full min-h-screen flex flex-col items-center">
         <div className="px-5 sm:px-10 h-[61px] border-b-[1px] border-gray-9 bg-white w-full  flex justify-center">
           <div className="w-full   flex items-center gap-[6px] font-normal text-[14px] mt-5">
-            <span className="text-gray-8">{pages.home}</span>
+            <span className="text-gray-8">{pages.selling}</span>
+            <Image
+              src={chevron}
+              alt="chevron"
+              className="-rotate-90 rtl:rotate-90"
+            />
+            <span className="text-gray-8">{pages.private_listing}</span>
             <Image
               src={chevron}
               alt="chevron"
@@ -101,22 +124,51 @@ function ProductDetail({
                 </div>
               </div>
               <div className="w-full sm:max-w-[364px] ">
-                <div className="space-y-2 sm:space-y-0 sm:flex sm:justify-between items-center">
+                <div className="space-y-2 sm:space-y-0 flex justify-between ">
                   <div className="flex gap-2">
                     <Image
-                      className="h-[44px] w-[44px] rounded-full object-cover "
-                      src={dummyProfile}
+                      className="h-[44px] w-[44px] rounded-full object-cover bg-gray-12"
+                      src={shopData?.image ?? noImageAvtar}
                       alt="profile"
                     />
                     <div>
-                      <h4 className="text-[#030303] text-[14px]">alexcloth</h4>
+                      <h4 className="text-[#030303] text-[14px]">
+                        {shopData?.title ?? ""}
+                      </h4>
                       <h4 className="text-[#4B514F] text-[14px] font-light">
                         alex.cloth@gmail.com
                       </h4>
                     </div>
                   </div>
-                  <div className="border-[1px] border-green-1 text-green-1 flex items-center justify-center rounded-lg h-[33px] w-[111px] text-[13px] font-light">
-                    {placeholders.message_seller}
+                  <div className=" cursor-pointer relative " ref={ref}>
+                    <div className="p-2">
+                      <Image
+                        src={threeDots}
+                        alt="threeDots"
+                        onClick={() => setIsEdit(true)}
+                      />
+                    </div>
+
+                    {isEdit && (
+                      <div className="absolute p-1 shadow-xl right-0 top-6 border-[0.5px] border-[#00000033] rounded-[6px] bg-white w-[136px]">
+                        <div
+                          onClick={() => {
+                            setIsEdit(false);
+
+                            router.push("/selling/update-product?id=" + id);
+                          }}
+                          className="p-[10px] text-[12px] leading-none hover:bg-green-3"
+                        >
+                          {placeholders.edit_product}
+                        </div>
+                        <div
+                          onClick={() => setIsEdit(false)}
+                          className="p-[8px] text-[12px] leading-none hover:bg-green-3"
+                        >
+                          {placeholders.delete_product}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
                 <h3 className="text-[#030303] text-[16px] font-medium mt-4">
@@ -140,15 +192,15 @@ function ProductDetail({
                 <div className="text-[15px] text-[#030303] font-light">
                   {product?.data?.description ?? ""}
                 </div>
-                <div className="border-[#E5E5E5]  py-4 px-1.5 border-t-[0.5px] mt-4 flex justify-between">
+                {/* <div className="border-[#E5E5E5]  py-4 px-1.5 border-t-[0.5px] mt-4 flex justify-between">
                   <span className="text-[15px] font-medium">
                     {placeholders.category}
                   </span>
                   <span className="font-light text-[15px] leading-none">
                     {product?.data?.category?.name ?? ""}
                   </span>
-                </div>
-                {product?.data?.parameters?.map(
+                </div> */}
+                {/* {product?.data?.parameters?.map(
                   (
                     parameter: { name: string; variants: string[] },
                     index: number
@@ -171,6 +223,7 @@ function ProductDetail({
                                 parameter?.name as keyof typeof selectedVariants
                               ] ?? "Choose"
                             )}
+                            Choose
                           </span>
                           <Image
                             src={chevron}
@@ -207,25 +260,25 @@ function ProductDetail({
                       </div>
                     </div>
                   )
-                )}
-                <button
-                  disabled={
-                    Object.keys(selectedVariants).length !==
-                    product?.data?.parameters?.length
-                  }
+                )} */}
+                {/* <button
+                  //   disabled={
+                  //     Object.keys(selectedVariants).length !==
+                  //     product?.data?.parameters?.length
+                  //   }
                   className=" mt-8 h-[46px]  disabled:opacity-50 disabled:pointer-events-none border-green-1 border-[1px] w-full rounded-xl flex items-center justify-center font-medium text-[16px] text-green-1 hover:text-white hover:bg-green-1 cursor-pointer"
                 >
                   Add to cart
-                </button>
+                </button> */}
                 <button
-                  disabled={
-                    Object.keys(selectedVariants).length !==
-                    product?.data?.parameters?.length
-                  }
-                  onClick={() => setStep && setStep("cart")}
+                  //   disabled={
+                  //     Object.keys(selectedVariants).length !==
+                  //     product?.data?.parameters?.length
+                  //   }
+                  //   onClick={() => setStep && setStep("cart")}
                   className="h-[46px] disabled:opacity-50 disabled:pointer-events-none mt-4 border-green-1 bg-green-1 border-[1px] w-full rounded-xl flex items-center justify-center font-medium text-[16px] text-white hover:text-green-1 hover:bg-white cursor-pointer"
                 >
-                  Buy now
+                  {placeholders.promote_product}
                 </button>
               </div>
             </div>

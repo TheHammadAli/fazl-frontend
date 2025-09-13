@@ -3,34 +3,46 @@ import React, { useState } from "react";
 import Image from "next/image";
 import crossImage from "@/assets/icons/cross-icon.svg";
 interface Props {
-  images: File[];
-  setImages: React.Dispatch<React.SetStateAction<File[]>>;
+  images: (File | string)[];
+  setImages: React.Dispatch<React.SetStateAction<(File | string)[]>>;
+  deleteMedia?: string[];
+  setDeleteMedia?: React.Dispatch<React.SetStateAction<string[]>>;
 }
 
-function ChooseImagesTab({ images, setImages }: Props) {
+function ChooseImagesTab({
+  images,
+  setImages,
+  deleteMedia,
+  setDeleteMedia,
+}: Props) {
   const { pages, placeholders } = useDictionary();
-  const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleUpdate = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files) return;
     const selectedFiles = Array.from(e.target.files);
 
     setImages((prev) => [...prev, ...selectedFiles].slice(0, 5));
   };
   const removeImage = (index: number) => {
+    if (typeof images[index] === "string") {
+      setDeleteMedia?.((prev) => [...prev, images[index] as string]);
+    }
     setImages((prev) => prev.filter((_, i) => i !== index));
   };
   return (
     <div>
       <div className="mt-5 flex gap-2 flex-wrap">
-        {images.map((file, index) => (
+        {images?.map((file, index) => (
           <div
             key={index}
             className="relative h-[126px] w-[126px] rounded-[12px] overflow-hidden"
           >
             <Image
-              src={URL.createObjectURL(file)}
+              src={typeof file === "string" ? file : URL.createObjectURL(file)}
               alt={`upload-${index}`}
-              fill
+              height={100}
+              width={100}
               className="object-cover  h-full w-full"
+              unoptimized
             />
             <div
               className="absolute  h-[24px]  rounded-full ltr:right-2 rtl:left-2 top-2 w-[24px] bg-opacity-50 flex items-center justify-center cursor-pointer"
@@ -81,7 +93,7 @@ function ChooseImagesTab({ images, setImages }: Props) {
                 type="file"
                 multiple
                 accept="image/*"
-                onChange={handleUpload}
+                onChange={handleUpdate}
                 className="hidden"
               />
             </label>

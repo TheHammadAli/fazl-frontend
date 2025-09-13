@@ -5,8 +5,8 @@ import React, { useState } from "react";
 import Image from "next/image";
 import crossImage from "@/assets/icons/cross-icon.svg";
 interface Props {
-  video: File | null;
-  setVideo: React.Dispatch<React.SetStateAction<File | null>>;
+  video: File | null | string;
+  setVideo: React.Dispatch<React.SetStateAction<File | null | string>>;
 }
 function ChooseVideoTab({ video, setVideo }: Props) {
   const { pages, placeholders } = useDictionary();
@@ -28,7 +28,9 @@ function ChooseVideoTab({ video, setVideo }: Props) {
         {video && (
           <div className="relative h-[126px] w-[126px] rounded-[12px] overflow-hidden">
             <video
-              src={URL.createObjectURL(video)}
+              src={
+                typeof video === "string" ? video : URL.createObjectURL(video)
+              }
               className="object-cover h-full w-full"
               controls
             />

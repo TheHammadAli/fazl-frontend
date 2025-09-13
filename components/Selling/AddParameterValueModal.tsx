@@ -138,7 +138,10 @@ function AddParameterValueModal({
             type="button"
             className="bg-transparent border-[1px] border-green-1 text-green-1 disabled:opacity-50 cursor-pointer  h-[34px] w-max px-4 rounded-[6px] flex items-center justify-center"
           >
-            {placeholders.add_value}
+            <span className="hidden sm:block">
+              {placeholders.add_another_value}
+            </span>
+            <span className=" sm:hidden">{placeholders.add_value}</span>
           </button>
           <button
             onClick={handleDeleteParameter}
