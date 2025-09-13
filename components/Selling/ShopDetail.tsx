@@ -12,6 +12,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 import ShopInfoSkelton from "./ShopInfoSkelton";
 import { useGetUserDetailQuery } from "@/store/services/profileService";
+import noImageAvtar from "@/assets/images/no-image-av.png";
 
 export default function ShopDetail() {
   const router = useRouter();
@@ -70,17 +71,11 @@ export default function ShopDetail() {
               <div className="space-y-[16px] md:space-y-[20px]">
                 <div className="flex items-center gap-[14px]">
                   <div className="h-[66px] w-[66px] min-w-[66px] rounded-full overflow-hidden">
-                    {shop?.data?.image ? (
-                      <Image
-                        src={profileImg}
-                        alt="profile"
-                        className="rounded-full h-full w-full object-cover"
-                      />
-                    ) : (
-                      <div className="uppercase text-green-1 text-[24px] font-medium h-full w-full flex items-center justify-center bg-green-4">
-                        {shop?.data?.title?.charAt(0)}
-                      </div>
-                    )}
+                    <Image
+                      src={shop?.data?.image ?? noImageAvtar}
+                      alt="profile"
+                      className="rounded-full h-full w-full object-cover"
+                    />
                   </div>
                   <div>
                     <h2 className="  text-black-3 text-[18px] font-medium">

@@ -48,6 +48,7 @@ export const profileService = baseApi.injectEndpoints({
           method: "GET",
         };
       },
+      providesTags: ["PRODUCT"],
     }),
 
     listProduct: build.mutation({
@@ -65,10 +66,27 @@ export const profileService = baseApi.injectEndpoints({
         body,
       }),
     }),
+    updateProduct: build.mutation({
+      query: ({ id, formData }) => ({
+        url: `/products/${id}`,
+        method: "PUT",
+        body: formData,
+      }),
+      invalidatesTags: ["PRODUCT"],
+    }),
+    deleteProductMedia: build.mutation({
+      query: ({ id, body }) => ({
+        url: `/products/${id}/media`,
+        method: "DELETE",
+        body: body,
+      }),
+    }),
   }),
 });
 
 export const {
+  useDeleteProductMediaMutation,
+  useUpdateProductMutation,
   useOrderProductMutation,
   useGetShopProductsQuery,
   useListProductMutation,

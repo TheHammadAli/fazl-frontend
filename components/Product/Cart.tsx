@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import chevron from "@/assets/icons/chev-down-icon.svg";
 import { useDictionary } from "@/dictionaries/DictionaryProvider";
-import { ProductDetailProps } from "./ProductDetail";
+import { ProductDetailProps } from "./BuyProductDetail";
 import { RadioGroup } from "@headlessui/react";
 import { Clock } from "lucide-react";
 import { Star } from "lucide-react";

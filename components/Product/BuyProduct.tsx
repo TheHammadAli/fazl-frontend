@@ -1,10 +1,10 @@
 "use client";
 import React, { useState } from "react";
-import ProductDetail from "./ProductDetail";
 import Cart from "./Cart";
 import { useGetProductDetailQuery } from "@/store/services/homeService";
 import { useSearchParams } from "next/navigation";
 import { useGetShopDetailQuery } from "@/store/services/sellingService";
+import BuyProductDetail from "./BuyProductDetail";
 
 function BuyProduct() {
   const [step, setStep] = useState<"product" | "cart">("product");
@@ -26,7 +26,7 @@ function BuyProduct() {
   return (
     <div>
       {step === "product" && (
-        <ProductDetail
+        <BuyProductDetail
           setStep={setStep}
           selectedVariants={selectedVariants}
           setSelectedVariants={setSelectedVariants}

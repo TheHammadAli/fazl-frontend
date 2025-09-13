@@ -24,6 +24,7 @@ export const homeService = baseApi.injectEndpoints({
           method: "GET",
         };
       },
+      providesTags: ["PRODUCT"],
     }),
   }),
 });

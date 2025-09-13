@@ -40,7 +40,10 @@ function Wellcome() {
           <p className=" text-[16px] font-light text-gray-8">
             {info_messages.locally_globally}
           </p>
-          <div className=" max-w-[500px] lg:max-w-full cursor-pointer mt-12 w-full bg-[#C7F1EE80] flex gap-[10px] justify-between items-start lg:h-[102px] rounded-[12px] p-5">
+          <div
+            onClick={() => router.push("/selling")}
+            className=" max-w-[500px] lg:max-w-full cursor-pointer mt-12 w-full bg-[#C7F1EE80] flex gap-[10px] justify-between items-start lg:h-[102px] rounded-[12px] p-5"
+          >
             <div>
               <h2 className="text-[16px] leading-tight font-medium text-black-1">
                 {info_messages.list_product}
@@ -51,7 +54,11 @@ function Wellcome() {
             </div>
             <Image src={Arrow} alt="arrow" className="rtl:-rotate-90" />
           </div>
-          <div className="max-w-[500px] lg:max-w-full cursor-pointer w-full mt-3 bg-[#C7F1EE80] flex gap-[10px] justify-between items-start lg:h-[102px] rounded-[12px] p-5">
+
+          <div
+            onClick={() => router.push("/services")}
+            className="max-w-[500px] lg:max-w-full cursor-pointer w-full mt-3 bg-[#C7F1EE80] flex gap-[10px] justify-between items-start lg:h-[102px] rounded-[12px] p-5"
+          >
             <div>
               <h2 className="text-[16px] leading-tight font-medium text-black-1">
                 {info_messages.list_service}
@@ -60,7 +67,7 @@ function Wellcome() {
                 {info_messages.offer_expertise}
               </p>
             </div>
-            <Image src={Arrow} alt="arrow" className="rtl:-rotate-90" />
+            <Image src={Arrow} alt="arrow" className="rtl:-rotate-90 " />
           </div>
         </div>
         <div className=" py-10 lg:py-0">
