@@ -72,7 +72,11 @@ export default function ShopDetail() {
                 <div className="flex items-center gap-[14px]">
                   <div className="h-[66px] w-[66px] min-w-[66px] rounded-full overflow-hidden">
                     <Image
-                      src={shop?.data?.image ?? noImageAvtar}
+                      src={
+                        shop?.data?.image
+                          ? `${shop.data.image}?t=${Date.now()}`
+                          : noImageAvtar
+                      }
                       alt="profile"
                       width={100}
                       height={100}
