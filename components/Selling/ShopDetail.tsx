@@ -74,6 +74,8 @@ export default function ShopDetail() {
                     <Image
                       src={shop?.data?.image ?? noImageAvtar}
                       alt="profile"
+                      width={100}
+                      height={100}
                       className="rounded-full h-full w-full object-cover"
                     />
                   </div>
@@ -88,7 +90,12 @@ export default function ShopDetail() {
                 </div>
                 <div className="flex justify-between text-[14px] font-normal">
                   <h3 className="text-gray-8">{placeholders.about_us}</h3>
-                  <h3 className="text-green-1 cursor-pointer underline">
+                  <h3
+                    className="text-green-1 cursor-pointer underline "
+                    onClick={() =>
+                      router.push(`/selling/update-shop?id=${shop?.data?.id}`)
+                    }
+                  >
                     {placeholders.edit}
                   </h3>
                 </div>

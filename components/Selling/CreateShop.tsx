@@ -146,7 +146,7 @@ function CreateShop() {
       if (profile && profile !== null) {
         formData.append("image", profile);
       }
-      formData.delete("address");
+      // formData.delete("address");
 
       createShop(formData);
     }

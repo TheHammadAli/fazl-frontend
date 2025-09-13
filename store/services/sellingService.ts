@@ -39,6 +39,7 @@ export const profileService = baseApi.injectEndpoints({
           method: "GET",
         };
       },
+      providesTags: ["SHOP_DETAIL"],
     }),
 
     getShopProducts: build.query({
@@ -81,10 +82,19 @@ export const profileService = baseApi.injectEndpoints({
         body: body,
       }),
     }),
+    updateShop: build.mutation({
+      query: ({ id, formData }) => ({
+        url: `/shops/${id}`,
+        method: "PUT",
+        body: formData,
+      }),
+      invalidatesTags: ["SHOP_DETAIL"],
+    }),
   }),
 });
 
 export const {
+  useUpdateShopMutation,
   useDeleteProductMediaMutation,
   useUpdateProductMutation,
   useOrderProductMutation,

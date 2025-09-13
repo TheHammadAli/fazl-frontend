@@ -110,7 +110,7 @@ function ProductDetail() {
                 </div>
                 <div className="flex gap-3 flex-wrap">
                   {product?.data?.images
-                    ?.slice(0, 1)
+                    ?.slice(1, product?.data?.images?.length)
                     ?.map((image: string, index: number) => (
                       <Image
                         key={index}
@@ -130,6 +130,8 @@ function ProductDetail() {
                       className="h-[44px] w-[44px] rounded-full object-cover bg-gray-12"
                       src={shopData?.image ?? noImageAvtar}
                       alt="profile"
+                      height={100}
+                      width={100}
                     />
                     <div>
                       <h4 className="text-[#030303] text-[14px]">
