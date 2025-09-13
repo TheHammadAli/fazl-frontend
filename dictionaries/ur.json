@@ -1,6 +1,7 @@
 {
     "currentLanguage": "ur",
     "placeholders": {
+        "pending": "زیر غور",
         "select_listing": "لسٹنگ کی قسم منتخب کریں",
         "update": "ترمیم کریں",
         "edit_product": "پروڈکٹ کو ترمیم کریں",
@@ -148,6 +149,7 @@
         "description_required": "وضاحت ضروری ہے*",
         "shop_error": "دکانوں کی فہرست حاصل کرنے میں خرابی",
         "no_shops_data": "کوئی دکان دستیاب نہیں ہے",
+        "no_orders_data": "کوئی اورڈر دستیاب نہیں ہے",
         "no_categories": "کوئی زمرے دستیاب نہیں ہیں",
         "no_product_data": "کوئی پروڈکٹ دستیاب نہیں ہے",
         "price_required": "قیمت ضروری ہے*",
@@ -155,5 +157,12 @@
         "type_required": "قسم ضروری ہے*",
         "video_required": "براہ کرم اپنے پروڈکٹ کی ویڈیو شامل کریں*",
         "parameter_required": "براہ کرم کم از کم ایک پیرامیٹر شامل کریں*"
+    },
+    "tabs": {
+        "all": "تمام",
+        "in_progress": "زیرِ عمل",
+        "order_received": "آرڈرز موصول",
+        "cancelled": "منسوخ",
+        "sold": "فروخت شدہ"
     }
 }

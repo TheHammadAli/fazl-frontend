@@ -1,6 +1,7 @@
 {
     "currentLanguage": "en",
     "placeholders": {
+        "pending": "Pending",
         "select_listing": "Select listing type",
         "update": "Update",
         "edit_product": "Edit product",
@@ -148,6 +149,7 @@
         "description_required": "Description is required*",
         "shop_error": "Error while getting shops list",
         "no_shops_data": "No shops are available",
+        "no_orders_data": "No orders are available",
         "no_product_data": "No products are available",
         "no_categories": "No categories are available",
         "price_required": "Price is required*",
@@ -155,5 +157,12 @@
         "type_required": "Type is required*",
         "video_required": "Please add a video of your product*",
         "parameter_required": "Please add at least one parameter*"
+    },
+    "tabs": {
+        "all": "All",
+        "in_progress": "In progress",
+        "order_received": "Orders received",
+        "cancelled": "Cancelled",
+        "sold": "Sold"
     }
 }

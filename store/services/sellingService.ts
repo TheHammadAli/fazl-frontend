@@ -90,10 +90,19 @@ export const profileService = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["SHOP_DETAIL"],
     }),
+    getShopOrders: build.query({
+      query: (id) => {
+        return {
+          url: `/orders/owner/${id}?ownerModel=Shop&page=1&limit=50`,
+          method: "GET",
+        };
+      },
+    }),
   }),
 });
 
 export const {
+  useGetShopOrdersQuery,
   useUpdateShopMutation,
   useDeleteProductMediaMutation,
   useUpdateProductMutation,

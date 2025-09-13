@@ -88,7 +88,7 @@ function BuyProductDetail({
                 </div>
                 <div className="flex gap-3 flex-wrap">
                   {product?.data?.images
-                    ?.slice(0, 1)
+                    ?.slice(1, product?.data?.images?.length)
                     ?.map((image: string, index: number) => (
                       <Image
                         key={index}

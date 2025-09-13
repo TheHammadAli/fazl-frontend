@@ -35,14 +35,14 @@ function HomeSection() {
       category: categoryId,
       name: debounceSearch,
     },
-    { skip: !categoryId || activeTab !== "products" }
+    { skip: !categoryId || activeTab !== "products" || !debounceSearch }
   );
   const { data: servicesData } = useSearchServicesQuery(
     {
       category: categoryId,
       name: debounceSearch,
     },
-    { skip: !categoryId || activeTab !== "services" }
+    { skip: !categoryId || activeTab !== "services" || !debounceSearch }
   );
 
   useClickOutside(catRef, () => {
