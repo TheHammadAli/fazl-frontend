@@ -34,8 +34,8 @@ function ListProduct() {
   const [createdData, setCreatedData] = useState<{ id: string }>({ id: "" });
   const tabs = ["photos_tab", "video_tab"];
   const [activeTab, setActiveTab] = useState<string>(tabs[0]);
-  const [images, setImages] = useState<File[]>([]);
-  const [video, setVideo] = useState<File | null>(null);
+  const [images, setImages] = useState<(File | string)[]>([]);
+  const [video, setVideo] = useState<File | null | string>(null);
 
   const tabsComponents: { [key: string]: React.ReactNode } = {
     photos_tab: <ChooseImagesTab images={images} setImages={setImages} />,
