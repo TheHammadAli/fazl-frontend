@@ -12,13 +12,10 @@ import Modal from "../Ui/Modals/Modal";
 import CategoryModal, { categroyTypes } from "../Services/CategoryModal";
 import PriceModal, { priceTypes } from "../Services/PriceModal";
 import {
-  useAddServiceMutation,
   useDeleteProductMediaMutation,
-  useListProductMutation,
   useUpdateProductMutation,
 } from "@/store/services/sellingService";
 import toast from "react-hot-toast";
-import ServiceCreated from "../Services/ServiceCreated";
 import AddParameterModal, { parameterTypes } from "./AddParameterModal";
 import plusIcon from "@/assets/icons/green-plus-icon.svg";
 import AddParameterValueModal from "./AddParameterValueModal";
@@ -26,8 +23,10 @@ import TypeModal from "./TypeModal";
 import { useSearchParams } from "next/navigation";
 import ProductListed from "./ProductListed";
 import { useGetProductDetailQuery } from "@/store/services/homeService";
+import { useRouter } from "next/navigation";
 
 function ListProduct() {
+  const router = useRouter();
   const categoryRef = useRef<HTMLDivElement | null>(null);
   const { pages, placeholders, info_messages, error_messages } =
     useDictionary();
@@ -162,6 +161,10 @@ function ListProduct() {
   useEffect(() => {
     if (isSuccess) {
       toast.success(data?.message);
+      const timer = setTimeout(() => {
+        router.back();
+      }, 1500);
+      return () => clearTimeout(timer);
     }
     if (isError && "data" in error) {
       toast.error(
@@ -283,7 +286,7 @@ function ListProduct() {
           <ProductListed setStatus={setStatus} />
         ) : (
           <div className="md:flex w-full flex-1">
-            <div className="w-fullmd:w-[46%] p-4 md:p-6 border-b md:border-r border-gray-9 ">
+            <div className="w-full md:w-[46%] p-4 md:p-6 border-b md:border-r border-gray-9 ">
               <div>
                 <Tabs
                   tabs={tabs}

@@ -76,7 +76,7 @@ export const baseQueryWithReauth: BaseQueryFn<
 };
 export const baseApi = createApi({
   baseQuery: baseQueryWithReauth,
-  tagTypes: ["profile", "PRODUCT"],
+  tagTypes: ["profile", "PRODUCT", "SHOP_DETAIL"],
   endpoints: (builder) => ({}),
 });
 

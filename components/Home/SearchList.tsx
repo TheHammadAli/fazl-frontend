@@ -53,7 +53,6 @@ function SearchList() {
 
   const loading =
     productsLoading || productsFetching || servicesLoading || servicesFetching;
-
   return (
     <div className="px-5 md:px-10 py-8">
       {/* Search */}
