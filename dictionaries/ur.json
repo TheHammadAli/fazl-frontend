@@ -1,6 +1,15 @@
 {
     "currentLanguage": "ur",
     "placeholders": {
+        "reviews": "نظرات",
+        "total_pay": "کل ادائیگی",
+        "sale_tax": "سیلز ٹیکس",
+        "delivery_fee": "ترسیل کی فیس",
+        "add_cart": "کارٹ میں شامل کریں",
+        "buy_now": "ابھی خریدیں",
+        "choose": " منتخب کریں",
+        "choose_payment_method": "ادائیگی کا طریقہ منتخب کریں",
+        "choose_another_payment_method": "کوئی اور ادائیگی کا طریقہ منتخب کریں",
         "pending": "زیر غور",
         "select_listing": "لسٹنگ کی قسم منتخب کریں",
         "update": "ترمیم کریں",
@@ -96,6 +105,7 @@
         "retail": "ریٹیل"
     },
     "info_messages": {
+        "home_delivery": "ہوم ڈلیوری، 4–6 دن",
         "receive_order": "آپ اپنا آرڈر کس طرح وصول کرنا چاہتے ہیں؟",
         "tell_sellers": "فروخت کنندگان کو بتائیں کہ آپ کیا تلاش کر رہے ہیں اور فوری جوابات حاصل کریں",
         "broadcast_request": "درخواست نشر کریں",

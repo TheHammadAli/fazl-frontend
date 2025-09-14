@@ -20,7 +20,6 @@ function ChooseVideoTab({ video, setVideo }: Props) {
   const removeVideo = () => {
     setVideo(null);
   };
-  console.log("fdsfs");
   return (
     <div>
       <div className="mt-5 flex gap-2 flex-wrap">

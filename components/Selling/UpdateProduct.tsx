@@ -66,7 +66,6 @@ function ListProduct() {
     video_tab: <ChooseVideoTab video={video} setVideo={setVideo} />,
   };
 
-  console.log(deleteMedia, "delete media");
   const [title, setTitle] = useState(productData?.title || "");
   const [titleError, setTitleError] = useState("");
   const [description, setDescription] = useState(

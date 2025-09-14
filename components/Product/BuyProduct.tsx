@@ -31,6 +31,7 @@ function BuyProduct() {
           selectedVariants={selectedVariants}
           setSelectedVariants={setSelectedVariants}
           product={product}
+          shopData={shopDetail?.data}
         />
       )}
       {step === "cart" && (

@@ -27,7 +27,6 @@ function ShopProductsList() {
   } = useGetShopProductsQuery(id, { skip: !id });
 
   const loading = isProductsLoading || isProductsFetching;
-  console.log(products, "products data");
   return (
     <div className="px-5 md:px-6">
       <div className="flex justify-between items-center md:px-3.5 mt-4">
