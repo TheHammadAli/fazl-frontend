@@ -103,6 +103,8 @@ function ListProduct() {
       selectedPrice.price !== "" &&
       type !== "" &&
       video !== null &&
+      video !== "" &&
+      images?.length > 0 &&
       parameters.length > 0
     ) {
       const formData = new FormData();

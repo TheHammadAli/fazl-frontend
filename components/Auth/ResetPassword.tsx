@@ -273,10 +273,10 @@ function ResetPassword() {
 
             <button
               type="submit"
-              disabled={false}
+              disabled={isLoading}
               className="mt-6  max-w-[500px] lg:max-w-full h-[52px] w-full rounded-[12px] text-white font-medium text-[16px]  bg-green-1 cursor-pointer"
             >
-              {false ? <BeatLoader color="white" size={8} /> : "Continue"}
+              {isLoading ? <BeatLoader color="white" size={8} /> : "Continue"}
             </button>
           </div>
           <div className="w-full lg:mb-16">

@@ -12,7 +12,7 @@ import { useClickOutside } from "@/custom-hooks/useClickOutside";
 import { useGetShopDetailQuery } from "@/store/services/sellingService";
 import threeDots from "@/assets/icons/three-dots.svg";
 import { useRouter } from "next/navigation";
-export type ProductDetailProps = {
+export type ServiceDetailProps = {
   //   setStep?: (val: "product" | "cart") => void;
   product: {
     data: {
@@ -28,34 +28,25 @@ export type ProductDetailProps = {
     isLoading: boolean;
     isFetching: boolean;
   };
-  shopData?: {
-    id?: string;
-    address?: string;
-    title?: string;
-    image?: string;
-    ownerId?: string;
-  };
-  //   selectedVariants: Record<string, unknown>;
-  //   setSelectedVariants?: React.Dispatch<
-  //     React.SetStateAction<Record<string, unknown>>
-  //   >;
 };
-function ProductDetail() {
-  const id = useSearchParams().get("id");
+export type ServiceDetailType = {
+  id: string;
+  title: string;
+  name: string;
+  price: number;
+  images: string[];
+  video: string;
+  description: string;
+  parameters: { name: string; variants: string[] }[];
+  category: { name: string };
+};
+function ServiceDetail({ serviceData }: { serviceData: ServiceDetailType }) {
   const router = useRouter();
+  const { user } =
+    typeof window !== "undefined"
+      ? JSON.parse(localStorage.getItem("user") || "{}")
+      : null;
 
-  const {
-    data: product,
-    isLoading,
-    isFetching,
-    isSuccess,
-  } = useGetProductDetailQuery(id, {
-    skip: !id,
-  });
-  const { data: shopDetail } = useGetShopDetailQuery(product?.data?.shopId, {
-    skip: !isSuccess,
-  });
-  const shopData = shopDetail?.data;
   const { pages, placeholders, info_messages, error_messages } =
     useDictionary();
   const ref = React.useRef<HTMLDivElement>(null);
@@ -63,7 +54,6 @@ function ProductDetail() {
   const [isEdit, setIsEdit] = useState(false);
   const [type, setType] = useState("image");
   const [typeIndex, setTypeIndex] = useState(0);
-
   useClickOutside(ref, () => {
     setToggle(-1);
   });
@@ -76,19 +66,15 @@ function ProductDetail() {
       <div className="h-full min-h-screen flex flex-col items-center">
         <div className="px-5 sm:px-10 h-[61px] border-b-[1px] border-gray-9 bg-white w-full  flex justify-center">
           <div className="w-full   flex items-center gap-[6px] font-normal text-[14px] mt-5">
-            <span className="text-gray-8">{pages.selling}</span>
+            <span className="text-gray-8 capitalize">
+              {placeholders.service}
+            </span>
             <Image
               src={chevron}
               alt="chevron"
               className="-rotate-90 rtl:rotate-90"
             />
-            <span className="text-gray-8">{pages.private_listing}</span>
-            <Image
-              src={chevron}
-              alt="chevron"
-              className="-rotate-90 rtl:rotate-90"
-            />
-            <span className="text-green-1">{product?.data?.title}</span>
+            <span className="text-green-1">{serviceData?.title}</span>
           </div>
         </div>
 
@@ -100,8 +86,10 @@ function ProductDetail() {
                   {type === "image" ? (
                     <Image
                       src={
-                        product?.data?.images?.length > 0
-                          ? product?.data?.images?.[typeIndex]
+                        serviceData?.images?.length > 0
+                          ? `${
+                              serviceData?.images?.[typeIndex]
+                            }?t=${Date.now()}`
                           : noImageAvtar
                       }
                       height={100}
@@ -112,7 +100,7 @@ function ProductDetail() {
                     />
                   ) : (
                     <video
-                      src={product?.data?.video as string}
+                      src={serviceData?.video as string}
                       controls
                       autoPlay={false}
                       className=" h-full w-full object-contain"
@@ -120,40 +108,42 @@ function ProductDetail() {
                   )}
                 </div>
                 <div className="flex gap-3 flex-wrap">
-                  {product?.data?.images?.map(
-                    (image: string, index: number) => (
-                      <div
-                        key={index}
-                        onClick={() => {
-                          setTypeIndex(index);
-                          setType("image");
-                        }}
-                        className={`rounded-[10px] border-[4px]  overflow-hidden  cursor-pointer ${
-                          typeIndex === index && type === "image"
-                            ? " border-green-1"
-                            : "border-transparent"
-                        } h-[96px] w-[96px] object-cover`}
-                      >
-                        <Image
-                          src={image}
-                          height={100}
-                          width={100}
-                          alt="product"
-                          className="h-[96px] w-[96px] object-cover  "
-                        />
-                      </div>
-                    )
+                  {serviceData?.images?.map((image: string, index: number) => (
+                    <div
+                      key={index}
+                      onClick={() => {
+                        setTypeIndex(index);
+                        setType("image");
+                      }}
+                      className={`rounded-[10px] border-[4px]  overflow-hidden  cursor-pointer ${
+                        typeIndex === index && type === "image"
+                          ? " border-green-1"
+                          : "border-transparent"
+                      } h-[96px] w-[96px] object-cover`}
+                    >
+                      <Image
+                        src={`${image}?t=${Date.now()}`}
+                        height={100}
+                        width={100}
+                        alt="product"
+                        unoptimized
+                        className="h-[96px] w-[96px] object-cover  "
+                      />
+                    </div>
+                  ))}
+
+                  {serviceData?.video && (
+                    <video
+                      onClick={() => setType("video")}
+                      src={serviceData?.video as string}
+                      controls={false}
+                      className={`h-[96px] w-[96px] border-[4px] object-cover rounded-[10px] cursor-pointer ${
+                        type === "video"
+                          ? " border-green-1"
+                          : "border-transparent"
+                      }`}
+                    />
                   )}
-                  <video
-                    onClick={() => setType("video")}
-                    src={product?.data?.video as string}
-                    controls={false}
-                    className={`h-[96px] w-[96px] border-[4px] object-cover rounded-[10px] cursor-pointer ${
-                      type === "video"
-                        ? " border-green-1"
-                        : "border-transparent"
-                    }`}
-                  />
                 </div>
               </div>
               <div className="w-full sm:max-w-[364px] ">
@@ -161,22 +151,23 @@ function ProductDetail() {
                   <div className="flex gap-2">
                     <Image
                       className="h-[44px] w-[44px] rounded-full object-cover bg-gray-12"
-                      src={shopData?.image ?? noImageAvtar}
+                      src={user?.image ?? noImageAvtar}
                       alt="profile"
                       height={100}
                       width={100}
+                      unoptimized
                     />
                     <div>
                       <h4 className="text-[#030303] text-[14px]">
-                        {shopData?.title ?? ""}
+                        {user?.name ?? ""}
                       </h4>
                       <h4 className="text-[#4B514F] text-[14px] font-light">
-                        alex.cloth@gmail.com
+                        {user?.email ?? ""}
                       </h4>
                     </div>
                   </div>
                   <div className=" cursor-pointer relative " ref={ref}>
-                    <div className="p-2" onClick={() => setIsEdit(true)}>
+                    <div className="p-2 " onClick={() => setIsEdit(true)}>
                       <Image src={threeDots} alt="threeDots" />
                     </div>
 
@@ -186,31 +177,33 @@ function ProductDetail() {
                           onClick={() => {
                             setIsEdit(false);
 
-                            router.push("/selling/update-product?id=" + id);
+                            router.push(
+                              `/services/update-service/${serviceData?.id}`
+                            );
                           }}
                           className="p-[10px] text-[12px] leading-none hover:bg-green-3"
                         >
-                          {placeholders.edit_product}
+                          {placeholders.edit_service}
                         </div>
                         <div
                           onClick={() => setIsEdit(false)}
                           className="p-[8px] text-[12px] leading-none hover:bg-green-3"
                         >
-                          {placeholders.delete_product}
+                          {placeholders.delete_service}
                         </div>
                       </div>
                     )}
                   </div>
                 </div>
                 <h3 className="text-[#030303] text-[16px] font-medium mt-4">
-                  {product?.data?.title ?? ""}
+                  {serviceData.title ?? ""}
                 </h3>
                 <h3 className="font-light text-[14px] text-[#4B514F] ">
                   4 Reviews
                 </h3>
                 <div className="space-x-2 mt-4">
                   <span className="text-green-1 text-[16px] font-medium">
-                    {placeholders.Rs} {product?.data?.price ?? ""}
+                    {placeholders.Rs} {serviceData?.price ?? ""}
                   </span>
                   <span className="line-through font-light text-[14px]">
                     Rs 2000
@@ -221,7 +214,7 @@ function ProductDetail() {
                   {placeholders.description}
                 </div>
                 <div className="text-[15px] text-[#030303] font-light">
-                  {product?.data?.description ?? ""}
+                  {serviceData?.description ?? ""}
                 </div>
                 {/* <div className="border-[#E5E5E5]  py-4 px-1.5 border-t-[0.5px] mt-4 flex justify-between">
                   <span className="text-[15px] font-medium">
@@ -309,7 +302,7 @@ function ProductDetail() {
                   //   onClick={() => setStep && setStep("cart")}
                   className="h-[46px] disabled:opacity-50 disabled:pointer-events-none mt-4 border-green-1 bg-green-1 border-[1px] w-full rounded-xl flex items-center justify-center font-medium text-[16px] text-white hover:text-green-1 hover:bg-white cursor-pointer"
                 >
-                  {placeholders.promote_product}
+                  {placeholders.promote_service}
                 </button>
               </div>
             </div>
@@ -363,4 +356,4 @@ function ProductDetail() {
   );
 }
 
-export default ProductDetail;
+export default ServiceDetail;

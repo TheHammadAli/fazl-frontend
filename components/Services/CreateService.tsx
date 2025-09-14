@@ -4,82 +4,47 @@ import chevron from "@/assets/icons/chev-down-icon.svg";
 import Image from "next/image";
 import { useDictionary } from "@/dictionaries/DictionaryProvider";
 import Tabs from "../Ui/Tabs";
-import ChooseImagesTab from "../Services/ChooseImagesTab";
-import ChooseVideoTab from "../Services/ChooseVideoTab";
+import ChooseImagesTab from "./ChooseImagesTab";
+import ChooseVideoTab from "./ChooseVideoTab";
 import cameraIcon from "@/assets/icons/camera-icon.svg";
 import { BeatLoader } from "react-spinners";
 import Modal from "../Ui/Modals/Modal";
-import CategoryModal, { categroyTypes } from "../Services/CategoryModal";
-import PriceModal, { priceTypes } from "../Services/PriceModal";
+import CategoryModal, { categroyTypes } from "./CategoryModal";
+import PriceModal, { priceTypes } from "./PriceModal";
 import {
-  useDeleteProductMediaMutation,
-  useUpdateProductMutation,
+  useAddServiceMutation,
+  useGetUserServiceQuery,
 } from "@/store/services/sellingService";
 import toast from "react-hot-toast";
-import AddParameterModal, { parameterTypes } from "./AddParameterModal";
-import plusIcon from "@/assets/icons/green-plus-icon.svg";
-import AddParameterValueModal from "./AddParameterValueModal";
-import TypeModal from "./TypeModal";
-import { useSearchParams } from "next/navigation";
-import ProductListed from "./ProductListed";
-import { useGetProductDetailQuery } from "@/store/services/homeService";
-import { useRouter } from "next/navigation";
+import ServiceCreated from "./ServiceCreated";
+import { getCookie } from "cookies-next";
 
-function ListProduct() {
-  const router = useRouter();
+function CreateService() {
   const categoryRef = useRef<HTMLDivElement | null>(null);
+
   const { pages, placeholders, info_messages, error_messages } =
     useDictionary();
-  const [updateProduct, { data, isLoading, isError, isSuccess, error }] =
-    useUpdateProductMutation();
-  const id = useSearchParams().get("id") || "";
-  const [
-    deleteProductMedia,
-    { isLoading: isDeleting, error: deleteError, data: deleteData },
-  ] = useDeleteProductMediaMutation();
-  const [deleteMedia, setDeleteMedia] = useState<string[]>([]);
-  const { data: product, isSuccess: productSuccess } = useGetProductDetailQuery(
-    id,
-    {
-      skip: !id,
-    }
-  );
 
-  const productData = product?.data;
+  const [addService, { data, isLoading, isError, isSuccess, error }] =
+    useAddServiceMutation();
+
   const [status, setStatus] = useState("form");
   const [createdData, setCreatedData] = useState<{ id: string }>({ id: "" });
   const tabs = ["photos_tab", "video_tab"];
   const [activeTab, setActiveTab] = useState<string>(tabs[0]);
-
   const [images, setImages] = useState<(File | string)[]>([]);
   const [video, setVideo] = useState<File | null | string>(null);
 
   const tabsComponents: { [key: string]: React.ReactNode } = {
-    photos_tab: (
-      <ChooseImagesTab
-        images={images}
-        setImages={setImages}
-        deleteMedia={deleteMedia}
-        setDeleteMedia={setDeleteMedia}
-      />
-    ),
+    photos_tab: <ChooseImagesTab images={images} setImages={setImages} />,
     video_tab: <ChooseVideoTab video={video} setVideo={setVideo} />,
   };
-
-  const [title, setTitle] = useState(productData?.title || "");
+  const [title, setTitle] = useState("");
   const [titleError, setTitleError] = useState("");
-  const [description, setDescription] = useState(
-    productData?.description || ""
-  );
-  const [type, setType] = useState(productData?.type || "");
-
+  const [description, setDescription] = useState("");
   const [descriptionError, setDescriptionError] = useState("");
-  const [typeError, setTypeError] = useState("");
   const [isCatOpen, setIsCatOpen] = useState(false);
   const [isPriceOpen, setIsPriceOpen] = useState(false);
-  const [isTypeOpen, setIsTypeOpen] = useState(false);
-  const [isParameterOpen, setIsParameterOpen] = useState(false);
-  const [isParameterValueOpen, setIsParameterValueOpen] = useState(false);
   const [priceError, setPriceError] = useState("");
   const [selectedCategory, setSelectedCategory] =
     useState<categroyTypes | null>(null);
@@ -88,9 +53,6 @@ function ListProduct() {
     paymentType: "fixed",
     price: "",
   });
-  const [index, setIndex] = useState<number | null>(0);
-  const [parameters, setParameters] = useState<parameterTypes[]>([]);
-  const [parameterError, setParameterError] = useState("");
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -98,8 +60,6 @@ function ListProduct() {
     setDescriptionError("");
     setCategoryError("");
     setPriceError("");
-    setTypeError("");
-    setParameterError("");
 
     if (title === "") {
       setTitleError(error_messages.title_required);
@@ -107,25 +67,18 @@ function ListProduct() {
     if (description === "") {
       setDescriptionError(error_messages.description_required);
     }
-    if (type === "") {
-      setTypeError(error_messages.type_required);
-    }
     if (selectedCategory === null) {
       setCategoryError(error_messages.category_required);
     }
     if (selectedPrice.price === "") {
       setPriceError(error_messages.price_required);
     }
-
-    if (parameters.length === 0) {
-      setParameterError(error_messages.parameter_required);
+    if (video === null || video === "") {
+      toast.error(error_messages.video_required);
+      return;
     }
     if (images?.length === 0) {
       toast.error(error_messages.image_required);
-      return;
-    }
-    if (video === null || video === "") {
-      toast.error(error_messages.video_required);
       return;
     }
 
@@ -134,66 +87,50 @@ function ListProduct() {
       description !== "" &&
       selectedCategory !== null &&
       selectedPrice.price !== "" &&
-      type !== "" &&
+      images.length > 0 &&
       video !== null &&
-      video !== "" &&
-      images?.length > 0 &&
-      parameters.length > 0
+      video !== ""
     ) {
       const formData = new FormData();
       formData.append("title", title);
       formData.append("description", description);
       formData.append("category", selectedCategory._id);
       formData.append("price", selectedPrice.price);
-      formData.append("type", type);
-      if (typeof video !== "string") {
+      formData.append("paymentType", selectedPrice.paymentType);
+      if (video !== null) {
         formData.append("video", video);
-      }
-      if (parameters.length > 0) {
-        formData.append("parameters", JSON.stringify(parameters));
       }
       if (images.length > 0) {
         for (let i = 0; i < images.length; i++) {
-          if (typeof images[i] !== "string") {
-            formData.append("images", images[i]);
-          }
+          formData.append("images", images[i]);
         }
       }
-      if (deleteMedia.length > 0) {
-        deleteProductMedia({ id, body: { media: deleteMedia } });
-      }
-      updateProduct({ id, formData });
+      addService(formData);
     }
   };
   useEffect(() => {
     if (isSuccess) {
       toast.success(data?.message);
       const timer = setTimeout(() => {
-        router.back();
-      }, 1500);
+        setStatus("success");
+        setCreatedData(data?.data);
+      }, 500);
+
       return () => clearTimeout(timer);
     }
     if (isError && "data" in error) {
+      setSelectedCategory(null);
+      setSelectedPrice({ paymentType: "fixed", price: "" });
+      setImages([]);
+      setVideo(null);
+      setTitle("");
+      setDescription("");
       toast.error(
         (error?.data as { message?: string })?.message ||
           "something went wrong!"
       );
     }
   }, [isSuccess, isError, data, error]);
-
-  useEffect(() => {
-    if (product?.data) {
-      const prouductData = product?.data;
-      setTitle(prouductData?.title ?? "");
-      setDescription(prouductData?.description ?? "");
-      setType(prouductData?.type ?? "");
-      setSelectedCategory(prouductData?.category ?? null);
-      setParameters(prouductData?.parameters ?? []);
-      setSelectedPrice({ ...selectedPrice, price: prouductData?.price ?? "" });
-      setVideo(prouductData?.video ?? null);
-      setImages(prouductData?.images ?? []);
-    }
-  }, [product?.data, productSuccess]);
   return (
     <>
       <Modal
@@ -221,6 +158,7 @@ function ListProduct() {
             selectedPrice={selectedPrice}
             setSelectedPrice={setSelectedPrice}
             setIsPriceOpen={setIsPriceOpen}
+            type="service"
 
             // setIsCatOpen={setIsCatOpen}
             // selectedCategory={selectedCategory}
@@ -228,72 +166,23 @@ function ListProduct() {
           />
         </div>
       </Modal>
-      <Modal
-        editModalRef={categoryRef}
-        open={isParameterOpen}
-        setOpen={setIsParameterOpen}
-        centered={false}
-      >
-        <div className=" h-full w-full flex justify-center pt-[80px]">
-          <AddParameterModal
-            parameters={parameters}
-            setParameters={setParameters}
-            setIsParameterOpen={setIsParameterOpen}
-          />
-        </div>
-      </Modal>
-      <Modal
-        editModalRef={categoryRef}
-        open={isParameterValueOpen}
-        setOpen={setIsParameterValueOpen}
-        centered={false}
-      >
-        <div className=" h-full w-full flex justify-center pt-[80px]">
-          <AddParameterValueModal
-            parameters={parameters}
-            setParameters={setParameters}
-            index={index}
-            setIsParameterOpen={setIsParameterValueOpen}
-          />
-        </div>
-      </Modal>
-      <Modal
-        editModalRef={categoryRef}
-        open={isTypeOpen}
-        setOpen={setIsTypeOpen}
-        centered={true}
-      >
-        <div className=" h-full w-full flex justify-center ">
-          <TypeModal
-            type={type}
-            setType={setType}
-            setIsTypeOpen={setIsTypeOpen}
-          />
-        </div>
-      </Modal>
       <div className="h-full min-h-screen flex flex-col items-center">
         <div className="px-6 h-[61px] border-b-[1px] border-gray-9 bg-white w-full  flex justify-center">
           <div className="w-full   flex items-center gap-[6px] font-normal text-[14px] mt-5">
-            <span className="text-gray-8">{pages.selling}</span>
+            <span className="text-gray-8">{pages.services}</span>
             <Image
               src={chevron}
               alt="chevron"
               className="-rotate-90 rtl:rotate-90"
             />
-            <span className="text-gray-8">{placeholders.private_listing}</span>
-            <Image
-              src={chevron}
-              alt="chevron"
-              className="-rotate-90 rtl:rotate-90"
-            />
-            <span className="text-green-1">{placeholders.edit_product}</span>
+            <span className="text-green-1">{placeholders.create_service}</span>
           </div>
         </div>
         {status === "success" ? (
-          <ProductListed setStatus={setStatus} />
+          <ServiceCreated id={createdData?.id} />
         ) : (
           <div className="md:flex w-full flex-1">
-            <div className="w-full md:w-[46%] p-4 md:p-6 border-b md:border-r border-gray-9 ">
+            <div className="md:w-[46%] p-4 md:p-6 border-b md:border-r border-gray-9 ">
               <div>
                 <Tabs
                   tabs={tabs}
@@ -309,10 +198,10 @@ function ListProduct() {
                 </h4>
               </div>
             </div>
-            <div className="w-full md:w-[54%] p-4 md:px-6">
+            <div className="md:w-[54%] p-4 md:px-6">
               <form
                 onSubmit={handleSubmit}
-                className={`w-full  md:max-w-[390px] 
+                className={`w-full  max-w-[390px] 
              ${isLoading && "pointer-events-none"}
           `}
               >
@@ -346,7 +235,7 @@ function ListProduct() {
                       descriptionError ? "text-red-1" : "text-gray-8"
                     }`}
                   >
-                    {info_messages?.describe_product}
+                    {placeholders.describe_service}
                   </p>
                   <textarea
                     value={description}
@@ -362,33 +251,9 @@ function ListProduct() {
                     </p>
                   )}
                 </div>
-                <div className="flex items-center justify-between h-[40px] px-4 border-b-[1px] border-gray-9">
-                  <h3 className="text-[15px] leading-none font-medium text-black-1">
-                    {placeholders.type}
-                  </h3>
-                  <div
-                    className="flex items-center gap-2 cursor-pointer"
-                    onClick={() => setIsTypeOpen(true)}
-                  >
-                    <h4 className="text-[15px] font-normal text-gray-8 leading-none">
-                      {placeholders?.[type as keyof typeof placeholders] ||
-                        placeholders.choose_type}
-                    </h4>
-                    <Image
-                      src={chevron}
-                      alt="chevron"
-                      className="-rotate-90 rtl:rotate-90 w-4"
-                    />
-                  </div>
-                </div>
-                {typeError && (
-                  <p className="text-red-1 text-[14px] font-normal">
-                    {typeError}
-                  </p>
-                )}
-                <div className="bg-gray-12  mt-2  h-[27px] "></div>
+                <div className="bg-gray-12 border-t-[1px] border-gray-9 mt-2  h-[27px] "></div>
                 {/* category */}
-                <div className="bg-white h-[50px] flex items-center justify-between border-b-[1px] border-gray-9  px-4">
+                <div className="bg-white h-[50px] flex items-center justify-between px-4">
                   <h3 className="text-[15px] font-medium text-black-1">
                     {placeholders.category}
                   </h3>
@@ -411,52 +276,7 @@ function ListProduct() {
                     {categoryError}
                   </p>
                 )}
-                {/* mapping the parameters */}
-                {parameters?.map((parameter, index) => (
-                  <div
-                    key={index}
-                    className="bg-white h-[50px] flex items-center justify-between border-b-[1px] border-gray-9  px-4"
-                  >
-                    <h3 className="text-[15px] font-medium text-black-1">
-                      {parameter.name}
-                    </h3>
-                    <div className="flex items-center gap-2">
-                      <span>{parameter?.variants?.join(", ")} </span>
-                      <div
-                        className=" cursor-pointer"
-                        onClick={() => {
-                          setIndex(index);
-                          setIsParameterValueOpen(true);
-                        }}
-                      >
-                        <Image
-                          src={chevron}
-                          alt="chevron"
-                          className="-rotate-90 rtl:rotate-90 w-4"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                ))}
-
-                {/* add parameter */}
-                <div className="border-b-[1px] border-gray-9">
-                  <div
-                    className="w-max flex items-center cursor-pointer gap-2   my-4 ml-[15px] "
-                    onClick={() => setIsParameterOpen(true)}
-                  >
-                    <Image src={plusIcon} alt="plus_icon" />
-                    <h3 className="text-green-1 font-normal text-[15px]">
-                      {placeholders.add_parameter}
-                    </h3>
-                  </div>
-                </div>
-                {parameterError && (
-                  <p className="text-red-1 text-[14px] font-normal">
-                    {parameterError}
-                  </p>
-                )}
-                <div className="bg-gray-12   h-[27px] "></div>
+                <div className="bg-gray-12 border-t-[1px] border-gray-9   h-[27px] "></div>
                 {/* price */}
                 <div className="bg-white h-[50px] flex items-center justify-between px-4">
                   <h3 className="text-[15px] font-medium text-black-1">
@@ -467,14 +287,7 @@ function ListProduct() {
                     onClick={() => setIsPriceOpen(true)}
                   >
                     <h4 className="text-[15px] font-normal text-gray-8 leading-none">
-                      {
-                        selectedPrice?.price
-                        //  +
-                        // "-/" +
-                        // placeholders?.[
-                        //   selectedPrice?.paymentType as keyof typeof placeholders
-                        // ]
-                      }
+                      {selectedPrice?.price}
                     </h4>
                     <Image
                       src={chevron}
@@ -488,7 +301,6 @@ function ListProduct() {
                     {priceError}
                   </p>
                 )}
-
                 <button
                   type="submit"
                   disabled={isLoading}
@@ -497,7 +309,7 @@ function ListProduct() {
                   {isLoading ? (
                     <BeatLoader color="white" size={8} />
                   ) : (
-                    placeholders.update
+                    placeholders.upload
                   )}
                 </button>
               </form>
@@ -509,4 +321,4 @@ function ListProduct() {
   );
 }
 
-export default ListProduct;
+export default CreateService;

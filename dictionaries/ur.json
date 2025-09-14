@@ -15,6 +15,8 @@
         "update": "ترمیم کریں",
         "edit_product": "پروڈکٹ کو ترمیم کریں",
         "delete_product": "پروڈکٹ کو حذف کریں",
+        "edit_service": "خدمہ کو ترمیم کریں",
+        "delete_service": "خدمہ کو حذف کریں",
         "pay_now": "ابھی ادائیگی کریں",
         "choose_payment": "ادائیگی منتخب کریں",
         "payment": "ادائیگی",
@@ -62,6 +64,7 @@
         "update_shop": "دکان کو ترمیم کریں",
         "promote_shop": " اس دکان کو فروغ دیں",
         "promote_product": "اس پروڈکٹ کو فروغ دیں",
+        "promote_service": "اس سروس کو فروغ دیں",
         "later": "بعد میں",
         "edit": "ترمیم کریں",
         "about": "بارے میں",
@@ -146,6 +149,7 @@
         "profile": "پروفائل"
     },
     "error_messages": {
+        "something_went_wrong": "کچھ غلط ہو گیا، براہ کرم بعد میں دوبارہ کوشش کریں",
         "name_required": "نام ضروری ہے*",
         "title_required": "عنوان ضروری ہے*",
         "shop_name_required": "دکان کا نام ضروری ہے*",
@@ -165,7 +169,8 @@
         "price_required": "قیمت ضروری ہے*",
         "category_required": "زمرہ ضروری ہے*",
         "type_required": "قسم ضروری ہے*",
-        "video_required": "براہ کرم اپنے پروڈکٹ کی ویڈیو شامل کریں*",
+        "video_required": "براہ کرم ویڈیو شامل کریں*",
+        "image_required": "براہ کرم کم از کم ایک تصویر شامل کریں*",
         "parameter_required": "براہ کرم کم از کم ایک پیرامیٹر شامل کریں*"
     },
     "tabs": {
