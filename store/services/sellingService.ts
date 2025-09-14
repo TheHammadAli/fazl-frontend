@@ -75,9 +75,24 @@ export const profileService = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["PRODUCT"],
     }),
+    updateService: build.mutation({
+      query: ({ id, formData }) => ({
+        url: `/services/update/${id}`,
+        method: "PUT",
+        body: formData,
+      }),
+      invalidatesTags: ["SERVICES"],
+    }),
     deleteProductMedia: build.mutation({
       query: ({ id, body }) => ({
         url: `/products/${id}/media`,
+        method: "DELETE",
+        body: body,
+      }),
+    }),
+    deleteServiceMedia: build.mutation({
+      query: ({ id, body }) => ({
+        url: `/services/${id}/media`,
         method: "DELETE",
         body: body,
       }),
@@ -98,10 +113,30 @@ export const profileService = baseApi.injectEndpoints({
         };
       },
     }),
+    getUserService: build.query({
+      query: (id) => {
+        return {
+          url: `/services/user/${id}`,
+          method: "GET",
+        };
+      },
+    }),
+    getServiceDetail: build.query({
+      query: (id) => {
+        return {
+          url: `/services/${id}`,
+          method: "GET",
+        };
+      },
+      providesTags: ["SERVICES"],
+    }),
   }),
 });
 
 export const {
+  useDeleteServiceMediaMutation,
+  useGetServiceDetailQuery,
+  useGetUserServiceQuery,
   useGetShopOrdersQuery,
   useUpdateShopMutation,
   useDeleteProductMediaMutation,
@@ -114,4 +149,5 @@ export const {
   useCreateShopMutation,
   useGetUsersShopsQuery,
   useGetAllCategoriesQuery,
+  useUpdateServiceMutation,
 } = profileService;

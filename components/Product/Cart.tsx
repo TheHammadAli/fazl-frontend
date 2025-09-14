@@ -163,7 +163,7 @@ function Cart({ product, shopData, selectedVariants }: ProductDetailProps) {
 
             <div>
               <h3 className="text-[#4B514F] text-[14px] font-normal mb-2">
-                Delivery details
+                {placeholders.delivery_detail}
               </h3>
               <div className="flex items-center gap-2 text-gray-800">
                 <Clock className="h-[16px] w-[16px] text-gray-600" />

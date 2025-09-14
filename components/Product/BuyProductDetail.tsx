@@ -52,7 +52,8 @@ function BuyProductDetail({
     useDictionary();
   const ref = React.useRef<HTMLDivElement>(null);
   const [toggle, setToggle] = useState(-1);
-
+  const [type, setType] = useState("image");
+  const [typeIndex, setTypeIndex] = useState(0);
   useClickOutside(ref, () => {
     setToggle(-1);
   });
@@ -81,36 +82,62 @@ function BuyProductDetail({
             <div className="flex  flex-col sm:flex-row gap-5 md:gap-12">
               <div className="space-y-3">
                 <div className="h-[280px] min-w-[250px] sm:h-[320px] md:h-[500px]  max-w-[496px] xl:w-[496px] object-cover overflow-hidden rounded-[10px]">
-                  <Image
-                    src={
-                      product?.data?.images?.length > 0
-                        ? product?.data?.images?.[0]
-                        : noImageAvtar
-                    }
-                    height={100}
-                    width={100}
-                    unoptimized
-                    alt="product"
-                    className=" h-full w-full object-cover"
-                  />
+                  {type === "image" ? (
+                    <Image
+                      src={
+                        product?.data?.images?.length > 0
+                          ? product?.data?.images?.[typeIndex]
+                          : noImageAvtar
+                      }
+                      height={100}
+                      width={100}
+                      unoptimized
+                      alt="product"
+                      className=" h-full w-full object-cover"
+                    />
+                  ) : (
+                    <video
+                      src={product?.data?.video as string}
+                      controls
+                      autoPlay={false}
+                      className=" h-full w-full object-contain"
+                    />
+                  )}
                 </div>
                 <div className="flex gap-3 flex-wrap">
-                  {product?.data?.images
-                    ?.slice(1, product?.data?.images?.length)
-                    ?.map((image: string, index: number) => (
-                      <Image
+                  {product?.data?.images?.map(
+                    (image: string, index: number) => (
+                      <div
                         key={index}
-                        src={image}
-                        height={100}
-                        width={100}
-                        alt="product"
-                        className="h-[96px] w-[96px] object-cover rounded-[10px]"
-                      />
-                    ))}
+                        onClick={() => {
+                          setTypeIndex(index);
+                          setType("image");
+                        }}
+                        className={`rounded-[10px] border-[4px]  overflow-hidden  cursor-pointer ${
+                          typeIndex === index && type === "image"
+                            ? " border-green-1"
+                            : "border-transparent"
+                        } h-[96px] w-[96px] object-cover`}
+                      >
+                        <Image
+                          src={image}
+                          height={100}
+                          width={100}
+                          alt="product"
+                          className="h-[96px] w-[96px] object-cover  "
+                        />
+                      </div>
+                    )
+                  )}
                   <video
+                    onClick={() => setType("video")}
                     src={product?.data?.video as string}
-                    controls
-                    className="h-[96px] w-[96px] object-cover rounded-[10px]"
+                    controls={false}
+                    className={`h-[96px] w-[96px] border-[4px] object-cover rounded-[10px] cursor-pointer ${
+                      type === "video"
+                        ? " border-green-1"
+                        : "border-transparent"
+                    }`}
                   />
                 </div>
               </div>
