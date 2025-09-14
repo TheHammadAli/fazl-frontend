@@ -14,13 +14,15 @@ import { useOrderProductMutation } from "@/store/services/sellingService";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { BeatLoader } from "react-spinners";
+import addIcon from "@/assets/icons/add.svg";
 
 function Cart({ product, shopData, selectedVariants }: ProductDetailProps) {
   const { pages, placeholders, info_messages, error_messages } =
     useDictionary();
   const router = useRouter();
   const [deliveryMethod, setDeliveryMethod] = useState("delivery");
-  const [paymentMethod, setPaymentMethod] = useState("cashonDelivery");
+  const [toogleChoose, setToogleChoose] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState("");
   const [orderProduct, { isLoading, isError, isSuccess, error, data }] =
     useOrderProductMutation();
 
@@ -29,6 +31,7 @@ function Cart({ product, shopData, selectedVariants }: ProductDetailProps) {
       ? JSON.parse(localStorage.getItem("user") || "{}")
       : "";
 
+  console.log(user, "user");
   const totalAmount =
     product?.data?.price + (deliveryMethod === "delivery" ? 250 : 0) + 90;
 
@@ -67,6 +70,7 @@ function Cart({ product, shopData, selectedVariants }: ProductDetailProps) {
       return () => clearTimeout(timer);
     }
   }, [isSuccess, isError, data, error]);
+
   return (
     <div>
       <div className="h-full min-h-screen  flex flex-col items-center">
@@ -133,11 +137,7 @@ function Cart({ product, shopData, selectedVariants }: ProductDetailProps) {
             {/* Delivery Details */}
             {deliveryMethod === "delivery" && (
               <div>
-                <h3 className="text-[#4B514F] text-[14px] font-normal mb-2">
-                  Delivery details
-                </h3>
                 <div className="flex items-center gap-2 text-gray-800">
-                  <Clock className="h-[16px] w-[16px] text-gray-600" />
                   <span className="text-[15px] text-[#030303]">
                     {user?.address ?? ""}
                   </span>
@@ -156,10 +156,22 @@ function Cart({ product, shopData, selectedVariants }: ProductDetailProps) {
                     {shopData?.address}
                   </h3>
                 </div>
-                <Image src={penIcon} alt="pen-icon" />
+                {/* <Image src={penIcon} alt="pen-icon" /> */}
               </div>
             )}
+            <hr className="border-[#E5E5E5] " />
 
+            <div>
+              <h3 className="text-[#4B514F] text-[14px] font-normal mb-2">
+                Delivery details
+              </h3>
+              <div className="flex items-center gap-2 text-gray-800">
+                <Clock className="h-[16px] w-[16px] text-gray-600" />
+                <span className="text-[15px] text-[#030303]">
+                  {info_messages.home_delivery}
+                </span>
+              </div>
+            </div>
             <hr className="border-[#E5E5E5] " />
 
             {/* Payment */}
@@ -167,64 +179,95 @@ function Cart({ product, shopData, selectedVariants }: ProductDetailProps) {
               <h3 className="text-[#4B514F] text-[14px] font-normal mb-2">
                 {placeholders.payment}
               </h3>
-              <RadioGroup value={paymentMethod} onChange={setPaymentMethod}>
-                <div className="flex justify-between">
-                  <div className="flex gap-2  items-center">
-                    <Image src={easyPaisaIcon} alt="easypaisa-icon" />
-                    <span className="text-[#030303] text-[16px] font-medium">
-                      {"Easypaisa"}
-                    </span>
-                  </div>
-                  <RadioGroup.Option value="cashonDelivery">
-                    {({ checked }) => (
-                      <div className="flex items-center gap-2 cursor-pointer">
-                        <span
-                          className={`h-[24px] w-[24px] rounded-full border ${
-                            checked
-                              ? "border-4 border-green-1"
-                              : "border-[#E5E5E5]"
-                          }`}
-                        />
-                        {/* <span className="text-[#030303] text-[15px] ">
-                          {placeholders.self_pickup}
-                        </span> */}
+              {toogleChoose && (
+                <div className="mb-5">
+                  {/* Easypaisa */}
+                  {(!paymentMethod || paymentMethod === "easypaisa") && (
+                    <div className="flex justify-between">
+                      <div className="flex gap-2 items-center">
+                        <Image src={easyPaisaIcon} alt="easypaisa-icon" />
+                        <span className="text-[#030303] text-[16px] font-medium">
+                          Easypaisa
+                        </span>
                       </div>
-                    )}
-                  </RadioGroup.Option>
-                </div>
-                <hr className="border-[#E5E5E5] mt-5" />
-                <div className="flex justify-between mt-5">
-                  <div className="flex gap-2  items-center">
-                    <Image src={cashOnDelivery} alt="easypaisa-icon" />
-                    <span className="text-[#030303] text-[16px] font-medium">
-                      {"Cash on Delivery"}
-                    </span>
-                  </div>
-                  <RadioGroup.Option value="easypaisa" disabled>
-                    {({ checked }) => (
-                      <div className="flex items-center gap-2 cursor-pointer">
-                        <span
-                          className={`h-[24px] w-[24px] rounded-full border ${
-                            checked
-                              ? "border-4 border-green-1"
-                              : "border-[#E5E5E5]"
-                          }`}
-                        />
-                        {/* <span className="text-[#030303] text-[15px] ">
-                          {placeholders.self_pickup}
-                        </span> */}
+                      <div>
+                        <div
+                          className="pointer-events-none  flex items-center gap-2 cursor-pointer"
+                          onClick={() =>
+                            setPaymentMethod((prev) =>
+                              prev === "easypaisa" ? "" : "easypaisa"
+                            )
+                          }
+                        >
+                          <span
+                            className={`h-[24px] w-[24px] rounded-full border ${
+                              paymentMethod === "easypaisa"
+                                ? "border-4 border-green-1"
+                                : "border-[#E5E5E5]"
+                            }`}
+                          />
+                        </div>
                       </div>
-                    )}
-                  </RadioGroup.Option>
+                    </div>
+                  )}
+
+                  <hr className="border-[#E5E5E5] mt-5" />
+
+                  {/* Cash on Delivery */}
+                  {(!paymentMethod || paymentMethod === "cashondelivery") && (
+                    <div className="flex justify-between mt-5">
+                      <div className="flex gap-2 items-center">
+                        <Image src={cashOnDelivery} alt="cashondelivery-icon" />
+                        <span className="text-[#030303] text-[16px] font-medium">
+                          Cash on Delivery
+                        </span>
+                      </div>
+                      <div>
+                        <div
+                          className="flex items-center gap-2 cursor-pointer"
+                          onClick={() =>
+                            setPaymentMethod((prev) =>
+                              prev === "cashondelivery" ? "" : "cashondelivery"
+                            )
+                          }
+                        >
+                          <span
+                            className={`h-[24px] w-[24px] rounded-full border ${
+                              paymentMethod === "cashondelivery"
+                                ? "border-4 border-green-1"
+                                : "border-[#E5E5E5]"
+                            }`}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
-              </RadioGroup>
+              )}
+
+              <div className="w-full flex items-center justify-between">
+                <span className="text-[15px] text-[#030303] font-normal">
+                  {!paymentMethod
+                    ? placeholders.choose_payment_method
+                    : placeholders.choose_another_payment_method}
+                </span>
+                <Image
+                  src={addIcon}
+                  alt="add-icon"
+                  className="cursor-pointer"
+                  onClick={() => {
+                    setToogleChoose(true);
+                    setPaymentMethod("");
+                  }}
+                />
+              </div>
             </div>
 
             {/* Pay Button */}
             <button
               type="submit"
-              disabled={isLoading}
-              className="cursor-pointer hidden md:block w-full border-green-1 hover:border-[1px] bg-green-1 hover:bg-white hover:text-green-1  text-white font-medium py-3 rounded-lg transition"
+              disabled={isLoading || paymentMethod === ""}
+              className="disabled:opacity-50 disabled:cursor-not-allowed  cursor-pointer hidden md:block w-full border-green-1 hover:border-[1px] bg-green-1 hover:bg-white hover:text-green-1  text-white font-medium py-3 rounded-lg transition"
             >
               {isLoading ? (
                 <BeatLoader color="white" size={8} />
@@ -255,7 +298,9 @@ function Cart({ product, shopData, selectedVariants }: ProductDetailProps) {
                   <div className="flex items-center gap-1 mt-1">
                     <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
                     <span className="text-sm font-medium">4.9</span>
-                    <span className="text-sm text-gray-500">(150) Reviews</span>
+                    <span className="text-sm text-gray-500">
+                      (150) {placeholders.reviews}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -265,31 +310,34 @@ function Cart({ product, shopData, selectedVariants }: ProductDetailProps) {
               {/* Price Breakdown */}
               <div className="space-y-2 text-[#4B514F] text-[15px] font-light">
                 <div className="flex justify-between">
-                  <span>Product</span>
-                  <span>Rs {product?.data?.price}</span>
+                  <span>{placeholders.product}</span>
+                  <span>
+                    {placeholders.Rs} {product?.data?.price}
+                  </span>
                 </div>
                 {deliveryMethod === "delivery" && (
                   <div className="flex justify-between">
-                    <span>Delivery fee</span>
-                    <span>Rs 250</span>
+                    <span>{placeholders.delivery_fee}</span>
+                    <span>{placeholders.Rs} 250</span>
                   </div>
                 )}
                 <div className="flex justify-between">
-                  <span>Sales tax</span>
-                  <span>Rs 90</span>
+                  <span> {placeholders.sale_tax}</span>
+                  <span>{placeholders.Rs} 90</span>
                 </div>
               </div>
 
               {/* Total */}
               <div className="flex justify-between font-medium text-[15px] mt-3">
-                <span>Total to pay</span>
-                <span>Rs {totalAmount}</span>
+                <span>{placeholders.total_pay}</span>
+                <span>
+                  {placeholders.Rs} {totalAmount}
+                </span>
               </div>
-
               <button
-                disabled={isLoading}
+                disabled={isLoading || paymentMethod === ""}
                 type="submit"
-                className="cursor-pointer md:hidden mt-5 w-full border-green-1 hover:border-[1px] bg-green-1 hover:bg-white hover:text-green-1  text-white font-medium py-3 rounded-lg transition"
+                className="disabled:opacity-50 disabled:cursor-not-allowed  cursor-pointer md:hidden mt-5 w-full border-green-1 hover:border-[1px] bg-green-1 hover:bg-white hover:text-green-1  text-white font-medium py-3 rounded-lg transition"
               >
                 {isLoading ? (
                   <BeatLoader color="white" size={8} />

@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { use, useEffect, useState } from "react";
 import Image from "next/image";
 import chevron from "@/assets/icons/chev-down-icon.svg";
 import { useDictionary } from "@/dictionaries/DictionaryProvider";
@@ -9,10 +9,13 @@ import { useGetProductDetailQuery } from "@/store/services/homeService";
 import { useSearchParams } from "next/navigation";
 import noImageAvtar from "@/assets/images/no-image-av.png";
 import { useClickOutside } from "@/custom-hooks/useClickOutside";
+import { get } from "http";
+import { getCookie } from "cookies-next";
 export type ProductDetailProps = {
   setStep?: (val: "product" | "cart") => void;
   product: {
     data: {
+      video: string;
       id: string;
       title: string;
       name: string;
@@ -44,6 +47,7 @@ function BuyProductDetail({
   shopData,
   setSelectedVariants,
 }: ProductDetailProps) {
+  const userId = getCookie("userId");
   const { pages, placeholders, info_messages, error_messages } =
     useDictionary();
   const ref = React.useRef<HTMLDivElement>(null);
@@ -52,7 +56,11 @@ function BuyProductDetail({
   useClickOutside(ref, () => {
     setToggle(-1);
   });
-
+  const allowedToBuy = userId !== shopData?.ownerId;
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   return (
     <div>
       <div className="h-full min-h-screen flex flex-col items-center">
@@ -99,6 +107,11 @@ function BuyProductDetail({
                         className="h-[96px] w-[96px] object-cover rounded-[10px]"
                       />
                     ))}
+                  <video
+                    src={product?.data?.video as string}
+                    controls
+                    className="h-[96px] w-[96px] object-cover rounded-[10px]"
+                  />
                 </div>
               </div>
               <div className="w-full sm:max-w-[364px] ">
@@ -108,6 +121,8 @@ function BuyProductDetail({
                       className="h-[44px] w-[44px] rounded-full object-cover "
                       src={shopData?.image ?? dummyProfile}
                       alt="profile"
+                      height={100}
+                      width={100}
                     />
                     <div>
                       <h4 className="text-[#030303] text-[14px]">
@@ -151,85 +166,91 @@ function BuyProductDetail({
                     {product?.data?.category?.name ?? ""}
                   </span>
                 </div>
-                {product?.data?.parameters?.map(
-                  (
-                    parameter: { name: string; variants: string[] },
-                    index: number
-                  ) => (
-                    <div
-                      key={index}
-                      className="border-[#E5E5E5]  py-4 px-1.5 border-t-[0.5px] flex justify-between"
-                    >
-                      <span className="text-[15px] font-medium leading-none">
-                        {parameter?.name}
-                      </span>
-                      <div className="relative">
-                        <div
-                          className="flex gap-2 cursor-pointer "
-                          onClick={() => setToggle(index)}
-                        >
-                          <span className="font-light text-[15px] leading-none">
-                            {String(
-                              selectedVariants[
-                                parameter?.name as keyof typeof selectedVariants
-                              ] ?? "Choose"
-                            )}
-                          </span>
-                          <Image
-                            src={chevron}
-                            alt="chevron"
-                            className="h-4 w-3"
-                          />
-                        </div>
-                        {toggle === index && (
+                {mounted &&
+                  allowedToBuy &&
+                  product?.data?.parameters?.map(
+                    (
+                      parameter: { name: string; variants: string[] },
+                      index: number
+                    ) => (
+                      <div
+                        key={index}
+                        className="border-[#E5E5E5]  py-4 px-1.5 border-t-[0.5px] flex justify-between"
+                      >
+                        <span className="text-[15px] font-medium leading-none">
+                          {parameter?.name}
+                        </span>
+                        <div className="relative">
                           <div
-                            ref={ref}
-                            className=" z-50 right-0 w-[130px] bg-white shadow-xl rounded-lg border-[1px] border-gray-4 mt-2 absolute"
+                            className="flex gap-2 cursor-pointer "
+                            onClick={() => setToggle(index)}
                           >
-                            {parameter?.variants?.map(
-                              (variant: string, index: number) => (
-                                <div
-                                  key={index}
-                                  onClick={() => {
-                                    if (setSelectedVariants) {
-                                      setSelectedVariants((prev) => ({
-                                        ...prev,
-                                        [parameter?.name]: variant,
-                                      }));
-                                    }
-                                    setToggle(-1);
-                                  }}
-                                  className="hover:bg-green-4 cursor-pointer px-2 py-1 border-b-[1px] border-gray-4"
-                                >
-                                  {variant}
-                                </div>
-                              )
-                            )}
+                            <span className="font-light text-[15px] leading-none">
+                              {String(
+                                selectedVariants[
+                                  parameter?.name as keyof typeof selectedVariants
+                                ] ?? placeholders.choose
+                              )}
+                            </span>
+                            <Image
+                              src={chevron}
+                              alt="chevron"
+                              className="h-4 w-3"
+                            />
                           </div>
-                        )}
+                          {toggle === index && (
+                            <div
+                              ref={ref}
+                              className=" z-50 right-0 w-[130px] bg-white shadow-xl rounded-lg border-[1px] border-gray-4 mt-2 absolute"
+                            >
+                              {parameter?.variants?.map(
+                                (variant: string, index: number) => (
+                                  <div
+                                    key={index}
+                                    onClick={() => {
+                                      if (setSelectedVariants) {
+                                        setSelectedVariants((prev) => ({
+                                          ...prev,
+                                          [parameter?.name]: variant,
+                                        }));
+                                      }
+                                      setToggle(-1);
+                                    }}
+                                    className="hover:bg-green-4 cursor-pointer px-2 py-1 border-b-[1px] border-gray-4"
+                                  >
+                                    {variant}
+                                  </div>
+                                )
+                              )}
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  )
+                    )
+                  )}
+                {mounted && allowedToBuy && (
+                  <button
+                    disabled={
+                      Object.keys(selectedVariants).length !==
+                      product?.data?.parameters?.length
+                    }
+                    className=" mt-8 h-[46px]  disabled:opacity-50 disabled:pointer-events-none border-green-1 border-[1px] w-full rounded-xl flex items-center justify-center font-medium text-[16px] text-green-1 hover:text-white hover:bg-green-1 cursor-pointer"
+                  >
+                    {placeholders.add_cart}
+                  </button>
                 )}
-                <button
-                  disabled={
-                    Object.keys(selectedVariants).length !==
-                    product?.data?.parameters?.length
-                  }
-                  className=" mt-8 h-[46px]  disabled:opacity-50 disabled:pointer-events-none border-green-1 border-[1px] w-full rounded-xl flex items-center justify-center font-medium text-[16px] text-green-1 hover:text-white hover:bg-green-1 cursor-pointer"
-                >
-                  Add to cart
-                </button>
-                <button
-                  disabled={
-                    Object.keys(selectedVariants).length !==
-                    product?.data?.parameters?.length
-                  }
-                  onClick={() => setStep && setStep("cart")}
-                  className="h-[46px] disabled:opacity-50 disabled:pointer-events-none mt-4 border-green-1 bg-green-1 border-[1px] w-full rounded-xl flex items-center justify-center font-medium text-[16px] text-white hover:text-green-1 hover:bg-white cursor-pointer"
-                >
-                  Buy now
-                </button>
+                {mounted && allowedToBuy && (
+                  <button
+                    disabled={
+                      Object.keys(selectedVariants).length !==
+                      product?.data?.parameters?.length
+                    }
+                    onClick={() => setStep && setStep("cart")}
+                    className="h-[46px] disabled:opacity-50 disabled:pointer-events-none mt-4 border-green-1 bg-green-1 border-[1px] w-full rounded-xl flex items-center justify-center font-medium text-[16px] text-white hover:text-green-1 hover:bg-white cursor-pointer"
+                  >
+                    {placeholders.buy_now}
+                  </button>
+                )}
               </div>
             </div>
             <div className="mt-10 w-full md:max-w-[496px]">

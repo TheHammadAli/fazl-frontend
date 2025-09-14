@@ -121,6 +121,11 @@ function ProductDetail() {
                         className="h-[96px] w-[96px] object-cover rounded-[10px]"
                       />
                     ))}
+                  <video
+                    src={product?.data?.video as string}
+                    controls
+                    className="h-[96px] w-[96px] object-cover rounded-[10px]"
+                  />
                 </div>
               </div>
               <div className="w-full sm:max-w-[364px] ">

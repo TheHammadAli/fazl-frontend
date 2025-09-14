@@ -77,8 +77,8 @@ function HomeSection() {
         </div>
 
         {openCat && (
-          <div className="max-h-[340px] overflow-scroll">
-            <div className=" overflow-scroll  ">
+          <div className="max-h-[340px] overflow-scroll hide-scrollbar">
+            <div className=" overflow-scroll  hide-scrollbar">
               {(activeTab === "products"
                 ? productsData?.data?.items
                 : servicesData?.data

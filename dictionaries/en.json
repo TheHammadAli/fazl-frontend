@@ -1,13 +1,22 @@
 {
     "currentLanguage": "en",
     "placeholders": {
+        "reviews": "Reviews",
+        "total_pay": "Total to pay",
+        "sale_tax": "Sales tax",
+        "delivery_fee": "Delivery fee",
         "pending": "Pending",
         "select_listing": "Select listing type",
         "update": "Update",
         "edit_product": "Edit product",
         "delete_product": "Delete product",
         "pay_now": "Pay now",
+        "choose": "Choose",
+        "add_cart": "Add to cart",
+        "buy_now": "Buy now",
         "choose_payment": "Choose payment",
+        "choose_payment_method": "Choose payment method",
+        "choose_another_payment_method": "Choose another payment method",
         "payment": "Payment",
         "delivery_detail": "Delivery details",
         "self_pickup": "Self pickup",
@@ -96,6 +105,7 @@
         "retail": "Retail"
     },
     "info_messages": {
+        "home_delivery": "Home delivery, 4–6 business days",
         "receive_order": "How would you like to receive your order?",
         "tell_sellers": "Tell sellers what you’re looking for and get replies fast.",
         "broadcast_request": "Broadcast a request",
