@@ -77,6 +77,7 @@ function Navigations({
                 }
                 alt="profile"
                 height={100}
+                unoptimized
                 width={100}
                 className="h-12 w-12 rounded-full object-cover"
               />

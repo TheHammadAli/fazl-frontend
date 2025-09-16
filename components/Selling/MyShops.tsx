@@ -60,9 +60,14 @@ function MyShops() {
                 }
               >
                 <Image
-                  src={shop?.image ? shop?.image : noImageAvtar}
+                  src={
+                    shop?.image
+                      ? `${shop?.image}?t=${Date.now()}`
+                      : noImageAvtar
+                  }
                   alt="shop_image"
                   height={100}
+                  unoptimized
                   width={100}
                   className="h-[86px] w-[86px] rounded-full object-cover bg-gray-4"
                 />

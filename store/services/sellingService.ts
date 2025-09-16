@@ -16,6 +16,7 @@ export const profileService = baseApi.injectEndpoints({
           method: "GET",
         };
       },
+      providesTags: ["SHOP_DETAIL"],
     }),
     getAllCategories: build.query({
       query: () => {

@@ -203,7 +203,7 @@ function UpdateShop() {
                 <img
                   src={
                     typeof profile === "string"
-                      ? profile
+                      ? `${profile}?t=${Date.now()}`
                       : URL.createObjectURL(profile as Blob) ?? ""
                   }
                   alt=""

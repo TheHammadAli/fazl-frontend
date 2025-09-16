@@ -80,6 +80,7 @@ export default function ShopDetail() {
                       alt="profile"
                       width={100}
                       height={100}
+                      unoptimized
                       className="rounded-full h-full w-full object-cover"
                     />
                   </div>

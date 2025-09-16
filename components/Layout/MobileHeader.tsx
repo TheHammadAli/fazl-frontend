@@ -119,6 +119,7 @@ export default function MobileHeader() {
                       height={100}
                       width={100}
                       alt="icon"
+                      unoptimized
                       className={`h-[26px] w-[26px] rounded-full object-cover ${
                         path.includes("/profile") &&
                         "border-[2px] border-green-1"

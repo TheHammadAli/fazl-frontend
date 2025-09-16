@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import chevron from "@/assets/icons/chev-down-icon.svg";
 import { useDictionary } from "@/dictionaries/DictionaryProvider";
@@ -63,6 +63,8 @@ function ProductDetail() {
   const [isEdit, setIsEdit] = useState(false);
   const [type, setType] = useState("image");
   const [typeIndex, setTypeIndex] = useState(0);
+  const [mounted, setMounted] = useState(false);
+  const [videoVersion, setVideoVersion] = useState(0);
 
   useClickOutside(ref, () => {
     setToggle(-1);
@@ -71,6 +73,14 @@ function ProductDetail() {
     setIsEdit(false);
   });
 
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+  useEffect(() => {
+    if (product?.data?.video) {
+      setVideoVersion((v) => v + 1);
+    }
+  }, [product?.data?.video]);
   return (
     <div>
       <div className="h-full min-h-screen flex flex-col items-center">
@@ -111,12 +121,15 @@ function ProductDetail() {
                       className=" h-full w-full object-cover"
                     />
                   ) : (
-                    <video
-                      src={product?.data?.video as string}
-                      controls
-                      autoPlay={false}
-                      className=" h-full w-full object-contain"
-                    />
+                    mounted && (
+                      <video
+                        key={`${product?.data?.video}?v=${videoVersion}`}
+                        src={`${product?.data?.video}?v=${videoVersion}`}
+                        controls
+                        autoPlay={false}
+                        className=" h-full w-full object-contain"
+                      />
+                    )
                   )}
                 </div>
                 <div className="flex gap-3 flex-wrap">
@@ -144,16 +157,19 @@ function ProductDetail() {
                       </div>
                     )
                   )}
-                  <video
-                    onClick={() => setType("video")}
-                    src={product?.data?.video as string}
-                    controls={false}
-                    className={`h-[96px] w-[96px] border-[4px] object-cover rounded-[10px] cursor-pointer ${
-                      type === "video"
-                        ? " border-green-1"
-                        : "border-transparent"
-                    }`}
-                  />
+                  {mounted && (
+                    <video
+                      onClick={() => setType("video")}
+                      key={`${product?.data?.video}?v=${videoVersion}`}
+                      src={`${product?.data?.video}?v=${videoVersion}`}
+                      controls={false}
+                      className={`h-[96px] w-[96px] border-[4px] object-cover rounded-[10px] cursor-pointer ${
+                        type === "video"
+                          ? " border-green-1"
+                          : "border-transparent"
+                      }`}
+                    />
+                  )}
                 </div>
               </div>
               <div className="w-full sm:max-w-[364px] ">

@@ -105,7 +105,8 @@
         "type": "Type",
         "choose_type": "Choose type",
         "classified": "Classified",
-        "retail": "Retail"
+        "retail": "Retail",
+        "search_country": "Search country..."
     },
     "info_messages": {
         "home_delivery": "Home delivery, 4–6 business days",

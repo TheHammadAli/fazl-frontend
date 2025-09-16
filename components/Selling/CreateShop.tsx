@@ -291,7 +291,7 @@ function CreateShop() {
                   <div className="absolute z-20  w-full bg-white pt-1   ">
                     <input
                       type="text"
-                      placeholder="Search country..."
+                      placeholder={placeholders.search_country}
                       className="w-full px-4 font-light py-2 outline-none  text-sm border border-gray-200 rounded-md  "
                       value={locationSearch}
                       onChange={(e) => setLocationSearch(e.target.value)}
