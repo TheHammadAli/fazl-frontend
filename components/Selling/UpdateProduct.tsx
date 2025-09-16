@@ -92,7 +92,7 @@ function ListProduct() {
   const [parameters, setParameters] = useState<parameterTypes[]>([]);
   const [parameterError, setParameterError] = useState("");
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setTitleError("");
     setDescriptionError("");
@@ -160,9 +160,9 @@ function ListProduct() {
         }
       }
       if (deleteMedia.length > 0) {
-        deleteProductMedia({ id, body: { media: deleteMedia } });
+        await deleteProductMedia({ id, body: { media: deleteMedia } });
       }
-      updateProduct({ id, formData });
+      await updateProduct({ id, formData });
     }
   };
   useEffect(() => {
@@ -491,10 +491,10 @@ function ListProduct() {
 
                 <button
                   type="submit"
-                  disabled={isLoading}
+                  disabled={isLoading || isDeleting}
                   className="mt-3   h-[46px] w-full rounded-[12px] text-white font-medium text-[16px]  bg-green-1 cursor-pointer"
                 >
-                  {isLoading ? (
+                  {isLoading || isDeleting ? (
                     <BeatLoader color="white" size={8} />
                   ) : (
                     placeholders.update

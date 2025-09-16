@@ -39,6 +39,7 @@ export type ServiceDetailType = {
   description: string;
   parameters: { name: string; variants: string[] }[];
   category: { name: string };
+  updatedAt: string;
 };
 function ServiceDetail({ serviceData }: { serviceData: ServiceDetailType }) {
   const router = useRouter();
@@ -107,8 +108,8 @@ function ServiceDetail({ serviceData }: { serviceData: ServiceDetailType }) {
                     />
                   ) : (
                     <video
-                      key={`${serviceData?.video}?v=${videoVersion}`}
-                      src={`${serviceData?.video}?v=${videoVersion}`}
+                      key={`${serviceData?.video}?v=${serviceData?.updatedAt}`}
+                      src={`${serviceData?.video}?v=${serviceData?.updatedAt}`}
                       controls
                       autoPlay={false}
                       className=" h-full w-full object-contain"
@@ -143,8 +144,8 @@ function ServiceDetail({ serviceData }: { serviceData: ServiceDetailType }) {
                   {serviceData?.video && (
                     <video
                       onClick={() => setType("video")}
-                      key={`${serviceData?.video}?v=${videoVersion}`}
-                      src={`${serviceData?.video}?v=${videoVersion}`}
+                      key={`${serviceData?.video}?v=${serviceData?.updatedAt}`}
+                      src={`${serviceData?.video}?v=${serviceData?.updatedAt}`}
                       controls={false}
                       className={`h-[96px] w-[96px] border-[4px] object-cover rounded-[10px] cursor-pointer ${
                         type === "video"

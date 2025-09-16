@@ -82,7 +82,7 @@ function UpdateService() {
     price: "",
   });
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setTitleError("");
     setDescriptionError("");
@@ -140,9 +140,12 @@ function UpdateService() {
         }
       }
       if (deleteMedia.length > 0) {
-        deleteServiceMedia({ id: serviceId, body: { media: deleteMedia } });
+        await deleteServiceMedia({
+          id: serviceId,
+          body: { media: deleteMedia },
+        });
       }
-      updateService({ id: serviceId, formData });
+      await updateService({ id: serviceId, formData });
     }
   };
   useEffect(() => {
@@ -361,10 +364,10 @@ function UpdateService() {
 
                 <button
                   type="submit"
-                  disabled={isLoading}
+                  disabled={isLoading || isDeleting}
                   className="mt-3   h-[46px] w-full rounded-[12px] text-white font-medium text-[16px]  bg-green-1 cursor-pointer"
                 >
-                  {isLoading ? (
+                  {isLoading || isDeleting ? (
                     <BeatLoader color="white" size={8} />
                   ) : (
                     placeholders.update
