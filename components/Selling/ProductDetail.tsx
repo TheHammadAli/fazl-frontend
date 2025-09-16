@@ -123,8 +123,8 @@ function ProductDetail() {
                   ) : (
                     mounted && (
                       <video
-                        key={`${product?.data?.video}?v=${videoVersion}`}
-                        src={`${product?.data?.video}?v=${videoVersion}`}
+                        key={`${product?.data?.video}?v=${product?.data?.updatedAt}`}
+                        src={`${product?.data?.video}?v=${product?.data?.updatedAt}`}
                         controls
                         autoPlay={false}
                         className=" h-full w-full object-contain"
@@ -151,6 +151,7 @@ function ProductDetail() {
                           src={image}
                           height={100}
                           width={100}
+                          unoptimized
                           alt="product"
                           className="h-[96px] w-[96px] object-cover  "
                         />
@@ -160,8 +161,8 @@ function ProductDetail() {
                   {mounted && (
                     <video
                       onClick={() => setType("video")}
-                      key={`${product?.data?.video}?v=${videoVersion}`}
-                      src={`${product?.data?.video}?v=${videoVersion}`}
+                      key={`${product?.data?.video}?v=${product?.data?.updatedAt}`}
+                      src={`${product?.data?.video}?v=${product?.data?.updatedAt}`}
                       controls={false}
                       className={`h-[96px] w-[96px] border-[4px] object-cover rounded-[10px] cursor-pointer ${
                         type === "video"

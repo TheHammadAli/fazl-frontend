@@ -58,7 +58,6 @@ function BuyProductDetail({
     setToggle(-1);
   });
   const allowedToBuy = userId !== shopData?.ownerId;
-  console.log(allowedToBuy);
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
     setMounted(true);
