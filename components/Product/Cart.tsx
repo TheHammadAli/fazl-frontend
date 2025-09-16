@@ -286,6 +286,7 @@ function Cart({ product, shopData, selectedVariants }: ProductDetailProps) {
                   alt="Red Cowboy Hat"
                   width={100}
                   height={100}
+                  unoptimized
                   className="rounded-xl h-[76px] w-[76px] object-cover"
                 />
                 <div>

@@ -105,7 +105,8 @@
         "type": "قسم",
         "choose_type": "قسم منتخب کریں",
         "classified": "درجہ بند",
-        "retail": "ریٹیل"
+        "retail": "ریٹیل",
+        "search_country": "ملک تلاش کریں..."
     },
     "info_messages": {
         "home_delivery": "ہوم ڈلیوری، 4–6 دن",

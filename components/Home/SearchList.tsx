@@ -150,7 +150,7 @@ function SearchList() {
                       height={100}
                       width={100}
                       className="h-full w-full object-cover bg-gray-12"
-                      // unoptimized
+                      unoptimized
                     />
                   </div>
                   <h2 className="text-black-1 font-medium text-[16px] mt-3 line-clamp-1 first-letter:capitalize ">

@@ -65,9 +65,11 @@ function PrivateListings() {
                     }
                     height={100}
                     width={100}
+                    unoptimized
                     alt="product"
                     className="h-[66px] w-[66px] object-cover rounded-xl"
                   />
+
                   <div>
                     <h1 className="text-[#030303] font-medium text-[16px]">
                       {order?.product?.title ?? ""}

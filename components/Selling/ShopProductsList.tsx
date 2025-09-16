@@ -69,6 +69,7 @@ function ShopProductsList() {
                     alt={"product_img"}
                     height={100}
                     width={100}
+                    unoptimized
                     className="h-full w-full object-cover bg-gray-12"
                   />
                 </div>

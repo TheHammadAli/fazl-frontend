@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import chevron from "@/assets/icons/chev-down-icon.svg";
 import { useDictionary } from "@/dictionaries/DictionaryProvider";
@@ -54,12 +54,19 @@ function ServiceDetail({ serviceData }: { serviceData: ServiceDetailType }) {
   const [isEdit, setIsEdit] = useState(false);
   const [type, setType] = useState("image");
   const [typeIndex, setTypeIndex] = useState(0);
+  const [videoVersion, setVideoVersion] = useState(0);
+
   useClickOutside(ref, () => {
     setToggle(-1);
   });
   useClickOutside(ref, () => {
     setIsEdit(false);
   });
+  useEffect(() => {
+    if (serviceData?.video) {
+      setVideoVersion((v) => v + 1);
+    }
+  }, [serviceData?.video]);
 
   return (
     <div>
@@ -100,7 +107,8 @@ function ServiceDetail({ serviceData }: { serviceData: ServiceDetailType }) {
                     />
                   ) : (
                     <video
-                      src={serviceData?.video as string}
+                      key={`${serviceData?.video}?v=${videoVersion}`}
+                      src={`${serviceData?.video}?v=${videoVersion}`}
                       controls
                       autoPlay={false}
                       className=" h-full w-full object-contain"
@@ -135,7 +143,8 @@ function ServiceDetail({ serviceData }: { serviceData: ServiceDetailType }) {
                   {serviceData?.video && (
                     <video
                       onClick={() => setType("video")}
-                      src={serviceData?.video as string}
+                      key={`${serviceData?.video}?v=${videoVersion}`}
+                      src={`${serviceData?.video}?v=${videoVersion}`}
                       controls={false}
                       className={`h-[96px] w-[96px] border-[4px] object-cover rounded-[10px] cursor-pointer ${
                         type === "video"

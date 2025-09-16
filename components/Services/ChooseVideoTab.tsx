@@ -28,7 +28,9 @@ function ChooseVideoTab({ video, setVideo }: Props) {
           <div className="relative h-[126px] w-[126px] rounded-[12px] overflow-hidden">
             <video
               src={
-                typeof video === "string" ? video : URL.createObjectURL(video)
+                typeof video === "string"
+                  ? `${video}?t=${Date.now()}`
+                  : URL.createObjectURL(video)
               }
               className="object-cover h-full w-full"
               controls

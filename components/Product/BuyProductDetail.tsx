@@ -58,6 +58,7 @@ function BuyProductDetail({
     setToggle(-1);
   });
   const allowedToBuy = userId !== shopData?.ownerId;
+  console.log(allowedToBuy);
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
     setMounted(true);
@@ -97,7 +98,7 @@ function BuyProductDetail({
                     />
                   ) : (
                     <video
-                      src={product?.data?.video as string}
+                      src={`${product?.data?.video}?t=${Date.now()}` as string}
                       controls
                       autoPlay={false}
                       className=" h-full w-full object-contain"
@@ -124,6 +125,7 @@ function BuyProductDetail({
                           height={100}
                           width={100}
                           alt="product"
+                          unoptimized
                           className="h-[96px] w-[96px] object-cover  "
                         />
                       </div>
@@ -150,6 +152,7 @@ function BuyProductDetail({
                       alt="profile"
                       height={100}
                       width={100}
+                      unoptimized
                     />
                     <div>
                       <h4 className="text-[#030303] text-[14px]">
