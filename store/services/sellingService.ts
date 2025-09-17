@@ -52,6 +52,15 @@ export const profileService = baseApi.injectEndpoints({
       },
       providesTags: ["PRODUCT"],
     }),
+    getUserProducts: build.query({
+      query: (id) => {
+        return {
+          url: `/products/user/${id}`,
+          method: "GET",
+        };
+      },
+      providesTags: ["PRODUCT"],
+    }),
 
     listProduct: build.mutation({
       query: ({ id, formData, type }) => ({
@@ -59,6 +68,7 @@ export const profileService = baseApi.injectEndpoints({
         method: "POST",
         body: formData,
       }),
+      invalidatesTags: ["PRODUCT"],
     }),
 
     orderProduct: build.mutation({
@@ -151,4 +161,5 @@ export const {
   useGetUsersShopsQuery,
   useGetAllCategoriesQuery,
   useUpdateServiceMutation,
+  useGetUserProductsQuery,
 } = profileService;

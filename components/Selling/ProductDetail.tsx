@@ -12,6 +12,7 @@ import { useClickOutside } from "@/custom-hooks/useClickOutside";
 import { useGetShopDetailQuery } from "@/store/services/sellingService";
 import threeDots from "@/assets/icons/three-dots.svg";
 import { useRouter } from "next/navigation";
+import { useGetProductOwnerDetailQuery } from "@/store/services/authService";
 export type ProductDetailProps = {
   //   setStep?: (val: "product" | "cart") => void;
   product: {
@@ -53,9 +54,17 @@ function ProductDetail() {
     skip: !id,
   });
   const { data: shopDetail } = useGetShopDetailQuery(product?.data?.shopId, {
-    skip: !isSuccess,
+    skip: !isSuccess || !product?.data?.shopId,
   });
+  const { data: ownerDetail } = useGetProductOwnerDetailQuery(
+    product?.data?.ownerId,
+    {
+      skip: !isSuccess || !product?.data?.ownerId,
+    }
+  );
+
   const shopData = shopDetail?.data;
+  const ownerData = ownerDetail?.data;
   const { pages, placeholders, info_messages, error_messages } =
     useDictionary();
   const ref = React.useRef<HTMLDivElement>(null);
@@ -84,8 +93,8 @@ function ProductDetail() {
   return (
     <div>
       <div className="h-full min-h-screen flex flex-col items-center">
-        <div className="px-5 sm:px-10 h-[61px] border-b-[1px] border-gray-9 bg-white w-full  flex justify-center">
-          <div className="w-full   flex items-center gap-[6px] font-normal text-[14px] mt-5">
+        <div className="px-5 sm:px-10 min-h-[61px] border-b-[1px] border-gray-9 bg-white w-full  flex justify-center">
+          <div className="w-full   flex flex-wrap items-center gap-[6px] font-normal text-[14px] mt-5">
             <span className="text-gray-8">{pages.selling}</span>
             <Image
               src={chevron}
@@ -132,7 +141,7 @@ function ProductDetail() {
                     )
                   )}
                 </div>
-                <div className="flex gap-3 flex-wrap">
+                <div className="flex gap-1 flex-wrap max-w-[496px]">
                   {product?.data?.images?.map(
                     (image: string, index: number) => (
                       <div
@@ -178,17 +187,32 @@ function ProductDetail() {
                   <div className="flex gap-2">
                     <Image
                       className="h-[44px] w-[44px] rounded-full object-cover bg-gray-12"
-                      src={shopData?.image ?? noImageAvtar}
+                      src={
+                        product?.data?.shopId && shopData?.image
+                          ? shopData.image
+                          : product?.data?.ownerId && ownerData?.image
+                          ? ownerData.image
+                          : noImageAvtar
+                      }
                       alt="profile"
+                      unoptimized
                       height={100}
                       width={100}
                     />
                     <div>
                       <h4 className="text-[#030303] text-[14px]">
-                        {shopData?.title ?? ""}
+                        {product?.data?.shopId
+                          ? shopData?.title
+                          : product?.data?.ownerId
+                          ? ownerData?.name
+                          : ""}
                       </h4>
                       <h4 className="text-[#4B514F] text-[14px] font-light">
-                        alex.cloth@gmail.com
+                        {product?.data?.shopId
+                          ? shopData?.ownerId?.email
+                          : product?.data?.ownerId
+                          ? ownerData?.email
+                          : ""}
                       </h4>
                     </div>
                   </div>

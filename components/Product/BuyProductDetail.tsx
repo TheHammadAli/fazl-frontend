@@ -11,6 +11,7 @@ import noImageAvtar from "@/assets/images/no-image-av.png";
 import { useClickOutside } from "@/custom-hooks/useClickOutside";
 import { get } from "http";
 import { getCookie } from "cookies-next";
+import { useGetProductOwnerDetailQuery } from "@/store/services/authService";
 export type ProductDetailProps = {
   setStep?: (val: "product" | "cart") => void;
   product: {
@@ -18,8 +19,10 @@ export type ProductDetailProps = {
       video: string;
       id: string;
       title: string;
+      ownerId?: string;
       name: string;
       price: number;
+      shopId: string;
       images: string[];
       description: string;
       parameters: { name: string; variants: string[] }[];
@@ -33,7 +36,10 @@ export type ProductDetailProps = {
     address?: string;
     title?: string;
     image?: string;
-    ownerId?: string;
+    ownerId?: {
+      id?: string;
+      email?: string;
+    };
   };
   selectedVariants: Record<string, unknown>;
   setSelectedVariants?: React.Dispatch<
@@ -57,8 +63,15 @@ function BuyProductDetail({
   useClickOutside(ref, () => {
     setToggle(-1);
   });
-  const allowedToBuy = userId !== shopData?.ownerId;
+  const allowedToBuy = userId !== shopData?.ownerId?.id;
   const [mounted, setMounted] = useState(false);
+  const { data: ownerDetail } = useGetProductOwnerDetailQuery(
+    product?.data?.ownerId,
+    {
+      skip: !product?.data?.ownerId,
+    }
+  );
+  const ownerData = ownerDetail?.data;
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -104,7 +117,7 @@ function BuyProductDetail({
                     />
                   )}
                 </div>
-                <div className="flex gap-3 flex-wrap">
+                <div className="flex gap-1 flex-wrap max-w-[496px]">
                   {product?.data?.images?.map(
                     (image: string, index: number) => (
                       <div
@@ -147,7 +160,13 @@ function BuyProductDetail({
                   <div className="flex gap-2">
                     <Image
                       className="h-[44px] w-[44px] rounded-full object-cover "
-                      src={shopData?.image ?? dummyProfile}
+                      src={
+                        product?.data?.shopId && shopData?.image
+                          ? shopData.image
+                          : product?.data?.ownerId && ownerData?.image
+                          ? ownerData.image
+                          : noImageAvtar
+                      }
                       alt="profile"
                       height={100}
                       width={100}
@@ -155,10 +174,18 @@ function BuyProductDetail({
                     />
                     <div>
                       <h4 className="text-[#030303] text-[14px]">
-                        {shopData?.title ?? ""}
+                        {product?.data?.shopId
+                          ? shopData?.title
+                          : product?.data?.ownerId
+                          ? ownerData?.name
+                          : ""}
                       </h4>
                       <h4 className="text-[#4B514F] text-[14px] font-light">
-                        alex.cloth@gmail.com
+                        {product?.data?.shopId
+                          ? shopData?.ownerId?.email
+                          : product?.data?.ownerId
+                          ? ownerData?.email
+                          : ""}
                       </h4>
                     </div>
                   </div>

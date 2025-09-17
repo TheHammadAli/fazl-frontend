@@ -72,8 +72,8 @@ function ServiceDetail({ serviceData }: { serviceData: ServiceDetailType }) {
   return (
     <div>
       <div className="h-full min-h-screen flex flex-col items-center">
-        <div className="px-5 sm:px-10 h-[61px] border-b-[1px] border-gray-9 bg-white w-full  flex justify-center">
-          <div className="w-full   flex items-center gap-[6px] font-normal text-[14px] mt-5">
+        <div className="px-5 sm:px-10 min-h-[61px] border-b-[1px] border-gray-9 bg-white w-full  flex justify-center">
+          <div className="w-full   flex flex-wrap items-center gap-[6px] font-normal text-[14px] mt-5">
             <span className="text-gray-8 capitalize">
               {placeholders.service}
             </span>
@@ -116,7 +116,7 @@ function ServiceDetail({ serviceData }: { serviceData: ServiceDetailType }) {
                     />
                   )}
                 </div>
-                <div className="flex gap-3 flex-wrap">
+                <div className="flex gap-1 flex-wrap max-w-[496px]">
                   {serviceData?.images?.map((image: string, index: number) => (
                     <div
                       key={index}

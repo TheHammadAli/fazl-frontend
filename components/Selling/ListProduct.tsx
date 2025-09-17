@@ -23,6 +23,7 @@ import AddParameterValueModal from "./AddParameterValueModal";
 import TypeModal from "./TypeModal";
 import { useSearchParams } from "next/navigation";
 import ProductListed from "./ProductListed";
+import { getCookie } from "cookies-next";
 
 function ListProduct() {
   const categoryRef = useRef<HTMLDivElement | null>(null);
@@ -64,6 +65,8 @@ function ListProduct() {
   const [parameters, setParameters] = useState<parameterTypes[]>([]);
   const [parameterError, setParameterError] = useState("");
   const id = useSearchParams().get("id") || "";
+  const productType = useSearchParams().get("type") || "";
+  const userId = typeof window !== "undefined" ? getCookie("userId") : "";
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -89,11 +92,16 @@ function ListProduct() {
     if (selectedPrice.price === "") {
       setPriceError(error_messages.price_required);
     }
-    if (video === null) {
-      toast.error("Please add a video of your product");
+    if (video === null || video === "") {
+      toast.error(error_messages.video_required);
+      return null;
     }
     if (parameters.length === 0) {
       setParameterError(error_messages.parameter_required);
+    }
+    if (images?.length === 0) {
+      toast.error(error_messages.image_required);
+      return;
     }
 
     if (
@@ -122,7 +130,11 @@ function ListProduct() {
           formData.append("images", images[i]);
         }
       }
-      listProduct({ id, formData, type: "shop" });
+      listProduct({
+        id: productType && productType === "personal" ? userId : id,
+        formData,
+        type: productType && productType === "personal" ? "personal" : "shop",
+      });
     }
   };
   useEffect(() => {
@@ -245,7 +257,7 @@ function ListProduct() {
             <span className="text-green-1">{placeholders.sell_product}</span>
           </div>
         </div>
-        {status === "success" ? (
+        {"success" === "success" ? (
           <ProductListed setStatus={setStatus} />
         ) : (
           <div className="md:flex w-full flex-1">

@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import PrivateListings from "./PrivateListings";
 import ShopProductsList from "./ShopProductsList";
 import { useGetShopProductsQuery } from "@/store/services/sellingService";
+import ShopOrders from "./ShopOrders";
 
 function ShopProducts() {
   const tabs = ["shop", "orders"];
@@ -16,7 +17,7 @@ function ShopProducts() {
 
   const tabsComponents: { [key: string]: React.ReactNode } = {
     shop: <ShopProductsList />,
-    orders: <PrivateListings />,
+    orders: <ShopOrders />,
   };
 
   return (
