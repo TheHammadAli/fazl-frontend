@@ -73,9 +73,18 @@ export const authService = baseApi.injectEndpoints({
         };
       },
     }),
+    getProductOwnerDetail: build.query({
+      query: (id) => {
+        return {
+          url: `/users/detail/${id}`,
+          method: "GET",
+        };
+      },
+    }),
   }),
 });
 export const {
+  useGetProductOwnerDetailQuery,
   useGetUserWithProvidedTokenQuery,
   useGetLocationsQuery,
   useResetPasswordMutation,

@@ -22,9 +22,17 @@ function Selling() {
         <Tabs tabs={tabs} activeTab={activeTab} setActiveTab={setActiveTab} />
         <div
           className="font-normal text-[13px] cursor-pointer text-green-2 hover:underline"
-          onClick={() => router.push("/selling/create-shop")}
+          onClick={() => {
+            if (activeTab === tabs[0]) {
+              router.push("/selling/create-shop");
+            } else {
+              router.push("/selling/list-product?type=personal");
+            }
+          }}
         >
-          {placeholders.create_shop}
+          {activeTab === tabs[1]
+            ? placeholders["Add listing"]
+            : placeholders.create_shop}
         </div>
       </div>
       <div>{tabsComponents[activeTab]}</div>

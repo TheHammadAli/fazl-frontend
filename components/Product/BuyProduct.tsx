@@ -18,6 +18,7 @@ function BuyProduct() {
   } = useGetProductDetailQuery(id, {
     skip: !id,
   });
+
   const { data: shopDetail } = useGetShopDetailQuery(product?.data?.shopId, {
     skip: !isSuccess,
   });

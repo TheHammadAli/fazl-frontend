@@ -9,6 +9,8 @@ interface Props {
 }
 function ProductListed({ setStatus }: Props) {
   const id = useSearchParams().get("id") as string;
+  const type = useSearchParams().get("type") as string;
+  console.log(type);
   const router = useRouter();
   const { info_messages, placeholders } = useDictionary();
   return (
@@ -39,7 +41,11 @@ function ProductListed({ setStatus }: Props) {
           <p
             className="w-max cursor-pointer hover:underline"
             onClick={() => {
-              router.push(`/selling/shop-detail?id=${id}`);
+              if (type && type === "personal") {
+                router.push(`/selling`);
+              } else {
+                router.push(`/selling/shop-detail?id=${id}`);
+              }
             }}
           >
             {" "}
