@@ -13,7 +13,7 @@ import { useGetShopDetailQuery } from "@/store/services/sellingService";
 import threeDots from "@/assets/icons/three-dots.svg";
 import { useRouter } from "next/navigation";
 export type ServiceDetailProps = {
-  //   setStep?: (val: "product" | "cart") => void;
+  // setStep?: (val: "product" | "cart") => void;
   product: {
     data: {
       id: string;
