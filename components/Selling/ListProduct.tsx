@@ -257,7 +257,7 @@ function ListProduct() {
             <span className="text-green-1">{placeholders.sell_product}</span>
           </div>
         </div>
-        {"success" === "success" ? (
+        {status === "success" ? (
           <ProductListed setStatus={setStatus} />
         ) : (
           <div className="md:flex w-full flex-1">
