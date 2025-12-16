@@ -1,23 +1,23 @@
 "use client";
 import React, { useState } from "react";
-import { useGetProductDetailQuery } from "@/store/services/homeService";
 import { useSearchParams } from "next/navigation";
-import {
-  useGetServiceDetailQuery,
-  useGetShopDetailQuery,
-} from "@/store/services/sellingService";
+import { useGetServiceDetailQuery } from "@/store/services/sellingService";
 import BuyServiceDetail from "./BuyServiceDetail";
 import ServiceCart from "./ServiceCart";
+import Modal from "../Ui/Modals/Modal";
+import DateTimePickerModal from "./DateTimePickerModal";
+import ServiceDetailSkeleton from "../Ui/ServiceDetailPageSkelton";
 
 function BookService() {
-  const [step, setStep] = useState<"service" | "cart">("service");
+  const [step, setStep] = useState<"service" | "request">("service");
   const id = useSearchParams().get("id");
-
+  const modalRef = React.useRef<HTMLDivElement>(null);
+  const [openPciker, setOpenPciker] = useState<boolean>(false);
+  const [date, setDate] = useState<Date>(new Date());
   const {
     data: service,
     isLoading,
     isFetching,
-    isSuccess,
   } = useGetServiceDetailQuery(id, {
     skip: !id,
   });
@@ -26,17 +26,34 @@ function BookService() {
 
   return (
     <div>
-      {step === "service" && (
-        <BuyServiceDetail
+      <Modal
+        editModalRef={modalRef}
+        open={openPciker}
+        setOpen={setOpenPciker}
+        centered={true}
+      >
+        <DateTimePickerModal
+          setOpenPciker={setOpenPciker}
           setStep={setStep}
-          selectedVariants={selectedVariants}
-          setSelectedVariants={setSelectedVariants}
-          service={service}
+          date={date}
+          setDate={setDate}
         />
-      )}
-      {step === "cart" && (
-        <ServiceCart service={service} selectedVariants={selectedVariants} />
-      )}
+      </Modal>
+
+      {step === "service" &&
+        (isLoading || isFetching ? (
+          <ServiceDetailSkeleton />
+        ) : (
+          <BuyServiceDetail
+            setStep={setStep}
+            selectedVariants={selectedVariants}
+            setSelectedVariants={setSelectedVariants}
+            service={service}
+            setOpenPciker={setOpenPciker}
+          />
+        ))}
+
+      {step === "request" && <ServiceCart service={service} date={date} />}
     </div>
   );
 }

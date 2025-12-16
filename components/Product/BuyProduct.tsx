@@ -5,6 +5,7 @@ import { useGetProductDetailQuery } from "@/store/services/homeService";
 import { useSearchParams } from "next/navigation";
 import { useGetShopDetailQuery } from "@/store/services/sellingService";
 import BuyProductDetail from "./BuyProductDetail";
+import ChooseDateModal from "../Services/ChooseDate";
 
 function BuyProduct() {
   const [step, setStep] = useState<"product" | "cart">("product");
@@ -23,6 +24,8 @@ function BuyProduct() {
     skip: !isSuccess,
   });
   const [selectedVariants, setSelectedVariants] = useState({});
+
+  console.log(product, "product", shopDetail, "shop detail");
 
   return (
     <div>

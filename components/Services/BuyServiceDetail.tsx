@@ -5,15 +5,12 @@ import chevron from "@/assets/icons/chev-down-icon.svg";
 import { useDictionary } from "@/dictionaries/DictionaryProvider";
 import dummyProfile from "@/assets/images/dummy-profile-image.jpg";
 import ratingIcons from "@/assets/icons/rating-icons.svg";
-import { useGetProductDetailQuery } from "@/store/services/homeService";
 import noImageAvtar from "@/assets/images/no-image-av.png";
-import { useClickOutside } from "@/custom-hooks/useClickOutside";
 import { getCookie } from "cookies-next";
 import { useGetProductOwnerDetailQuery } from "@/store/services/authService";
-import Modal from "../Ui/Modals/Modal";
-import DateTimePickerModal from "./DateTimePickerModal";
 export type ServiceDetailProps = {
-  setStep?: (val: "service" | "cart") => void;
+  setStep?: (val: "service" | "request") => void;
+  setOpenPciker?: (val: boolean) => void;
   service: {
     data: {
       video: string;
@@ -38,19 +35,16 @@ export type ServiceDetailProps = {
     React.SetStateAction<Record<string, unknown>>
   >;
 };
-function BuyServiceDetail({ setStep, service }: ServiceDetailProps) {
+function BuyServiceDetail({
+  setStep,
+  service,
+  setOpenPciker,
+}: ServiceDetailProps) {
   const userId = getCookie("userId");
-  const { pages, placeholders, info_messages, error_messages } =
-    useDictionary();
-  const ref = React.useRef<HTMLDivElement>(null);
-  const modalRef = React.useRef<HTMLDivElement>(null);
-  const [toggle, setToggle] = useState(-1);
+  const { pages, placeholders } = useDictionary();
   const [type, setType] = useState("image");
   const [typeIndex, setTypeIndex] = useState(0);
-  const [openPciker, setOpenPciker] = useState(true);
-  useClickOutside(ref, () => {
-    setToggle(-1);
-  });
+
   const allowedToBuy = userId !== service?.data?.ownerId;
   const [mounted, setMounted] = useState(false);
   const { data: ownerDetail } = useGetProductOwnerDetailQuery(
@@ -68,20 +62,6 @@ function BuyServiceDetail({ setStep, service }: ServiceDetailProps) {
 
   return (
     <div>
-      <Modal
-        editModalRef={modalRef}
-        open={openPciker}
-        setOpen={setOpenPciker}
-        centered={false}
-      >
-        <div className=" h-full w-full flex justify-center pt-[80px]">
-          <DateTimePickerModal
-          // parameters={parameters}
-          // setParameters={setParameters}
-          // setIsParameterOpen={setIsParameterOpen}
-          />
-        </div>
-      </Modal>
       <div className="h-full min-h-screen flex flex-col items-center">
         <div className="px-5 sm:px-10 h-[61px] border-b-[1px] border-gray-9 bg-white w-full  flex justify-center">
           <div className="w-full   flex items-center gap-[6px] font-normal text-[14px] mt-5">
@@ -97,7 +77,7 @@ function BuyServiceDetail({ setStep, service }: ServiceDetailProps) {
 
         <div className=" px-5 sm:px-10 py-6 w-full">
           <div className="">
-            <div className="flex  flex-col sm:flex-row gap-5 md:gap-12">
+            <div className="flex  flex-col sm:flex-row gap-5 lg:gap-12">
               <div className="space-y-3">
                 <div className="h-[280px] min-w-[250px] sm:h-[320px] md:h-[500px]  max-w-[496px] xl:w-[496px] object-cover overflow-hidden rounded-[10px]">
                   {type === "image" ? (
@@ -148,19 +128,21 @@ function BuyServiceDetail({ setStep, service }: ServiceDetailProps) {
                       </div>
                     )
                   )}
-                  <video
-                    onClick={() => setType("video")}
-                    src={service?.data?.video as string}
-                    controls={false}
-                    className={`h-[96px] w-[96px] border-[4px] object-cover rounded-[10px] cursor-pointer ${
-                      type === "video"
-                        ? " border-green-1"
-                        : "border-transparent"
-                    }`}
-                  />
+                  {service?.data?.video && (
+                    <video
+                      onClick={() => setType("video")}
+                      src={service?.data?.video as string}
+                      controls={false}
+                      className={`h-[96px] w-[96px] border-[4px] object-cover rounded-[10px] cursor-pointer ${
+                        type === "video"
+                          ? " border-green-1"
+                          : "border-transparent"
+                      }`}
+                    />
+                  )}
                 </div>
               </div>
-              <div className="w-full sm:max-w-[364px] ">
+              <div className="w-full sm:max-w-[430px] ">
                 <div className="space-y-2 sm:space-y-0 flex flex-col md:flex-row md:justify-between gap-1 md:items-center">
                   <div className="flex gap-2">
                     <Image
@@ -219,7 +201,9 @@ function BuyServiceDetail({ setStep, service }: ServiceDetailProps) {
 
                 {mounted && allowedToBuy && (
                   <button
-                    onClick={() => setStep && setStep("cart")}
+                    onClick={() => {
+                      setOpenPciker?.(true);
+                    }}
                     className="h-[46px] disabled:opacity-50 disabled:pointer-events-none mt-4 border-green-1 bg-green-1 border-[1px] w-full rounded-xl flex items-center justify-center font-medium text-[16px] text-white hover:text-green-1 hover:bg-white cursor-pointer"
                   >
                     {placeholders.book_now}

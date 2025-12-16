@@ -99,6 +99,9 @@ function ListProduct() {
     if (parameters.length === 0) {
       setParameterError(error_messages.parameter_required);
     }
+    if (parameters.some((parameter) => parameter.variants.length === 0)) {
+      setParameterError(error_messages.parameter_value_required);
+    }
     if (images?.length === 0) {
       toast.error(error_messages.image_required);
       return;
@@ -113,7 +116,8 @@ function ListProduct() {
       video !== null &&
       video !== "" &&
       images?.length > 0 &&
-      parameters.length > 0
+      parameters.length > 0 &&
+      parameters.some((parameter) => parameter.variants.length > 0)
     ) {
       const formData = new FormData();
       formData.append("title", title);
@@ -125,6 +129,7 @@ function ListProduct() {
       if (parameters.length > 0) {
         formData.append("parameters", JSON.stringify(parameters));
       }
+
       if (images.length > 0) {
         for (let i = 0; i < images.length; i++) {
           formData.append("images", images[i]);

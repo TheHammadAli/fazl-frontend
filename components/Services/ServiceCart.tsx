@@ -1,59 +1,56 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import Image from "next/image";
 import chevron from "@/assets/icons/chev-down-icon.svg";
 import { useDictionary } from "@/dictionaries/DictionaryProvider";
-import { RadioGroup } from "@headlessui/react";
-import { Clock } from "lucide-react";
 import { Star } from "lucide-react";
-import noImageAvtar from "@/assets/images/no-image-av.png";
-import penIcon from "@/assets/icons/pen-icon.svg";
-import easyPaisaIcon from "@/assets/icons/easypaisa-icon.svg";
-import cashOnDelivery from "@/assets/icons/cash-delivery.svg";
-import { useOrderProductMutation } from "@/store/services/sellingService";
+import { useServiceBookRequestMutation } from "@/store/services/sellingService";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { BeatLoader } from "react-spinners";
-import addIcon from "@/assets/icons/add.svg";
-import { ServiceDetailProps } from "./BuyServiceDetail";
+// import addIcon from "@/assets/icons/add.svg";
+import noImageAvtar from "@/assets/images/no-image-av.png";
+import moment from "moment";
+import "moment/locale/ur";
 
 function ServiceCart({
-  product,
-  shopData,
-  selectedVariants,
-}: ServiceDetailProps) {
-  const { pages, placeholders, info_messages, error_messages } =
-    useDictionary();
+  service,
+  date,
+}: {
+  service: {
+    data: {
+      id: string;
+      price: number;
+      title: string;
+      images: string[];
+      paymentType: string;
+      category: { name: string };
+    };
+  };
+  date: Date;
+}) {
+  const { pages, placeholders, currentLanguage } = useDictionary();
   const router = useRouter();
-  const [deliveryMethod, setDeliveryMethod] = useState("delivery");
-  const [toogleChoose, setToogleChoose] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState("");
-  const [orderProduct, { isLoading, isError, isSuccess, error, data }] =
-    useOrderProductMutation();
+
+  const [serviceBookRequest, { isLoading, isError, isSuccess, error, data }] =
+    useServiceBookRequestMutation();
 
   const { user } =
     typeof window !== "undefined"
       ? JSON.parse(localStorage.getItem("user") || "{}")
       : "";
-
   console.log(user, "user");
-  const totalAmount =
-    product?.data?.price + (deliveryMethod === "delivery" ? 250 : 0) + 90;
+
+  const totalAmount = service?.data?.price + 90;
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const body = {
-      buyer: user?.id,
-      owner: shopData?.id,
-      ownerModel: "Shop",
-      product: product?.data?.id,
-      deliveryOption: deliveryMethod,
-      status: "pending",
-      paymentType: "cashonDelivery",
-      amount: totalAmount,
-      variant: selectedVariants,
-      quantity: 1,
+      serviceId: service?.data?.id,
+      customerId: user?.id,
+      requestedDateTime: date.toISOString(),
+      // message: "string",
     };
-    orderProduct(body);
+    serviceBookRequest(body);
   };
 
   useEffect(() => {
@@ -75,6 +72,9 @@ function ServiceCart({
     }
   }, [isSuccess, isError, data, error]);
 
+  console.log(service, "service ");
+  console.log(date, "date ");
+
   return (
     <div>
       <div className="h-full min-h-screen  flex flex-col items-center">
@@ -86,197 +86,61 @@ function ServiceCart({
               alt="chevron"
               className="-rotate-90 rtl:rotate-90"
             />
-            <span className="text-green-1">{product?.data?.title}</span>
+            <span className="text-green-1">{service?.data?.title}</span>
           </div>
         </div>
         <form onSubmit={handleSubmit} className="md:flex w-full h-full ">
           {/* Left Section */}
-          <div className="md:min-h-screen w-full md:w-[50%] md:border-r-[1px] border-[#E5E5E5] p-5 md:p-8 bg-white space-y-6">
-            {/* Delivery Options */}
+          <div className="md:min-h-screen w-full md:w-[50%] md:border-r-[1px] border-[#E5E5E5] p-5 md:p-8 bg-white space-y-4">
             <div>
-              <h2 className="text-[#4B514F]  text-[14px]  font-normal mb-3">
-                {info_messages.receive_order}
-              </h2>
-              <RadioGroup value={deliveryMethod} onChange={setDeliveryMethod}>
-                <div className="space-y-3">
-                  <RadioGroup.Option value="delivery">
-                    {({ checked }) => (
-                      <div className="flex items-center gap-2 cursor-pointer">
-                        <span
-                          className={`h-[18px] w-[18px] rounded-full border ${
-                            checked
-                              ? "border-4 border-green-1"
-                              : "border-[#E5E5E5]"
-                          }`}
-                        />
-                        <span className="text-[#030303] text-[15px] ">
-                          {placeholders.delivery}
-                        </span>
-                      </div>
-                    )}
-                  </RadioGroup.Option>
-
-                  <RadioGroup.Option value="self-pickup">
-                    {({ checked }) => (
-                      <div className="flex items-center gap-2 cursor-pointer">
-                        <span
-                          className={`h-[18px] w-[18px] rounded-full border ${
-                            checked
-                              ? "border-4 border-green-1"
-                              : "border-[#E5E5E5]"
-                          }`}
-                        />
-                        <span className="text-[#030303] text-[15px] ">
-                          {placeholders.self_pickup}
-                        </span>
-                      </div>
-                    )}
-                  </RadioGroup.Option>
-                </div>
-              </RadioGroup>
+              <div className="flex items-center justify-between">
+                <span className="text-[#4B514F] text-[15px]">
+                  {placeholders.date_time}
+                </span>
+                <span className="text-[#030303] text-[15px]">
+                  {moment(date)
+                    .locale(currentLanguage)
+                    .format("MMM DD, YYYY - h:mm A")}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-[#4B514F] text-[15px]">
+                  {placeholders.service_type}
+                </span>
+                <span className="text-[#030303] text-[15px]">
+                  {placeholders.onsite}
+                </span>
+              </div>
             </div>
 
             <hr className="border-[#E5E5E5] " />
+            <h2 className="text-[14px] text-[#4B514F]">
+              {placeholders.your_address}
+            </h2>
 
-            {/* Delivery Details */}
-            {deliveryMethod === "delivery" && (
+            <div className="flex justify-between items-center">
               <div>
-                <div className="flex items-center gap-2 text-gray-800">
-                  <span className="text-[15px] text-[#030303]">
-                    {user?.address ?? ""}
-                  </span>
-                </div>
-              </div>
-            )}
-            {deliveryMethod === "self-pickup" && (
-              <div className="flex justify-between items-center">
-                <div>
+                {" "}
+                <h3 className="text-[#030303]  text-[16px] font-medium">
                   {" "}
-                  <h3 className="text-[#030303]  text-[16px] font-medium">
-                    {" "}
-                    {shopData?.title}
-                  </h3>
-                  <h3 className="text-[#4B514F] text-[16px] font-normal mb-2">
-                    {shopData?.address}
-                  </h3>
-                </div>
-                {/* <Image src={penIcon} alt="pen-icon" /> */}
+                  {user?.name}
+                </h3>
+                <h3 className="text-[#4B514F] text-[16px] font-normal mb-2">
+                  {user?.address}
+                </h3>
               </div>
-            )}
-            <hr className="border-[#E5E5E5] " />
-
-            <div>
-              <h3 className="text-[#4B514F] text-[14px] font-normal mb-2">
-                {placeholders.delivery_detail}
-              </h3>
-              <div className="flex items-center gap-2 text-gray-800">
-                <Clock className="h-[16px] w-[16px] text-gray-600" />
-                <span className="text-[15px] text-[#030303]">
-                  {info_messages.home_delivery}
-                </span>
-              </div>
-            </div>
-            <hr className="border-[#E5E5E5] " />
-
-            {/* Payment */}
-            <div>
-              <h3 className="text-[#4B514F] text-[14px] font-normal mb-2">
-                {placeholders.payment}
-              </h3>
-              {toogleChoose && (
-                <div className="mb-5">
-                  {/* Easypaisa */}
-                  {(!paymentMethod || paymentMethod === "easypaisa") && (
-                    <div className="flex justify-between">
-                      <div className="flex gap-2 items-center">
-                        <Image src={easyPaisaIcon} alt="easypaisa-icon" />
-                        <span className="text-[#030303] text-[16px] font-medium">
-                          Easypaisa
-                        </span>
-                      </div>
-                      <div>
-                        <div
-                          className="pointer-events-none  flex items-center gap-2 cursor-pointer"
-                          onClick={() =>
-                            setPaymentMethod((prev) =>
-                              prev === "easypaisa" ? "" : "easypaisa"
-                            )
-                          }
-                        >
-                          <span
-                            className={`h-[24px] w-[24px] rounded-full border ${
-                              paymentMethod === "easypaisa"
-                                ? "border-4 border-green-1"
-                                : "border-[#E5E5E5]"
-                            }`}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  <hr className="border-[#E5E5E5] mt-5" />
-
-                  {/* Cash on Delivery */}
-                  {(!paymentMethod || paymentMethod === "cashondelivery") && (
-                    <div className="flex justify-between mt-5">
-                      <div className="flex gap-2 items-center">
-                        <Image src={cashOnDelivery} alt="cashondelivery-icon" />
-                        <span className="text-[#030303] text-[16px] font-medium">
-                          Cash on Delivery
-                        </span>
-                      </div>
-                      <div>
-                        <div
-                          className="flex items-center gap-2 cursor-pointer"
-                          onClick={() =>
-                            setPaymentMethod((prev) =>
-                              prev === "cashondelivery" ? "" : "cashondelivery"
-                            )
-                          }
-                        >
-                          <span
-                            className={`h-[24px] w-[24px] rounded-full border ${
-                              paymentMethod === "cashondelivery"
-                                ? "border-4 border-green-1"
-                                : "border-[#E5E5E5]"
-                            }`}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              <div className="w-full flex items-center justify-between">
-                <span className="text-[15px] text-[#030303] font-normal">
-                  {!paymentMethod
-                    ? placeholders.choose_payment_method
-                    : placeholders.choose_another_payment_method}
-                </span>
-                <Image
-                  src={addIcon}
-                  alt="add-icon"
-                  className="cursor-pointer"
-                  onClick={() => {
-                    setToogleChoose(true);
-                    setPaymentMethod("");
-                  }}
-                />
-              </div>
+              {/* <Image src={penIcon} alt="pen-icon" /> */}
             </div>
 
-            {/* Pay Button */}
             <button
               type="submit"
-              disabled={isLoading || paymentMethod === ""}
-              className="disabled:opacity-50 disabled:cursor-not-allowed  cursor-pointer hidden md:block w-full border-green-1 hover:border-[1px] bg-green-1 hover:bg-white hover:text-green-1  text-white font-medium py-3 rounded-lg transition"
+              disabled={isLoading}
+              className="disabled:opacity-50 disabled:cursor-not-allowed  cursor-pointer hidden md:block w-full border-green-1  bg-green-1    text-white font-medium py-3 rounded-lg  mt-5"
             >
               {isLoading ? (
                 <BeatLoader color="white" size={8} />
               ) : (
-                placeholders.pay_now
+                placeholders.request
               )}
             </button>
           </div>
@@ -284,21 +148,26 @@ function ServiceCart({
           <div className="p-5 md:p-8 ">
             <div className="  md:w-[364px] bg-white  ">
               {/* Product Info */}
-              <div className="flex items-start gap-4">
-                <Image
-                  src={shopData?.image ?? noImageAvtar} // replace with actual product image
-                  alt="Red Cowboy Hat"
-                  width={100}
-                  height={100}
-                  unoptimized
-                  className="rounded-xl h-[76px] w-[76px] object-cover"
-                />
+              <div className="flex items-start gap-2.5">
+                {service?.data?.images?.length > 0 && (
+                  <Image
+                    src={service?.data?.images?.[0] ?? noImageAvtar}
+                    alt="service_image"
+                    width={100}
+                    height={100}
+                    unoptimized
+                    className="rounded-[18px] h-[76px] w-[76px] object-cover"
+                  />
+                )}
                 <div>
-                  <p className="text-sm text-[#4B514F] text-[14px]">
-                    Alexcloth
+                  <p className="text-sm text-[#4B514F]  font-normal">
+                    {service?.data?.category?.name}
+                  </p>
+                  <p className=" text-[#030303] text-[16px] font-medium">
+                    {service?.data?.title}
                   </p>
                   <h2 className="font-medium text-[#030303] text-[16px]">
-                    {shopData?.title ?? ""}
+                    {/* {shopData?.title ?? ""} */}
                   </h2>
                   <div className="flex items-center gap-1 mt-1">
                     <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
@@ -315,17 +184,16 @@ function ServiceCart({
               {/* Price Breakdown */}
               <div className="space-y-2 text-[#4B514F] text-[15px] font-light">
                 <div className="flex justify-between">
-                  <span>{placeholders.product}</span>
                   <span>
-                    {placeholders.Rs} {product?.data?.price}
+                    {service?.data?.paymentType === "hourly"
+                      ? `1 ${placeholders?.hour}`
+                      : placeholders.price}
+                  </span>
+                  <span>
+                    {placeholders.Rs} {service?.data?.price}{" "}
                   </span>
                 </div>
-                {deliveryMethod === "delivery" && (
-                  <div className="flex justify-between">
-                    <span>{placeholders.delivery_fee}</span>
-                    <span>{placeholders.Rs} 250</span>
-                  </div>
-                )}
+
                 <div className="flex justify-between">
                   <span> {placeholders.sale_tax}</span>
                   <span>{placeholders.Rs} 90</span>
@@ -340,14 +208,14 @@ function ServiceCart({
                 </span>
               </div>
               <button
-                disabled={isLoading || paymentMethod === ""}
+                disabled={isLoading}
                 type="submit"
-                className="disabled:opacity-50 disabled:cursor-not-allowed  cursor-pointer md:hidden mt-5 w-full border-green-1 hover:border-[1px] bg-green-1 hover:bg-white hover:text-green-1  text-white font-medium py-3 rounded-lg transition"
+                className="disabled:opacity-50 disabled:cursor-not-allowed  cursor-pointer md:hidden mt-5 w-full bg-green-1  hover:text-green-1  text-white font-medium py-3 rounded-lg transition"
               >
                 {isLoading ? (
                   <BeatLoader color="white" size={8} />
                 ) : (
-                  placeholders.pay_now
+                  placeholders.request
                 )}
               </button>
             </div>

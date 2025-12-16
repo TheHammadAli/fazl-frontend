@@ -94,6 +94,13 @@ export const profileService = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["SERVICES"],
     }),
+    serviceBookRequest: build.mutation({
+      query: (body) => ({
+        url: "/services/create-request",
+        method: "POST",
+        body,
+      }),
+    }),
     deleteProductMedia: build.mutation({
       query: ({ id, body }) => ({
         url: `/products/${id}/media`,
@@ -162,4 +169,5 @@ export const {
   useGetAllCategoriesQuery,
   useUpdateServiceMutation,
   useGetUserProductsQuery,
+  useServiceBookRequestMutation,
 } = profileService;

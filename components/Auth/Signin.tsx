@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import Image from "next/image";
 import AuthImage from "@/assets/images/auth-image.png";
 import { BeatLoader } from "react-spinners";
@@ -12,7 +12,6 @@ import {
   setToken,
   setUserId,
 } from "@/store/reducers/authReducer";
-import { setCookie } from "cookies-next";
 import { BASE_URL } from "@/assets/content/constants";
 import GoogleIcon from "@/assets/icons/google-icon.svg";
 
@@ -24,71 +23,74 @@ export type Body = {
 function Signin() {
   const router = useRouter();
   const dispatch = useAppDispatch();
+
   const [emailError, setEmailError] = useState("");
   const [email, setEmail] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [signin, { isLoading, isSuccess, isError, error, data }] =
-    useSigninMutation();
 
-  const handleSignin = (e: React.FormEvent<HTMLFormElement>) => {
+  const [signin, { isLoading }] = useSigninMutation();
+
+  const handleSignin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    let isValid: boolean = true;
-    if (email.trim() === "") {
+
+    let isValid = true;
+
+    if (!email.trim()) {
       setEmailError("Email is required*");
       isValid = false;
+    } else {
+      setEmailError("");
     }
-    if (password.trim() === "") {
+
+    if (!password.trim()) {
       setPasswordError("Password is required*");
       isValid = false;
     } else {
-      isValid = true;
-      setEmailError("");
       setPasswordError("");
     }
 
-    if (isValid) {
-      const body: Body = { email, password };
-      signin(body);
-    }
-  };
+    if (!isValid) return;
 
-  useEffect(() => {
-    if (isSuccess) {
-      toast.success(data?.message);
+    try {
+      const body: Body = { email, password };
+
+      // 🔥 PRO TIP — unwrap
+      const res = await signin(body).unwrap();
+
+      toast.success(res.message);
+
+      // ✅ Store tokens
       dispatch(
         setToken({
-          accessToken: data?.data?.accessToken,
-          refreshToken: data?.data?.refreshToken,
+          accessToken: res.data.accessToken,
+          refreshToken: res.data.refreshToken,
         })
       );
-      localStorage.setItem(
-        "user",
-        JSON.stringify({
-          user: data?.data?.user,
-        })
-      );
-      dispatch(setUserId(data?.data?.user?.id));
-      const timer = setTimeout(() => {
-        if (!data?.data?.user?.phone || data?.data?.user?.phone === "") {
-          dispatch(setProfileCompleted(false));
-          router.push("/complete-info");
-        } else {
-          dispatch(setProfileCompleted(true));
-          router.push("/welcome");
-        }
-      }, 800);
 
-      return () => clearTimeout(timer);
+      // ✅ Store user
+      localStorage.setItem("user", JSON.stringify({ user: res.data.user }));
+
+      dispatch(setUserId(res.data.user.id));
+
+      // ✅ Navigation
+      if (!res?.data?.user?.phone) {
+        dispatch(setProfileCompleted(false));
+        router.replace("/complete-info");
+      } else {
+        dispatch(setProfileCompleted(true));
+
+        router.replace("/welcome");
+      }
+    } catch (err) {
+      const errorData = err as { data?: { message?: string } };
+
+      toast.error(errorData?.data?.message || "Something went wrong!", {
+        duration: 4000,
+      });
     }
-    if (isError && "data" in error) {
-      toast.error(
-        (error?.data as { message?: string })?.message ||
-          "something went wrong!"
-      );
-    }
-  }, [isSuccess, isError, data, error]);
+  };
 
   return (
     <div className="w-screen h-screen flex min-h-[818px]">
@@ -100,23 +102,24 @@ function Signin() {
           className="h-full w-full object-cover"
         />
       </div>
+
       {/* Right section */}
       <form
         onSubmit={handleSignin}
         className="w-full lg:w-[50%] px-5 sm:px-[50px] xl:px-[150px] pt-[80px] flex flex-col items-center lg:justify-between"
       >
-        <div className="max-w-[500px] lg:max-w-full   w-full">
-          <h1 className="text-black-1 font-medium text-[22px] text-center  leading-[30px] ">
+        <div className="max-w-[500px] w-full">
+          <h1 className="text-black-1 font-medium text-[22px] text-center">
             Sign in
           </h1>
           <p className="font-light text-[14px] text-center text-gray-8">
             Sign in to your account
           </p>
 
-          {/* email */}
+          {/* Email */}
           <div className="space-y-2 mt-5">
             <p
-              className={`text-[14px] font-normal  ${
+              className={`text-[14px] ${
                 emailError ? "text-red-1" : "text-gray-8"
               }`}
             >
@@ -125,97 +128,82 @@ function Signin() {
             <input
               type="email"
               value={email}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                setEmail(e.target.value)
-              }
-              className={`h-[28px] text-[14px] text-gray-8  font-normal focus:outline-none w-full ${
+              onChange={(e) => setEmail(e.target.value)}
+              className={`h-[28px] w-full border-b ${
                 emailError ? "border-red-1" : "border-gray-9"
-              } border-b-[1px] `}
+              } focus:outline-none`}
             />
             {emailError && (
-              <p className="text-red-1 text-[14px] font-normal">{emailError}</p>
+              <p className="text-red-1 text-[14px]">{emailError}</p>
             )}
           </div>
 
-          {/* password */}
+          {/* Password */}
           <div className="space-y-2 mt-5">
             <p
-              className={`text-[14px] font-normal
-                    ${passwordError ? "text-red-1" : "text-gray-8"}
-                      `}
+              className={`text-[14px] ${
+                passwordError ? "text-red-1" : "text-gray-8"
+              }`}
             >
               Password
             </p>
             <div
-              className={`flex gap-1 items-center ${
+              className={`flex items-center border-b ${
                 passwordError ? "border-red-1" : "border-gray-9"
-              } border-b-[1px]`}
+              }`}
             >
               <input
                 type={showPassword ? "text" : "password"}
                 value={password}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  setPassword(e.target.value)
-                }
-                className={`h-[28px] text-[14px] text-gray-8  font-normal focus:outline-none w-full  `}
+                onChange={(e) => setPassword(e.target.value)}
+                className="h-[28px] w-full focus:outline-none"
               />
               <span
                 onClick={() => setShowPassword(!showPassword)}
-                className="text-[14px] font-medium text-black-1 cursor-pointer underline"
+                className="cursor-pointer underline"
               >
                 {showPassword ? "Hide" : "Show"}
               </span>
             </div>
-            <p className="text-red-1 text-[14px] font-normal -mt-1">
-              {passwordError}
-            </p>
+            {passwordError && (
+              <p className="text-red-1 text-[14px]">{passwordError}</p>
+            )}
           </div>
-          <div className="flex justify-end pt-4 text-[14px] font-normal text-green-1 ">
+
+          <div className="flex justify-end pt-4 text-[14px] text-green-1">
             <p
-              className="cursor-pointer w-max hover:underline"
+              className="cursor-pointer hover:underline"
               onClick={() => router.push("/forget-password")}
             >
               Forgot password?
             </p>
           </div>
+
           <button
             type="submit"
-            disabled={false}
-            className="mt-6 h-[52px] w-full rounded-[12px] text-white font-medium text-[16px]  bg-green-1 cursor-pointer"
+            className="mt-6 h-[52px] w-full rounded-[12px] bg-green-1 text-white"
+            disabled={isLoading}
           >
             {isLoading ? <BeatLoader color="white" size={8} /> : "Continue"}
           </button>
+
           <button
             type="button"
             onClick={() => router.push(`${BASE_URL}/auth/google`)}
-            className="mt-6 h-[52px] w-full rounded-[12px] text-white    bg-blue-1 flex items-center justify-center gap-2 text-[15px] font-normal cursor-pointer"
+            className="mt-6 h-[52px] w-full rounded-[12px] bg-blue-1 text-white flex items-center justify-center gap-2"
           >
-            <Image src={GoogleIcon} alt="google_icon" />{" "}
-            <h3>Continue with Google</h3>
+            <Image src={GoogleIcon} alt="google_icon" />
+            Continue with Google
           </button>
 
-          <div className="text-center font-normal text-[12px] text-gray-8 mt-5">
+          <div className="text-center text-[12px] text-gray-8 mt-5">
             Don&apos;t have an account?{" "}
             <span
-              className="text-green-1 hover:underline cursor-pointer"
+              className="text-green-1 cursor-pointer hover:underline"
               onClick={() => router.push("/send-otp")}
             >
               Sign up
             </span>
-          </div>
-        </div>
-        <div className="mb-20">
-          <div className="flex justify-center mt-[80px]">
-            <div className="h-[30px] w-[70px] bg-green-1 rounded-[6px] text-white flex items-center justify-center text-[18px] font-semibold">
-              market
-            </div>
-          </div>
-          <div className="flex flex-wrap justify-center items-center font-[400] text-[12px] text-green-1 gap-[6px] mt-3">
-            <p>Contact</p>
-            <div className="h-1 w-1 bg-green-1 rounded-full"></div>
-            <p>Terms and Conditions</p>
-            <div className="h-1 w-1 bg-green-1 rounded-full"></div>
-            <p>Privacy Policy</p>
           </div>
         </div>
       </form>

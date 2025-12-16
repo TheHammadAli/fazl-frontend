@@ -156,7 +156,7 @@ function ServiceDetail({ serviceData }: { serviceData: ServiceDetailType }) {
                   )}
                 </div>
               </div>
-              <div className="w-full sm:max-w-[364px] ">
+              <div className="w-full sm:max-w-[364px]  ">
                 <div className="space-y-2 sm:space-y-0 flex justify-between ">
                   <div className="flex gap-2">
                     <Image
@@ -220,12 +220,12 @@ function ServiceDetail({ serviceData }: { serviceData: ServiceDetailType }) {
                   </span>
                   <span className="font-light text-[14px]">(30% off)</span>
                 </div>
-                <div className="text-[#4B514F] text-[14px] font-light mt-4">
+                <div className="text-[#4B514F] text-[14px] font-light mt-4 ">
                   {placeholders.description}
                 </div>
-                <div className="text-[15px] text-[#030303] font-light">
+                <p className="text-[15px] text-[#030303] font-light break-all">
                   {serviceData?.description ?? ""}
-                </div>
+                </p>
                 {/* <div className="border-[#E5E5E5]  py-4 px-1.5 border-t-[0.5px] mt-4 flex justify-between">
                   <span className="text-[15px] font-medium">
                     {placeholders.category}
@@ -316,7 +316,7 @@ function ServiceDetail({ serviceData }: { serviceData: ServiceDetailType }) {
                 </button>
               </div>
             </div>
-            <div className="mt-10 w-full md:max-w-[496px]">
+            <div className="mt-10 w-full md:max-w-[496px] ">
               <div className="flex  gap-[22px] items-center">
                 <h1 className="text-[19px] font-medium">Reviews</h1>
                 <div className="flex gap-2 ">

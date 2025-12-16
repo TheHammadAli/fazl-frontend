@@ -63,15 +63,19 @@ function BuyProductDetail({
   useClickOutside(ref, () => {
     setToggle(-1);
   });
-  const allowedToBuy = userId !== shopData?.ownerId?.id;
-  const [mounted, setMounted] = useState(false);
   const { data: ownerDetail } = useGetProductOwnerDetailQuery(
     product?.data?.ownerId,
     {
       skip: !product?.data?.ownerId,
     }
   );
+  const allowedToBuy = product?.data?.shopId
+    ? userId !== shopData?.ownerId?.id
+    : userId !== product?.data?.ownerId;
+
+  const [mounted, setMounted] = useState(false);
   const ownerData = ownerDetail?.data;
+
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -309,6 +313,7 @@ function BuyProductDetail({
                 )}
               </div>
             </div>
+
             <div className="mt-10 w-full md:max-w-[496px]">
               <div className="flex  gap-[22px] items-center">
                 <h1 className="text-[19px] font-medium">Reviews</h1>
