@@ -5,16 +5,13 @@ import chevron from "@/assets/icons/chev-down-icon.svg";
 import { useDictionary } from "@/dictionaries/DictionaryProvider";
 import dummyProfile from "@/assets/images/dummy-profile-image.jpg";
 import ratingIcons from "@/assets/icons/rating-icons.svg";
-import { useGetProductDetailQuery } from "@/store/services/homeService";
-import { useSearchParams } from "next/navigation";
 import noImageAvtar from "@/assets/images/no-image-av.png";
-import { useClickOutside } from "@/custom-hooks/useClickOutside";
-import { get } from "http";
 import { getCookie } from "cookies-next";
 import { useGetProductOwnerDetailQuery } from "@/store/services/authService";
-export type ProductDetailProps = {
-  setStep?: (val: "product" | "cart") => void;
-  product: {
+export type ServiceDetailProps = {
+  setStep?: (val: "service" | "request") => void;
+  setOpenPciker?: (val: boolean) => void;
+  service: {
     data: {
       video: string;
       id: string;
@@ -23,6 +20,7 @@ export type ProductDetailProps = {
       name: string;
       price: number;
       shopId: string;
+      paymentType: string;
       images: string[];
       description: string;
       parameters: { name: string; variants: string[] }[];
@@ -31,54 +29,37 @@ export type ProductDetailProps = {
     isLoading: boolean;
     isFetching: boolean;
   };
-  shopData?: {
-    id?: string;
-    address?: string;
-    title?: string;
-    image?: string;
-    ownerId?: {
-      id?: string;
-      email?: string;
-    };
-  };
+
   selectedVariants: Record<string, unknown>;
   setSelectedVariants?: React.Dispatch<
     React.SetStateAction<Record<string, unknown>>
   >;
 };
-function BuyProductDetail({
+function BuyServiceDetail({
   setStep,
-  product,
-  selectedVariants,
-  shopData,
-  setSelectedVariants,
-}: ProductDetailProps) {
+  service,
+  setOpenPciker,
+}: ServiceDetailProps) {
   const userId = getCookie("userId");
-  const { pages, placeholders, info_messages, error_messages } =
-    useDictionary();
-  const ref = React.useRef<HTMLDivElement>(null);
-  const [toggle, setToggle] = useState(-1);
+  const { pages, placeholders } = useDictionary();
   const [type, setType] = useState("image");
   const [typeIndex, setTypeIndex] = useState(0);
-  useClickOutside(ref, () => {
-    setToggle(-1);
-  });
+
+  const allowedToBuy = userId !== service?.data?.ownerId;
+  const [mounted, setMounted] = useState(false);
   const { data: ownerDetail } = useGetProductOwnerDetailQuery(
-    product?.data?.ownerId,
+    service?.data?.ownerId,
     {
-      skip: !product?.data?.ownerId,
+      skip: !service?.data?.ownerId,
     }
   );
-  const allowedToBuy = product?.data?.shopId
-    ? userId !== shopData?.ownerId?.id
-    : userId !== product?.data?.ownerId;
 
-  const [mounted, setMounted] = useState(false);
   const ownerData = ownerDetail?.data;
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
   return (
     <div>
       <div className="h-full min-h-screen flex flex-col items-center">
@@ -90,31 +71,31 @@ function BuyProductDetail({
               alt="chevron"
               className="-rotate-90 rtl:rotate-90"
             />
-            <span className="text-green-1">{product?.data?.title}</span>
+            <span className="text-green-1">{service?.data?.title}</span>
           </div>
         </div>
 
         <div className=" px-5 sm:px-10 py-6 w-full">
           <div className="">
-            <div className="flex  flex-col sm:flex-row gap-5 md:gap-12">
+            <div className="flex  flex-col sm:flex-row gap-5 lg:gap-12">
               <div className="space-y-3">
                 <div className="h-[280px] min-w-[250px] sm:h-[320px] md:h-[500px]  max-w-[496px] xl:w-[496px] object-cover overflow-hidden rounded-[10px]">
                   {type === "image" ? (
                     <Image
                       src={
-                        product?.data?.images?.length > 0
-                          ? product?.data?.images?.[typeIndex]
+                        service?.data?.images?.length > 0
+                          ? service?.data?.images?.[typeIndex]
                           : noImageAvtar
                       }
                       height={100}
                       width={100}
                       unoptimized
-                      alt="product"
+                      alt="service"
                       className=" h-full w-full object-cover"
                     />
                   ) : (
                     <video
-                      src={`${product?.data?.video}?t=${Date.now()}` as string}
+                      src={`${service?.data?.video}?t=${Date.now()}` as string}
                       controls
                       autoPlay={false}
                       className=" h-full w-full object-contain"
@@ -122,7 +103,7 @@ function BuyProductDetail({
                   )}
                 </div>
                 <div className="flex gap-1 flex-wrap max-w-[496px]">
-                  {product?.data?.images?.map(
+                  {service?.data?.images?.map(
                     (image: string, index: number) => (
                       <div
                         key={index}
@@ -140,34 +121,34 @@ function BuyProductDetail({
                           src={image}
                           height={100}
                           width={100}
-                          alt="product"
+                          alt="service"
                           unoptimized
                           className="h-[96px] w-[96px] object-cover  "
                         />
                       </div>
                     )
                   )}
-                  <video
-                    onClick={() => setType("video")}
-                    src={product?.data?.video as string}
-                    controls={false}
-                    className={`h-[96px] w-[96px] border-[4px] object-cover rounded-[10px] cursor-pointer ${
-                      type === "video"
-                        ? " border-green-1"
-                        : "border-transparent"
-                    }`}
-                  />
+                  {service?.data?.video && (
+                    <video
+                      onClick={() => setType("video")}
+                      src={service?.data?.video as string}
+                      controls={false}
+                      className={`h-[96px] w-[96px] border-[4px] object-cover rounded-[10px] cursor-pointer ${
+                        type === "video"
+                          ? " border-green-1"
+                          : "border-transparent"
+                      }`}
+                    />
+                  )}
                 </div>
               </div>
-              <div className="w-full sm:max-w-[364px] ">
-                <div className="space-y-2 sm:space-y-0 sm:flex sm:justify-between items-center">
+              <div className="w-full sm:max-w-[430px] ">
+                <div className="space-y-2 sm:space-y-0 flex flex-col md:flex-row md:justify-between gap-1 md:items-center">
                   <div className="flex gap-2">
                     <Image
                       className="h-[44px] w-[44px] rounded-full object-cover "
                       src={
-                        product?.data?.shopId && shopData?.image
-                          ? shopData.image
-                          : product?.data?.ownerId && ownerData?.image
+                        service?.data?.ownerId && ownerData?.image
                           ? ownerData.image
                           : noImageAvtar
                       }
@@ -178,142 +159,58 @@ function BuyProductDetail({
                     />
                     <div>
                       <h4 className="text-[#030303] text-[14px]">
-                        {product?.data?.shopId
-                          ? shopData?.title
-                          : product?.data?.ownerId
-                          ? ownerData?.name
-                          : ""}
+                        {service?.data?.ownerId ? ownerData?.name : ""}
                       </h4>
                       <h4 className="text-[#4B514F] text-[14px] font-light">
-                        {product?.data?.shopId
-                          ? shopData?.ownerId?.email
-                          : product?.data?.ownerId
-                          ? ownerData?.email
-                          : ""}
+                        {service?.data?.ownerId ? ownerData?.email : ""}
                       </h4>
                     </div>
                   </div>
-                  <div className="border-[1px] border-green-1 text-green-1 flex items-center justify-center rounded-lg h-[33px] w-[111px] text-[13px] font-light">
-                    {placeholders.message_seller}
+                  <div className="border-[1px] whitespace-nowrap border-green-1 text-green-1 flex items-center justify-center rounded-lg h-[33px] px-2 text-[13px] font-light">
+                    {placeholders.message_provider}
                   </div>
                 </div>
                 <h3 className="text-[#030303] text-[16px] font-medium mt-4">
-                  {product?.data?.title ?? ""}
+                  {service?.data?.title ?? ""}
                 </h3>
                 <h3 className="font-light text-[14px] text-[#4B514F] ">
                   4 Reviews
                 </h3>
                 <div className="space-x-2 mt-4">
                   <span className="text-green-1 text-[16px] font-medium">
-                    {placeholders.Rs} {product?.data?.price ?? ""}
+                    {placeholders.Rs} {service?.data?.price ?? ""}/
+                    {placeholders?.[
+                      service?.data?.paymentType as keyof typeof placeholders
+                    ]?.toLocaleLowerCase() ?? ""}
                   </span>
-                  <span className="line-through font-light text-[14px]">
-                    Rs 2000
-                  </span>
-                  <span className="font-light text-[14px]">(30% off)</span>
                 </div>
                 <div className="text-[#4B514F] text-[14px] font-light mt-4">
                   {placeholders.description}
                 </div>
                 <div className="text-[15px] text-[#030303] font-light">
-                  {product?.data?.description ?? ""}
+                  {service?.data?.description ?? ""}
                 </div>
                 <div className="border-[#E5E5E5]  py-4 px-1.5 border-t-[0.5px] mt-4 flex justify-between">
                   <span className="text-[15px] font-medium">
                     {placeholders.category}
                   </span>
                   <span className="font-light text-[15px] leading-none">
-                    {product?.data?.category?.name ?? ""}
+                    {service?.data?.category?.name ?? ""}
                   </span>
                 </div>
-                {mounted &&
-                  allowedToBuy &&
-                  product?.data?.parameters?.map(
-                    (
-                      parameter: { name: string; variants: string[] },
-                      index: number
-                    ) => (
-                      <div
-                        key={index}
-                        className="border-[#E5E5E5]  py-4 px-1.5 border-t-[0.5px] flex justify-between"
-                      >
-                        <span className="text-[15px] font-medium leading-none">
-                          {parameter?.name}
-                        </span>
-                        <div className="relative">
-                          <div
-                            className="flex gap-2 cursor-pointer "
-                            onClick={() => setToggle(index)}
-                          >
-                            <span className="font-light text-[15px] leading-none">
-                              {String(
-                                selectedVariants[
-                                  parameter?.name as keyof typeof selectedVariants
-                                ] ?? placeholders.choose
-                              )}
-                            </span>
-                            <Image
-                              src={chevron}
-                              alt="chevron"
-                              className="h-4 w-3"
-                            />
-                          </div>
-                          {toggle === index && (
-                            <div
-                              ref={ref}
-                              className=" z-50 right-0 w-[130px] bg-white shadow-xl rounded-lg border-[1px] border-gray-4 mt-2 absolute"
-                            >
-                              {parameter?.variants?.map(
-                                (variant: string, index: number) => (
-                                  <div
-                                    key={index}
-                                    onClick={() => {
-                                      if (setSelectedVariants) {
-                                        setSelectedVariants((prev) => ({
-                                          ...prev,
-                                          [parameter?.name]: variant,
-                                        }));
-                                      }
-                                      setToggle(-1);
-                                    }}
-                                    className="hover:bg-green-4 cursor-pointer px-2 py-1 border-b-[1px] border-gray-4"
-                                  >
-                                    {variant}
-                                  </div>
-                                )
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )
-                  )}
+
                 {mounted && allowedToBuy && (
                   <button
-                    disabled={
-                      Object.keys(selectedVariants).length !==
-                      product?.data?.parameters?.length
-                    }
-                    className=" mt-8 h-[46px]  disabled:opacity-50 disabled:pointer-events-none border-green-1 border-[1px] w-full rounded-xl flex items-center justify-center font-medium text-[16px] text-green-1 hover:text-white hover:bg-green-1 cursor-pointer"
-                  >
-                    {placeholders.add_cart}
-                  </button>
-                )}
-                {mounted && allowedToBuy && (
-                  <button
-                    disabled={
-                      Object.keys(selectedVariants).length !==
-                      product?.data?.parameters?.length
-                    }
-                    onClick={() => setStep && setStep("cart")}
+                    onClick={() => {
+                      setOpenPciker?.(true);
+                    }}
                     className="h-[46px] disabled:opacity-50 disabled:pointer-events-none mt-4 border-green-1 bg-green-1 border-[1px] w-full rounded-xl flex items-center justify-center font-medium text-[16px] text-white hover:text-green-1 hover:bg-white cursor-pointer"
                   >
-                    {placeholders.buy_now}
+                    {placeholders.book_now}
                   </button>
                 )}
               </div>
             </div>
-
             <div className="mt-10 w-full md:max-w-[496px]">
               <div className="flex  gap-[22px] items-center">
                 <h1 className="text-[19px] font-medium">Reviews</h1>
@@ -364,4 +261,4 @@ function BuyProductDetail({
   );
 }
 
-export default BuyProductDetail;
+export default BuyServiceDetail;

@@ -31,7 +31,6 @@ function Cart({ product, shopData, selectedVariants }: ProductDetailProps) {
       ? JSON.parse(localStorage.getItem("user") || "{}")
       : "";
 
-  console.log(user, "user");
   const totalAmount =
     product?.data?.price + (deliveryMethod === "delivery" ? 250 : 0) + 90;
 

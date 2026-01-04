@@ -1,6 +1,16 @@
 {
     "currentLanguage": "en",
     "placeholders": {
+        "hour": "hour",
+        "your_address": "Your address",
+        "request": "Request",
+        "service_type": "Service type",
+        "onsite": "Onsite",
+        "date_time": " Date & Time",
+        "am": "AM",
+        "pm": "PM",
+        "choose_time": "Choose time",
+        "choose_date_time": "Choose date & time",
         "reviews": "Reviews",
         "total_pay": "Total to pay",
         "sale_tax": "Sales tax",
@@ -16,6 +26,7 @@
         "choose": "Choose",
         "add_cart": "Add to cart",
         "buy_now": "Buy now",
+        "book_now": "Book now",
         "choose_payment": "Choose payment",
         "choose_payment_method": "Choose payment method",
         "choose_another_payment_method": "Choose another payment method",
@@ -25,6 +36,7 @@
         "delivery": "Delivery",
         "description": "Description",
         "message_seller": "Message seller",
+        "message_provider": "Message service provider",
         "all": "All",
         "search_for": "Search for",
         "product": "product",
@@ -107,7 +119,8 @@
         "choose_type": "Choose type",
         "classified": "Classified",
         "retail": "Retail",
-        "search_country": "Search country..."
+        "search_country": "Search country...",
+        "next": "Next"
     },
     "info_messages": {
         "home_delivery": "Home delivery, 4–6 business days",
@@ -151,6 +164,7 @@
         "private_listing": "Private listing"
     },
     "error_messages": {
+        "future_time": "Time must be in the future",
         "something_went_wrong": "Something went wrong, please try again later",
         "name_required": "Name is required*",
         "title_required": "Title is required*",
@@ -173,7 +187,8 @@
         "type_required": "Type is required*",
         "video_required": "Please add a video*",
         "image_required": "Please add at least one image*",
-        "parameter_required": "Please add at least one parameter*"
+        "parameter_required": "Please add at least one parameter*",
+        "parameter_value_required": "Please add at least one parameter value*"
     },
     "tabs": {
         "all": "All",

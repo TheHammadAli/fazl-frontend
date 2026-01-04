@@ -136,6 +136,8 @@ function SearchList() {
                   onClick={() => {
                     if (tab === "products") {
                       router.push(`/buy-product?id=${item?.id}`);
+                    } else if (tab === "services") {
+                      router.push(`/book-service?id=${item?.id}`);
                     }
                   }}
                 >

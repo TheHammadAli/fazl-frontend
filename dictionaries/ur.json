@@ -1,12 +1,24 @@
 {
     "currentLanguage": "ur",
     "placeholders": {
+        "hour": "ساعت",
+        "your_address": "آپ کا پتہ",
+        "request": "درخواست",
+        "service_type": "سروس کی قسم",
+        "onsite": "آن سائٹ",
+        "date_time": " تاریخ اور وقت",
+        "am": "صبح",
+        "pm": "شام",
+        "next": "اگلا",
+        "choose_time": "وقت منتخب کریں",
+        "choose_date_time": "تاریخ اور وقت منتخب کریں",
         "reviews": "نظرات",
         "total_pay": "کل ادائیگی",
         "sale_tax": "سیلز ٹیکس",
         "delivery_fee": "ترسیل کی فیس",
         "add_cart": "کارٹ میں شامل کریں",
         "buy_now": "ابھی خریدیں",
+        "book_now": "ابھی بک کریں",
         "choose": " منتخب کریں",
         "choose_payment_method": "ادائیگی کا طریقہ منتخب کریں",
         "choose_another_payment_method": "کوئی اور ادائیگی کا طریقہ منتخب کریں",
@@ -25,6 +37,7 @@
         "delivery": "ترسیل",
         "description": "تفصیل",
         "message_seller": "پیغام فروخت کریں",
+        "message_provider": "پیغام سروس فراہم کنندہ",
         "all": "تمام",
         "search_for": "تلاش کریں",
         "product": "پروڈکٹ",
@@ -151,6 +164,7 @@
         "profile": "پروفائل"
     },
     "error_messages": {
+        "future_time": "وقت مستقبل میں ہونا چاہیے",
         "something_went_wrong": "کچھ غلط ہو گیا، براہ کرم بعد میں دوبارہ کوشش کریں",
         "name_required": "نام ضروری ہے*",
         "title_required": "عنوان ضروری ہے*",
@@ -173,7 +187,8 @@
         "type_required": "قسم ضروری ہے*",
         "video_required": "براہ کرم ویڈیو شامل کریں*",
         "image_required": "براہ کرم کم از کم ایک تصویر شامل کریں*",
-        "parameter_required": "براہ کرم کم از کم ایک پیرامیٹر شامل کریں*"
+        "parameter_required": "براہ کرم کم از کم ایک پیرامیٹر شامل کریں*",
+        "parameter_value_required": "براہ کرم کم از کم ایک پیرامیٹر ویلیو شامل کریں*"
     },
     "tabs": {
         "all": "تمام",
