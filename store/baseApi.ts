@@ -57,14 +57,14 @@ export const baseQueryWithReauth: BaseQueryFn<
         },
       },
       api,
-      extraOptions
+      extraOptions,
     )) as { data: { data: { accessToken: string; refreshToken: string } } };
     if (refreshResult?.data) {
       api.dispatch(
         setToken({
           accessToken: refreshResult?.data?.data?.accessToken,
           refreshToken: refreshResult?.data?.data?.refreshToken,
-        })
+        }),
       );
       result = await rawBaseQuery(args, api, extraOptions);
     } else {
@@ -76,7 +76,14 @@ export const baseQueryWithReauth: BaseQueryFn<
 };
 export const baseApi = createApi({
   baseQuery: baseQueryWithReauth,
-  tagTypes: ["profile", "PRODUCT", "SHOP_DETAIL", "SERVICES"],
+  tagTypes: [
+    "profile",
+    "PRODUCT",
+    "NOTIFICATIONS",
+    "SHOP_DETAIL",
+    "SERVICES",
+    "SERVICES_REQUESTS",
+  ],
   endpoints: (builder) => ({}),
 });
 

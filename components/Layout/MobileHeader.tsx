@@ -13,7 +13,7 @@ import copyRight from "@/assets/icons/copyright.svg";
 import LangSwitcher from "../Ui/LangSwitcher";
 import { useGetUserDetailQuery } from "@/store/services/profileService";
 import { useAppSelector } from "@/store/store";
-export default function MobileHeader() {
+export default function MobileHeader({ unreadCount, openSidebar, setOpenSidebar }: { unreadCount: number, openSidebar: boolean, setOpenSidebar: (open: boolean) => void }) {
   const { userId } = useAppSelector((state) => state.authReducer);
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -73,30 +73,33 @@ export default function MobileHeader() {
                 <div>
                   {links.map((link, index) => {
                     const active: boolean = path.includes(link?.href);
+                    const isUpdatesLink = link.href === "/updates";
+                    const isLinkActive = isUpdatesLink ? openSidebar || active : active;
                     return (
                       <div
                         key={index}
-                        onClick={() => {
-                          setMobileMenuOpen(false);
-                          router.push(link.href);
-                        }}
+                        onClick={() => { if (link.href !== "/updates") { router.push(link.href) } else { setOpenSidebar(true) } }}
                         className={` flex items-center gap-3 py-3 cursor-pointer`}
                       >
                         <Image
-                          src={active ? link.icon?.active : link.icon?.inactive}
+                          src={isLinkActive ? link.icon?.active : link.icon?.inactive}
                           alt="icon"
                         />
                         <h2
-                          className={`font-normal text-[14px] ${
-                            active ? "text-green-1" : "text-gray-8"
-                          } leading-none`}
+                          className={`font-normal text-[14px] ${active ? "text-green-1" : "text-gray-8"
+                            } leading-none`}
                         >
                           {
                             pages?.[
-                              link?.title?.toLocaleLowerCase() as keyof typeof pages
+                            link?.title?.toLocaleLowerCase() as keyof typeof pages
                             ]
                           }
                         </h2>
+                        {isUpdatesLink && (
+                          <div className="min-w-[1.25rem] shrink-0 rounded-full bg-green-1 px-1 py-0.5 text-center text-[10px] font-medium leading-none text-white">
+                            {unreadCount || 0}
+                          </div>
+                        )}
                       </div>
                     );
                   })}
@@ -110,27 +113,24 @@ export default function MobileHeader() {
                     <Image
                       src={
                         profileData?.data?.image &&
-                        !profileData?.data?.image.includes("default-avatar")
-                          ? `${
-                              profileData?.data?.image
-                            }?t=${new Date().getTime()}`
+                          !profileData?.data?.image.includes("default-avatar")
+                          ? `${profileData?.data?.image
+                          }?t=${new Date().getTime()}`
                           : dummyProfile
                       }
                       height={100}
                       width={100}
                       alt="icon"
                       unoptimized
-                      className={`h-[26px] w-[26px] rounded-full object-cover ${
-                        path.includes("/profile") &&
+                      className={`h-[26px] w-[26px] rounded-full object-cover ${path.includes("/profile") &&
                         "border-[2px] border-green-1"
-                      }`}
+                        }`}
                     />
                     <h2
-                      className={`font-normal text-[14px] ${
-                        path.includes("/profile")
-                          ? "text-green-1"
-                          : "text-gray-8"
-                      } leading-none`}
+                      className={`font-normal text-[14px] ${path.includes("/profile")
+                        ? "text-green-1"
+                        : "text-gray-8"
+                        } leading-none`}
                     >
                       {pages.profile}
                     </h2>

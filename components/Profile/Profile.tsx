@@ -42,8 +42,12 @@ function Profile() {
 
   const [selectedTab, setSelectedTab] = useState<string>("profile_info");
   return (
-    <div className="w-full flex h-full ">
-      <div className={`h-full w-full md:w-auto ${toggle && "hidden md:block"}`}>
+    <div className="flex w-full max-w-full flex-1 flex-col min-h-[calc(100dvh-5rem)] md:min-h-0 md:flex-row lg:min-h-0 lg:h-full">
+      <div
+        className={`w-full shrink-0 overflow-y-auto md:w-auto md:overflow-visible ${
+          toggle && "hidden md:block"
+        }`}
+      >
         <Navigations
           toggle={toggle}
           setToggle={setToggle}
@@ -53,7 +57,11 @@ function Profile() {
         />
       </div>
 
-      <div className={`flex-1 ${!toggle && "hidden  md:block"}`}>
+      <div
+        className={`flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden overflow-y-auto lg:overflow-visible ${
+          !toggle && "hidden md:block"
+        }`}
+      >
         {tabsComponents[selectedTab as TabKeys]}
       </div>
     </div>
