@@ -148,10 +148,28 @@ export const profileService = baseApi.injectEndpoints({
       },
       providesTags: ["SERVICES"],
     }),
+    getServicesRequests: build.query({
+      query: (id) => {
+        return {
+          url: `/services/requests/${id}`,
+          method: "GET",
+        };
+      },
+      providesTags: ["SERVICES_REQUESTS"],
+    }),
+    updateServiceRequest: build.mutation({
+      query: (body) => ({
+        url: `/services/status`,
+        method: "PATCH",
+        body: body,
+      }),
+      invalidatesTags: ["SERVICES_REQUESTS"],
+    }),
   }),
 });
-
 export const {
+  useUpdateServiceRequestMutation,
+  useGetServicesRequestsQuery,
   useDeleteServiceMediaMutation,
   useGetServiceDetailQuery,
   useGetUserServiceQuery,

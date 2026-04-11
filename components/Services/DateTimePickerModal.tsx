@@ -3,13 +3,17 @@ import React, { useEffect, useState } from "react";
 import crossIcon from "@/assets/icons/cross-icon.svg";
 import Image from "next/image";
 import ChooseDateModal from "./ChooseDate";
-import TimePicker from "./ChooseTime";
+import { BeatLoader } from "react-spinners";
 
 interface DateTimePickerProps {
   setOpenPciker: React.Dispatch<React.SetStateAction<boolean>>;
   setStep: React.Dispatch<React.SetStateAction<"service" | "request">>;
   date: Date;
   setDate: React.Dispatch<React.SetStateAction<Date>>;
+  isLoading?: boolean;
+  isOfferingTime?: boolean;
+  /** When set (e.g. offer new time flow), runs after validation instead of advancing `setStep`. */
+  onConfirm?: (date: Date) => void | Promise<void>;
 }
 
 function DateTimePickerModal({
@@ -17,6 +21,9 @@ function DateTimePickerModal({
   setStep,
   date,
   setDate,
+  isOfferingTime = false,
+  isLoading = false,
+  onConfirm,
 }: DateTimePickerProps) {
   const { placeholders, error_messages, currentLanguage } = useDictionary();
   const [selectedDate, setSelectedDate] = useState<Date>(date);
@@ -51,13 +58,22 @@ function DateTimePickerModal({
     setSelectedDate(date);
   }, [date]);
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (selectedDate < new Date()) {
       setTimeError(true);
       return;
     }
     setTimeError(false);
     setDate?.(selectedDate);
+    if (onConfirm) {
+      try {
+        await onConfirm(selectedDate);
+        setOpenPciker(false);
+      } catch {
+        // Error surfaced by caller (e.g. toast); keep modal open
+      }
+      return;
+    }
     setStep("request");
     setOpenPciker(false);
   };
@@ -102,7 +118,9 @@ function DateTimePickerModal({
           onClick={handleNext}
           className="h-[46px] disabled:opacity-50 disabled:pointer-events-none mt-4 border-green-1 bg-green-1 border-[1px] w-full rounded-xl flex items-center justify-center font-medium text-[16px] text-white hover:text-green-1 hover:bg-white cursor-pointer"
         >
-          {placeholders.next}
+          {isLoading ? <BeatLoader color="white" size={8} /> : <>
+            {isOfferingTime ? placeholders.offer_new_time : placeholders.next}
+          </>}
         </button>
       </div>
     </div>

@@ -31,6 +31,7 @@
     "react-redux": "^9.2.0",
     "react-spinners": "^0.17.0",
     "react-time-picker": "^8.0.2",
+    "socket.io-client": "^4.8.3",
     "use-debounce": "^10.0.5",
     "world-countries-capitals": "^3.4.0"
   },

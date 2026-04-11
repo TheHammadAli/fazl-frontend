@@ -1,10 +1,10 @@
-import ServiceListing from "@/components/Services/ServiceListing";
+import Services from "@/components/Services/Services";
 import React from "react";
 
 function page() {
   return (
     <div>
-      <ServiceListing />
+      <Services />
     </div>
   );
 }

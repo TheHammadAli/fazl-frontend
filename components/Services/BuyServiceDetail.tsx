@@ -44,6 +44,8 @@ function BuyServiceDetail({
   const { pages, placeholders } = useDictionary();
   const [type, setType] = useState("image");
   const [typeIndex, setTypeIndex] = useState(0);
+  console.log(userId, "userId");
+  console.log(service?.data?.ownerId, "service?.data?.ownerId");
 
   const allowedToBuy = userId !== service?.data?.ownerId;
   const [mounted, setMounted] = useState(false);
@@ -111,11 +113,10 @@ function BuyServiceDetail({
                           setTypeIndex(index);
                           setType("image");
                         }}
-                        className={`rounded-[10px] border-[4px]  overflow-hidden  cursor-pointer ${
-                          typeIndex === index && type === "image"
+                        className={`rounded-[10px] border-[4px]  overflow-hidden  cursor-pointer ${typeIndex === index && type === "image"
                             ? " border-green-1"
                             : "border-transparent"
-                        } h-[96px] w-[96px] object-cover`}
+                          } h-[96px] w-[96px] object-cover`}
                       >
                         <Image
                           src={image}
@@ -133,11 +134,10 @@ function BuyServiceDetail({
                       onClick={() => setType("video")}
                       src={service?.data?.video as string}
                       controls={false}
-                      className={`h-[96px] w-[96px] border-[4px] object-cover rounded-[10px] cursor-pointer ${
-                        type === "video"
+                      className={`h-[96px] w-[96px] border-[4px] object-cover rounded-[10px] cursor-pointer ${type === "video"
                           ? " border-green-1"
                           : "border-transparent"
-                      }`}
+                        }`}
                     />
                   )}
                 </div>
