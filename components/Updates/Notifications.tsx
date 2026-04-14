@@ -5,11 +5,9 @@ import { useDictionary } from "@/dictionaries/DictionaryProvider";
 import demoThumb from "@/assets/images/product-image.jpg";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { useGetAllNotificationsQuery, useMarkAsReadMutation } from "@/store/services/notificationService";
-import { baseApi } from "@/store/baseApi";
-import { useAppDispatch } from "@/store/store";
 import { getUserId } from "@/utils/getUserId";
 import moment from "moment";
-import { initializeSocket } from "@/utils/socket";
+import { NEW_NOTIFICATION_WINDOW_EVENT } from "@/utils/notificationRealtime";
 import { useEffect, useLayoutEffect, useRef, useState, type Dispatch, type SetStateAction } from "react";
 import noNotificationIcon from "@/assets/icons/no-notification.svg";
 
@@ -61,7 +59,6 @@ function Notifications({ setOpenSidebar, unreadCount = 0, setReadCount }: Notifi
         setHasMounted(true);
     }, []);
 
-    const dispatch = useAppDispatch();
     const userId = getUserId();
     const [markAsRead] = useMarkAsReadMutation();
 
@@ -141,7 +138,6 @@ function Notifications({ setOpenSidebar, unreadCount = 0, setReadCount }: Notifi
         if (!nearBottom) return;
         setPage((p) => p + 1);
     }
-
     const loadingInitial =
         !hasMounted ||
         (!!userId &&
@@ -153,31 +149,16 @@ function Notifications({ setOpenSidebar, unreadCount = 0, setReadCount }: Notifi
 
     useEffect(() => {
         if (!hasMounted) return;
-        const socket = initializeSocket();
-        if (!socket) return;
-
-        socket.on("connect", () => {
-            console.log("✅ Socket connected:", socket.id);
-        });
-
-        socket.on("disconnect", () => {
-            console.log("❌ Socket disconnected");
-        });
-
-        const handleNotification = () => {
-            console.log("New notification received:");
+        const onNewNotification = () => {
             setNotificationItems([]);
             setPage(1);
             lastMergedKeyRef.current = "";
-            void setTimeout(() => {
-                dispatch(baseApi.util.invalidateTags(["NOTIFICATIONS"]));
-            }, 0);
         };
-        socket.on("notification", handleNotification);
+        window.addEventListener(NEW_NOTIFICATION_WINDOW_EVENT, onNewNotification);
         return () => {
-            socket.off("notification", handleNotification);
+            window.removeEventListener(NEW_NOTIFICATION_WINDOW_EVENT, onNewNotification);
         };
-    }, [dispatch, hasMounted]);
+    }, [hasMounted]);
 
     return (
         <div
@@ -244,7 +225,7 @@ function Notifications({ setOpenSidebar, unreadCount = 0, setReadCount }: Notifi
                     >
                         {notificationItems.map((item, index) => (
                             <li
-                                key={item._id ?? item.id ?? `row-${index}`}
+                                key={index}
                                 onClick={() => void handleMarkAsRead(item)}
                                 className="flex px-5 items-center gap-3 py-2 first:pt-2 hover:bg-green-4 cursor-pointer"
                             >

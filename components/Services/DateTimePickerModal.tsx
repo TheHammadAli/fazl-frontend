@@ -28,8 +28,6 @@ function DateTimePickerModal({
   const { placeholders, error_messages, currentLanguage } = useDictionary();
   const [selectedDate, setSelectedDate] = useState<Date>(date);
 
-  console.log(date, "date");
-
   const [timeError, setTimeError] = useState(false);
   // Extract hour and minute for input value
   const hour = selectedDate.getHours().toString().padStart(2, "0");
@@ -116,6 +114,7 @@ function DateTimePickerModal({
 
         <button
           onClick={handleNext}
+          disabled={isLoading}
           className="h-[46px] disabled:opacity-50 disabled:pointer-events-none mt-4 border-green-1 bg-green-1 border-[1px] w-full rounded-xl flex items-center justify-center font-medium text-[16px] text-white hover:text-green-1 hover:bg-white cursor-pointer"
         >
           {isLoading ? <BeatLoader color="white" size={8} /> : <>

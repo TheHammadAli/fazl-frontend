@@ -83,6 +83,7 @@ export const baseApi = createApi({
     "SHOP_DETAIL",
     "SERVICES",
     "SERVICES_REQUESTS",
+    "Chat",
   ],
   endpoints: (builder) => ({}),
 });
