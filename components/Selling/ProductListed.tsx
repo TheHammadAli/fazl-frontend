@@ -10,7 +10,6 @@ interface Props {
 function ProductListed({ setStatus }: Props) {
   const id = useSearchParams().get("id") as string;
   const type = useSearchParams().get("type") as string;
-  console.log(type);
   const router = useRouter();
   const { info_messages, placeholders } = useDictionary();
   return (

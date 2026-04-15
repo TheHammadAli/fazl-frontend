@@ -14,7 +14,7 @@ import noNotificationIcon from "@/assets/icons/no-notification.svg";
 /** Must match what the notifications API expects (see `data.limit` in the response). */
 const PAGE_LIMIT = 15;
 
-function parsePositiveInt(value: unknown): number | undefined {
+export function parsePositiveInt(value: unknown): number | undefined {
     if (typeof value === "number" && Number.isFinite(value) && value >= 0) {
         return Math.floor(value);
     }

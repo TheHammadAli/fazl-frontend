@@ -13,7 +13,7 @@ import copyRight from "@/assets/icons/copyright.svg";
 import LangSwitcher from "../Ui/LangSwitcher";
 import { useGetUserDetailQuery } from "@/store/services/profileService";
 import { useAppSelector } from "@/store/store";
-export default function MobileHeader({ unreadCount, openSidebar, setOpenSidebar }: { unreadCount: number, openSidebar: boolean, setOpenSidebar: (open: boolean) => void }) {
+export default function MobileHeader({ unreadMessages, unreadCount, openSidebar, setOpenSidebar }: { unreadMessages: number, unreadCount: number, openSidebar: boolean, setOpenSidebar: (open: boolean) => void }) {
   const { userId } = useAppSelector((state) => state.authReducer);
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -75,6 +75,7 @@ export default function MobileHeader({ unreadCount, openSidebar, setOpenSidebar 
                     const active: boolean = path.includes(link?.href);
                     const isUpdatesLink = link.href === "/updates";
                     const isLinkActive = isUpdatesLink ? openSidebar || active : active;
+                    const isChatLink = link.href === "/chat";
                     return (
                       <div
                         key={index}
@@ -95,9 +96,14 @@ export default function MobileHeader({ unreadCount, openSidebar, setOpenSidebar 
                             ]
                           }
                         </h2>
-                        {isUpdatesLink && (
+                        {isUpdatesLink && unreadCount > 0 && (
                           <div className="min-w-[1.25rem] shrink-0 rounded-full bg-green-1 px-1 py-0.5 text-center text-[10px] font-medium leading-none text-white">
                             {unreadCount || 0}
+                          </div>
+                        )}
+                        {isChatLink && unreadMessages > 0 && (
+                          <div className="min-w-[1.25rem] shrink-0 rounded-full bg-green-1 px-1 py-0.5 text-center text-[10px] font-medium leading-none text-white">
+                            {unreadMessages || 0}
                           </div>
                         )}
                       </div>

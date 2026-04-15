@@ -12,6 +12,8 @@ import { useClickOutside } from "@/custom-hooks/useClickOutside";
 import { get } from "http";
 import { getCookie } from "cookies-next";
 import { useGetProductOwnerDetailQuery } from "@/store/services/authService";
+import useInitiateChat from "@/custom-hooks/useInitiateChat";
+import { getUserId } from "@/utils/getUserId";
 export type ProductDetailProps = {
   setStep?: (val: "product" | "cart") => void;
   product: {
@@ -53,7 +55,9 @@ function BuyProductDetail({
   shopData,
   setSelectedVariants,
 }: ProductDetailProps) {
-  const userId = getCookie("userId");
+
+  const userId = getUserId() ?? "";
+  const { onInitiateChat, isLoading } = useInitiateChat();
   const { pages, placeholders, info_messages, error_messages } =
     useDictionary();
   const ref = React.useRef<HTMLDivElement>(null);
@@ -76,9 +80,21 @@ function BuyProductDetail({
   const [mounted, setMounted] = useState(false);
   const ownerData = ownerDetail?.data;
 
+  const videoSrc =
+    typeof product?.data?.video === "string" && product.data.video.trim() !== ""
+      ? product.data.video.trim()
+      : null;
+
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (type === "video" && !videoSrc) {
+      setType("image");
+    }
+  }, [type, videoSrc]);
+
   return (
     <div>
       <div className="h-full min-h-screen flex flex-col items-center">
@@ -99,7 +115,7 @@ function BuyProductDetail({
             <div className="flex  flex-col sm:flex-row gap-5 md:gap-12">
               <div className="space-y-3">
                 <div className="h-[280px] min-w-[250px] sm:h-[320px] md:h-[500px]  max-w-[496px] xl:w-[496px] object-cover overflow-hidden rounded-[10px]">
-                  {type === "image" ? (
+                  {type === "image" || !videoSrc ? (
                     <Image
                       src={
                         product?.data?.images?.length > 0
@@ -114,7 +130,7 @@ function BuyProductDetail({
                     />
                   ) : (
                     <video
-                      src={`${product?.data?.video}?t=${Date.now()}` as string}
+                      src={`${videoSrc}?t=${Date.now()}`}
                       controls
                       autoPlay={false}
                       className=" h-full w-full object-contain"
@@ -130,11 +146,10 @@ function BuyProductDetail({
                           setTypeIndex(index);
                           setType("image");
                         }}
-                        className={`rounded-[10px] border-[4px]  overflow-hidden  cursor-pointer ${
-                          typeIndex === index && type === "image"
-                            ? " border-green-1"
-                            : "border-transparent"
-                        } h-[96px] w-[96px] object-cover`}
+                        className={`rounded-[10px] border-[4px]  overflow-hidden  cursor-pointer ${typeIndex === index && type === "image"
+                          ? " border-green-1"
+                          : "border-transparent"
+                          } h-[96px] w-[96px] object-cover`}
                       >
                         <Image
                           src={image}
@@ -147,16 +162,17 @@ function BuyProductDetail({
                       </div>
                     )
                   )}
-                  <video
-                    onClick={() => setType("video")}
-                    src={product?.data?.video as string}
-                    controls={false}
-                    className={`h-[96px] w-[96px] border-[4px] object-cover rounded-[10px] cursor-pointer ${
-                      type === "video"
+                  {videoSrc ? (
+                    <video
+                      onClick={() => setType("video")}
+                      src={videoSrc}
+                      controls={false}
+                      className={`h-[96px] w-[96px] border-[4px] object-cover rounded-[10px] cursor-pointer ${type === "video"
                         ? " border-green-1"
                         : "border-transparent"
-                    }`}
-                  />
+                        }`}
+                    />
+                  ) : null}
                 </div>
               </div>
               <div className="w-full sm:max-w-[364px] ">
@@ -168,8 +184,8 @@ function BuyProductDetail({
                         product?.data?.shopId && shopData?.image
                           ? shopData.image
                           : product?.data?.ownerId && ownerData?.image
-                          ? ownerData.image
-                          : noImageAvtar
+                            ? ownerData.image
+                            : noImageAvtar
                       }
                       alt="profile"
                       height={100}
@@ -181,21 +197,28 @@ function BuyProductDetail({
                         {product?.data?.shopId
                           ? shopData?.title
                           : product?.data?.ownerId
-                          ? ownerData?.name
-                          : ""}
+                            ? ownerData?.name
+                            : ""}
                       </h4>
                       <h4 className="text-[#4B514F] text-[14px] font-light">
                         {product?.data?.shopId
                           ? shopData?.ownerId?.email
                           : product?.data?.ownerId
-                          ? ownerData?.email
-                          : ""}
+                            ? ownerData?.email
+                            : ""}
                       </h4>
                     </div>
                   </div>
-                  <div className="border-[1px] border-green-1 text-green-1 flex items-center justify-center rounded-lg h-[33px] w-[111px] text-[13px] font-light">
-                    {placeholders.message_seller}
-                  </div>
+                  {allowedToBuy && <button disabled={isLoading}
+                    onClick={() => {
+                      const sellerId = product?.data?.shopId ? shopData?.ownerId?.id : product?.data?.ownerId;
+                      onInitiateChat(userId, sellerId ?? "")
+                    }}
+                    className=" cursor-pointer border-[1px] border-green-1 text-green-1 flex items-center justify-center rounded-lg h-[33px] w-[111px] text-[13px] font-light">
+                    {isLoading ? <div className="flex  justify-center py-3" aria-hidden>
+                      <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-gray-4 border-t-green-1" />
+                    </div> : placeholders.message_seller}
+                  </button>}
                 </div>
                 <h3 className="text-[#030303] text-[16px] font-medium mt-4">
                   {product?.data?.title ?? ""}
@@ -248,7 +271,7 @@ function BuyProductDetail({
                             <span className="font-light text-[15px] leading-none">
                               {String(
                                 selectedVariants[
-                                  parameter?.name as keyof typeof selectedVariants
+                                parameter?.name as keyof typeof selectedVariants
                                 ] ?? placeholders.choose
                               )}
                             </span>
