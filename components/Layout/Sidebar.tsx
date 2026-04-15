@@ -18,11 +18,15 @@ const Notifications = dynamic(() => import("../Updates/Notifications"), {
 });
 
 function Sidebar({
+  unreadMessages,
+  setUnreadMessages,
   unreadCount,
   setReadCount,
   openSidebar,
   setOpenSidebar,
 }: {
+  unreadMessages: number;
+  setUnreadMessages: Dispatch<SetStateAction<number>>;
   unreadCount: number;
   setReadCount: Dispatch<SetStateAction<number>>;
   openSidebar: boolean;
@@ -62,6 +66,7 @@ function Sidebar({
           {links.map((link, index) => {
             const active: boolean = path.includes(link?.href);
             const isUpdatesLink = link.href === "/updates";
+            const isChatLink = link.href === "/chat";
             const isLinkActive = isUpdatesLink ? openSidebar || active : active;
             return (
               <div
@@ -84,9 +89,14 @@ function Sidebar({
                     ]
                   }
                 </h2>
-                {isUpdatesLink && (
+                {isUpdatesLink && unreadCount > 0 && (
                   <div className="min-w-[1.25rem] shrink-0 rounded-full bg-green-1 px-1 py-0.5 text-center text-[10px] font-medium leading-none text-white">
                     {unreadCount || 0}
+                  </div>
+                )}
+                {isChatLink && unreadMessages > 0 && (
+                  <div className="min-w-[1.25rem] shrink-0 rounded-full bg-green-1 px-1 py-0.5 text-center text-[10px] font-medium leading-none text-white">
+                    {unreadMessages || 0}
                   </div>
                 )}
               </div>

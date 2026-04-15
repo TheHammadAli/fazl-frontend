@@ -1,5 +1,14 @@
+export type ChatThreadParticipant = {
+  id: string;
+  name: string;
+  email?: string;
+  image?: string;
+  role: string;
+};
+
 export type ChatThread = {
   id: string;
+  _id?: string;
   name: string;
   email?: string;
   preview: string;
@@ -7,6 +16,10 @@ export type ChatThread = {
   timeLabel: string;
   avatar: string;
   unread?: boolean;
+  createdAt?: string;
+  buyer?: ChatThreadParticipant;
+  seller?: ChatThreadParticipant;
+  total?: number;
 };
 
 export type ChatMessage = {
@@ -15,5 +28,7 @@ export type ChatMessage = {
   text?: string;
   textKey?: string;
   sentAtLabel?: string;
+  createdAt?: string;
+  sender: string;
   mine: boolean;
 };

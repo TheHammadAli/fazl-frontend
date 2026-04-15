@@ -29,7 +29,6 @@ export const notificationService = baseApi.injectEndpoints({
     }),
     markAsRead: build.mutation({
       query: ({ id }: { id: string }) => {
-        console.log(id, "id");
         return {
           url: `/notifications/${id}/read`,
           method: "PATCH",

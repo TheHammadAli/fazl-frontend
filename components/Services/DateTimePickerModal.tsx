@@ -42,7 +42,6 @@ function DateTimePickerModal({
     updatedDate.setMilliseconds(0);
     setSelectedDate(updatedDate);
 
-    console.log(updatedDate);
     if (updatedDate < new Date()) {
       setTimeError(true);
     } else {

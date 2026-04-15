@@ -25,8 +25,6 @@ function BuyProduct() {
   });
   const [selectedVariants, setSelectedVariants] = useState({});
 
-  console.log(product, "product", shopDetail, "shop detail");
-
   return (
     <div>
       {step === "product" && (

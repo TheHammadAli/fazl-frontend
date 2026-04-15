@@ -38,7 +38,6 @@ function ServiceCart({
     typeof window !== "undefined"
       ? JSON.parse(localStorage.getItem("user") || "{}")
       : "";
-  console.log(user, "user");
 
   const totalAmount = service?.data?.price + 90;
 
@@ -65,15 +64,14 @@ function ServiceCart({
     if (isError && "data" in error) {
       toast.error(
         (error?.data as { message?: string })?.message ||
-          "something went wrong!"
+        "something went wrong!"
       );
-      const timer = setTimeout(() => {}, 500);
+      const timer = setTimeout(() => { }, 500);
       return () => clearTimeout(timer);
     }
   }, [isSuccess, isError, data, error]);
 
-  console.log(service, "service ");
-  console.log(date, "date ");
+
 
   return (
     <div>

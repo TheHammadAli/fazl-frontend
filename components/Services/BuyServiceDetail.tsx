@@ -8,6 +8,8 @@ import ratingIcons from "@/assets/icons/rating-icons.svg";
 import noImageAvtar from "@/assets/images/no-image-av.png";
 import { getCookie } from "cookies-next";
 import { useGetProductOwnerDetailQuery } from "@/store/services/authService";
+import { getUserId } from "@/utils/getUserId";
+import useInitiateChat from "@/custom-hooks/useInitiateChat";
 export type ServiceDetailProps = {
   setStep?: (val: "service" | "request") => void;
   setOpenPciker?: (val: boolean) => void;
@@ -40,13 +42,10 @@ function BuyServiceDetail({
   service,
   setOpenPciker,
 }: ServiceDetailProps) {
-  const userId = getCookie("userId");
+  const userId = getUserId() ?? "";
   const { pages, placeholders } = useDictionary();
   const [type, setType] = useState("image");
   const [typeIndex, setTypeIndex] = useState(0);
-  console.log(userId, "userId");
-  console.log(service?.data?.ownerId, "service?.data?.ownerId");
-
   const allowedToBuy = userId !== service?.data?.ownerId;
   const [mounted, setMounted] = useState(false);
   const { data: ownerDetail } = useGetProductOwnerDetailQuery(
@@ -55,7 +54,7 @@ function BuyServiceDetail({
       skip: !service?.data?.ownerId,
     }
   );
-
+  const { onInitiateChat, isLoading } = useInitiateChat();
   const ownerData = ownerDetail?.data;
 
   useEffect(() => {
@@ -114,8 +113,8 @@ function BuyServiceDetail({
                           setType("image");
                         }}
                         className={`rounded-[10px] border-[4px]  overflow-hidden  cursor-pointer ${typeIndex === index && type === "image"
-                            ? " border-green-1"
-                            : "border-transparent"
+                          ? " border-green-1"
+                          : "border-transparent"
                           } h-[96px] w-[96px] object-cover`}
                       >
                         <Image
@@ -135,8 +134,8 @@ function BuyServiceDetail({
                       src={service?.data?.video as string}
                       controls={false}
                       className={`h-[96px] w-[96px] border-[4px] object-cover rounded-[10px] cursor-pointer ${type === "video"
-                          ? " border-green-1"
-                          : "border-transparent"
+                        ? " border-green-1"
+                        : "border-transparent"
                         }`}
                     />
                   )}
@@ -166,9 +165,11 @@ function BuyServiceDetail({
                       </h4>
                     </div>
                   </div>
-                  <div className="border-[1px] whitespace-nowrap border-green-1 text-green-1 flex items-center justify-center rounded-lg h-[33px] px-2 text-[13px] font-light">
-                    {placeholders.message_provider}
-                  </div>
+                  {allowedToBuy && <button disabled={isLoading} onClick={() => onInitiateChat(userId, service?.data?.ownerId ?? "")} className=" cursor-pointer border-[1px] w-[163px] whitespace-nowrap border-green-1 text-green-1 flex items-center justify-center rounded-lg h-[33px] px-2 text-[13px] font-light">
+                    {isLoading ? <div className="flex  justify-center py-3" aria-hidden>
+                      <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-gray-4 border-t-green-1" />
+                    </div> : placeholders.message_provider}
+                  </button>}
                 </div>
                 <h3 className="text-[#030303] text-[16px] font-medium mt-4">
                   {service?.data?.title ?? ""}
