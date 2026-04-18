@@ -77,7 +77,6 @@ export const chatService = baseApi.injectEndpoints({
         conversationId: string;
         userId: string;
       }) => {
-        console.log(conversationId, userId, "conversationId, userId");
         return {
           url: `/chat/messages/mark-read`,
           method: "PATCH",

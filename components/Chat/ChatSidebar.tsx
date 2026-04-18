@@ -8,6 +8,9 @@ import { getUserId } from "@/utils/getUserId";
 import { useEffect, useState } from "react";
 import moment from "moment";
 import { parsePositiveInt } from "../Updates/Notifications";
+import { baseApi } from "@/store/baseApi";
+import { initializeSocket } from "@/utils/socket";
+import { useDispatch } from "react-redux";
 
 
 type ChatSidebarProps = {
@@ -24,6 +27,7 @@ export default function ChatSidebar({
   onSelectChat,
 }: ChatSidebarProps) {
   const { currentLanguage } = useDictionary();
+  const dispatch = useDispatch();
   const PAGE_LIMIT = 15;
   const [page, setPage] = useState(1);
   const [isMounted, setIsMounted] = useState(false);
@@ -58,7 +62,18 @@ export default function ChatSidebar({
     setIsMounted(true);
   }, []);
   useEffect(() => {
+    const socket = initializeSocket();
+    if (!socket) return;
+    socket.on("receiveMessage", (data) => {
+      dispatch(baseApi.util.invalidateTags(["Chat"]));
+    });
+  }, [dispatch]);
+  useEffect(() => {
     const firstConversation = conversations?.data?.[0] as ChatThread | undefined;
+    const matchedConversation = conversations?.data?.find((conversation: ChatThread) => conversation?._id === chatId);
+    if (chatId && matchedConversation) {
+      onSelectChat(matchedConversation);
+    }
     if (!chatId && firstConversation) {
       onSelectChat(firstConversation);
     }
