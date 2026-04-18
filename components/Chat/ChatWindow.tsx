@@ -222,7 +222,7 @@ export default function ChatWindow({ thread, onBack }: ChatWindowProps) {
               value={messageText}
               onChange={(e) => setMessageText(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === "Enter") {
+                if (e.key === "Enter" && !isSendingMessage) {
                   e.preventDefault();
                   handleSendMessage();
                 }

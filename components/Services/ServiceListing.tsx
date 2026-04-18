@@ -301,7 +301,7 @@ function ServiceListing() {
                                                     className="w-1/2 md:w-[144px] lg:w-1/2 xl:w-[144px] h-[42px] rounded-[6px] border border-green-2 text-green-2 text-[14px] font-normal cursor-pointer disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center"
                                                 >
 
-                                                    {ph("decline")}
+                                                    {isUpdating && spinnerAction === "reject" && spinnerIndex === index ? <BeatLoader color="white" size={8} /> : ph("decline")}
 
                                                 </button>
                                                 <button
