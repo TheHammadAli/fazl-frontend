@@ -14,6 +14,8 @@ import { getCookie } from "cookies-next";
 import { useGetProductOwnerDetailQuery } from "@/store/services/authService";
 import useInitiateChat from "@/custom-hooks/useInitiateChat";
 import { getUserId } from "@/utils/getUserId";
+import Reviews from "../Ui/Reviews";
+import { useGetAvgReviewsQuery } from "@/store/services/reviewService";
 export type ProductDetailProps = {
   setStep?: (val: "product" | "cart") => void;
   product: {
@@ -55,7 +57,6 @@ function BuyProductDetail({
   shopData,
   setSelectedVariants,
 }: ProductDetailProps) {
-
   const userId = getUserId() ?? "";
   const { onInitiateChat, isLoading } = useInitiateChat();
   const { pages, placeholders, info_messages, error_messages } =
@@ -71,8 +72,14 @@ function BuyProductDetail({
     product?.data?.ownerId,
     {
       skip: !product?.data?.ownerId,
-    }
+    },
   );
+  const { data: avgReview, isLoading: isLoadingAvgReview } = useGetAvgReviewsQuery(
+    { type: "product", id: product?.data?.id ?? "" },
+    { skip: !product?.data?.id || !product?.data?.id }
+  );
+  const reviewCount = avgReview?.data?.count ?? 0;
+
   const allowedToBuy = product?.data?.shopId
     ? userId !== shopData?.ownerId?.id
     : userId !== product?.data?.ownerId;
@@ -160,7 +167,7 @@ function BuyProductDetail({
                           className="h-[96px] w-[96px] object-cover  "
                         />
                       </div>
-                    )
+                    ),
                   )}
                   {videoSrc ? (
                     <video
@@ -209,22 +216,32 @@ function BuyProductDetail({
                       </h4>
                     </div>
                   </div>
-                  {allowedToBuy && <button disabled={isLoading}
-                    onClick={() => {
-                      const sellerId = product?.data?.shopId ? shopData?.ownerId?.id : product?.data?.ownerId;
-                      onInitiateChat(userId, sellerId ?? "")
-                    }}
-                    className=" cursor-pointer border-[1px] border-green-1 text-green-1 flex items-center justify-center rounded-lg h-[33px] w-[111px] text-[13px] font-light">
-                    {isLoading ? <div className="flex  justify-center py-3" aria-hidden>
-                      <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-gray-4 border-t-green-1" />
-                    </div> : placeholders.message_seller}
-                  </button>}
+                  {allowedToBuy && (
+                    <button
+                      disabled={isLoading}
+                      onClick={() => {
+                        const sellerId = product?.data?.shopId
+                          ? shopData?.ownerId?.id
+                          : product?.data?.ownerId;
+                        onInitiateChat(userId, sellerId ?? "");
+                      }}
+                      className=" cursor-pointer border-[1px] border-green-1 text-green-1 flex items-center justify-center rounded-lg h-[33px] w-[111px] text-[13px] font-light"
+                    >
+                      {isLoading ? (
+                        <div className="flex  justify-center py-3" aria-hidden>
+                          <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-gray-4 border-t-green-1" />
+                        </div>
+                      ) : (
+                        placeholders.message_seller
+                      )}
+                    </button>
+                  )}
                 </div>
                 <h3 className="text-[#030303] text-[16px] font-medium mt-4">
                   {product?.data?.title ?? ""}
                 </h3>
                 <h3 className="font-light text-[14px] text-[#4B514F] ">
-                  4 Reviews
+                  {reviewCount} {reviewCount === 1 ? placeholders.review : placeholders.reviews}
                 </h3>
                 <div className="space-x-2 mt-4">
                   <span className="text-green-1 text-[16px] font-medium">
@@ -254,7 +271,7 @@ function BuyProductDetail({
                   product?.data?.parameters?.map(
                     (
                       parameter: { name: string; variants: string[] },
-                      index: number
+                      index: number,
                     ) => (
                       <div
                         key={index}
@@ -272,7 +289,7 @@ function BuyProductDetail({
                               {String(
                                 selectedVariants[
                                 parameter?.name as keyof typeof selectedVariants
-                                ] ?? placeholders.choose
+                                ] ?? placeholders.choose,
                               )}
                             </span>
                             <Image
@@ -303,13 +320,13 @@ function BuyProductDetail({
                                   >
                                     {variant}
                                   </div>
-                                )
+                                ),
                               )}
                             </div>
                           )}
                         </div>
                       </div>
-                    )
+                    ),
                   )}
                 {mounted && allowedToBuy && (
                   <button
@@ -337,49 +354,7 @@ function BuyProductDetail({
               </div>
             </div>
 
-            <div className="mt-10 w-full md:max-w-[496px]">
-              <div className="flex  gap-[22px] items-center">
-                <h1 className="text-[19px] font-medium">Reviews</h1>
-                <div className="flex gap-2 ">
-                  <Image
-                    src={ratingIcons}
-                    className="w-[100px]"
-                    alt="rating_icons"
-                  />
-                  <span className="text-[14px] font-medium">4.0 (8)</span>
-                </div>
-              </div>
-              <div className=" grid sm:grid-cols-2 mt-8 gap-6">
-                {Array.from({ length: 4 }).map((_, index) => (
-                  <div key={index} className=" flex justify-between gap-2">
-                    <div className="h-[34px] w-[34px]">
-                      <Image
-                        src={dummyProfile}
-                        alt="profile"
-                        className="h-[34px] min-w-[34px] w-[34px] rounded-full object-cover"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <h1 className="text-[12px] text-[#030303] font-medium">
-                        Nouman Malik
-                      </h1>
-                      <Image src={ratingIcons} alt="rating_icons" />
-                      <p className="text-[13px] font-light text-[#4B514F]">
-                        Great price and quality! So happy with my purchase!
-                        Thankyou
-                      </p>
-                    </div>
-
-                    <div className="text-[13px] font-light text-[#4B514F]">
-                      3d
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div className="flex rounded-[8px] h-[46px] mt-6 text-[14px] font-medium bg-[#F6F6F6] items-center justify-center">
-                Read more reviews
-              </div>
-            </div>
+            <Reviews type="product" id={product?.data?.id} allowAddReview={allowedToBuy} />
           </div>
         </div>
       </div>

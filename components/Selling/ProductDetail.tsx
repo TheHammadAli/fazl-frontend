@@ -13,6 +13,9 @@ import { useGetShopDetailQuery } from "@/store/services/sellingService";
 import threeDots from "@/assets/icons/three-dots.svg";
 import { useRouter } from "next/navigation";
 import { useGetProductOwnerDetailQuery } from "@/store/services/authService";
+import Reviews from "../Ui/Reviews";
+import { getUserId } from "@/utils/getUserId";
+import { useGetAvgReviewsQuery } from "@/store/services/reviewService";
 export type ProductDetailProps = {
   //   setStep?: (val: "product" | "cart") => void;
   product: {
@@ -44,7 +47,7 @@ export type ProductDetailProps = {
 function ProductDetail() {
   const id = useSearchParams().get("id");
   const router = useRouter();
-
+  const userId = getUserId() ?? "";
   const {
     data: product,
     isLoading,
@@ -63,6 +66,11 @@ function ProductDetail() {
     }
   );
 
+  const { data: avgReview, isLoading: isLoadingAvgReview } = useGetAvgReviewsQuery(
+    { type: "product", id: product?.data?.id ?? "" },
+    { skip: !product?.data?.id || !product?.data?.id }
+  );
+  const reviewCount = avgReview?.data?.count ?? 0;
   const shopData = shopDetail?.data;
   const ownerData = ownerDetail?.data;
   const { pages, placeholders, info_messages, error_messages } =
@@ -75,6 +83,9 @@ function ProductDetail() {
   const [mounted, setMounted] = useState(false);
   const [videoVersion, setVideoVersion] = useState(0);
 
+  const allowedToBuy = product?.data?.shopId
+    ? userId !== shopData?.ownerId?.id
+    : userId !== product?.data?.ownerId;
   useClickOutside(ref, () => {
     setToggle(-1);
   });
@@ -150,11 +161,10 @@ function ProductDetail() {
                           setTypeIndex(index);
                           setType("image");
                         }}
-                        className={`rounded-[10px] border-[4px]  overflow-hidden  cursor-pointer ${
-                          typeIndex === index && type === "image"
-                            ? " border-green-1"
-                            : "border-transparent"
-                        } h-[96px] w-[96px] object-cover`}
+                        className={`rounded-[10px] border-[4px]  overflow-hidden  cursor-pointer ${typeIndex === index && type === "image"
+                          ? " border-green-1"
+                          : "border-transparent"
+                          } h-[96px] w-[96px] object-cover`}
                       >
                         <Image
                           src={image}
@@ -173,11 +183,10 @@ function ProductDetail() {
                       key={`${product?.data?.video}?v=${product?.data?.updatedAt}`}
                       src={`${product?.data?.video}?v=${product?.data?.updatedAt}`}
                       controls={false}
-                      className={`h-[96px] w-[96px] border-[4px] object-cover rounded-[10px] cursor-pointer ${
-                        type === "video"
-                          ? " border-green-1"
-                          : "border-transparent"
-                      }`}
+                      className={`h-[96px] w-[96px] border-[4px] object-cover rounded-[10px] cursor-pointer ${type === "video"
+                        ? " border-green-1"
+                        : "border-transparent"
+                        }`}
                     />
                   )}
                 </div>
@@ -191,8 +200,8 @@ function ProductDetail() {
                         product?.data?.shopId && shopData?.image
                           ? shopData.image
                           : product?.data?.ownerId && ownerData?.image
-                          ? ownerData.image
-                          : noImageAvtar
+                            ? ownerData.image
+                            : noImageAvtar
                       }
                       alt="profile"
                       unoptimized
@@ -204,15 +213,15 @@ function ProductDetail() {
                         {product?.data?.shopId
                           ? shopData?.title
                           : product?.data?.ownerId
-                          ? ownerData?.name
-                          : ""}
+                            ? ownerData?.name
+                            : ""}
                       </h4>
                       <h4 className="text-[#4B514F] text-[14px] font-light">
                         {product?.data?.shopId
                           ? shopData?.ownerId?.email
                           : product?.data?.ownerId
-                          ? ownerData?.email
-                          : ""}
+                            ? ownerData?.email
+                            : ""}
                       </h4>
                     </div>
                   </div>
@@ -247,7 +256,7 @@ function ProductDetail() {
                   {product?.data?.title ?? ""}
                 </h3>
                 <h3 className="font-light text-[14px] text-[#4B514F] ">
-                  4 Reviews
+                  {reviewCount} {reviewCount === 1 ? placeholders.review : placeholders.reviews}
                 </h3>
                 <div className="space-x-2 mt-4">
                   <span className="text-green-1 text-[16px] font-medium">
@@ -354,49 +363,7 @@ function ProductDetail() {
                 </button>
               </div>
             </div>
-            <div className="mt-10 w-full md:max-w-[496px]">
-              <div className="flex  gap-[22px] items-center">
-                <h1 className="text-[19px] font-medium">Reviews</h1>
-                <div className="flex gap-2 ">
-                  <Image
-                    src={ratingIcons}
-                    className="w-[100px]"
-                    alt="rating_icons"
-                  />
-                  <span className="text-[14px] font-medium">4.0 (8)</span>
-                </div>
-              </div>
-              <div className=" grid sm:grid-cols-2 mt-8 gap-6">
-                {Array.from({ length: 4 }).map((_, index) => (
-                  <div key={index} className=" flex justify-between gap-2">
-                    <div className="h-[34px] w-[34px]">
-                      <Image
-                        src={dummyProfile}
-                        alt="profile"
-                        className="h-[34px] min-w-[34px] w-[34px] rounded-full object-cover"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <h1 className="text-[12px] text-[#030303] font-medium">
-                        Nouman Malik
-                      </h1>
-                      <Image src={ratingIcons} alt="rating_icons" />
-                      <p className="text-[13px] font-light text-[#4B514F]">
-                        Great price and quality! So happy with my purchase!
-                        Thankyou
-                      </p>
-                    </div>
-
-                    <div className="text-[13px] font-light text-[#4B514F]">
-                      3d
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div className="flex rounded-[8px] h-[46px] mt-6 text-[14px] font-medium bg-[#F6F6F6] items-center justify-center">
-                Read more reviews
-              </div>
-            </div>
+            <Reviews type="product" id={product?.data?.id} allowAddReview={allowedToBuy} />
           </div>
         </div>
       </div>
