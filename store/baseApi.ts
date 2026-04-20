@@ -84,6 +84,7 @@ export const baseApi = createApi({
     "SERVICES",
     "SERVICES_REQUESTS",
     "Chat",
+    "REVIEW",
   ],
   endpoints: (builder) => ({}),
 });

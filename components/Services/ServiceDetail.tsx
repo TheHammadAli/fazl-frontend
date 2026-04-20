@@ -12,6 +12,9 @@ import { useClickOutside } from "@/custom-hooks/useClickOutside";
 import { useGetShopDetailQuery } from "@/store/services/sellingService";
 import threeDots from "@/assets/icons/three-dots.svg";
 import { useRouter } from "next/navigation";
+import Reviews from "../Ui/Reviews";
+import { getUserId } from "@/utils/getUserId";
+import { useGetAvgReviewsQuery } from "@/store/services/reviewService";
 export type ServiceDetailProps = {
   // setStep?: (val: "product" | "cart") => void;
   product: {
@@ -31,6 +34,7 @@ export type ServiceDetailProps = {
 };
 export type ServiceDetailType = {
   id: string;
+  ownerId: string;
   title: string;
   name: string;
   price: number;
@@ -47,7 +51,12 @@ function ServiceDetail({ serviceData }: { serviceData: ServiceDetailType }) {
     typeof window !== "undefined"
       ? JSON.parse(localStorage.getItem("user") || "{}")
       : null;
-
+  const userId = getUserId() ?? "";
+  const { data: avgReview, isLoading: isLoadingAvgReview } = useGetAvgReviewsQuery(
+    { type: "service", id: serviceData?.id ?? "" },
+    { skip: !serviceData?.id }
+  );
+  const reviewCount = avgReview?.data?.count ?? 0;
   const { pages, placeholders, info_messages, error_messages } =
     useDictionary();
   const ref = React.useRef<HTMLDivElement>(null);
@@ -56,6 +65,7 @@ function ServiceDetail({ serviceData }: { serviceData: ServiceDetailType }) {
   const [type, setType] = useState("image");
   const [typeIndex, setTypeIndex] = useState(0);
   const [videoVersion, setVideoVersion] = useState(0);
+  const allowedToBuy = userId !== serviceData?.ownerId;
 
   useClickOutside(ref, () => {
     setToggle(-1);
@@ -95,9 +105,8 @@ function ServiceDetail({ serviceData }: { serviceData: ServiceDetailType }) {
                     <Image
                       src={
                         serviceData?.images?.length > 0
-                          ? `${
-                              serviceData?.images?.[typeIndex]
-                            }?t=${Date.now()}`
+                          ? `${serviceData?.images?.[typeIndex]
+                          }?t=${Date.now()}`
                           : noImageAvtar
                       }
                       height={100}
@@ -124,11 +133,10 @@ function ServiceDetail({ serviceData }: { serviceData: ServiceDetailType }) {
                         setTypeIndex(index);
                         setType("image");
                       }}
-                      className={`rounded-[10px] border-[4px]  overflow-hidden  cursor-pointer ${
-                        typeIndex === index && type === "image"
-                          ? " border-green-1"
-                          : "border-transparent"
-                      } h-[96px] w-[96px] object-cover`}
+                      className={`rounded-[10px] border-[4px]  overflow-hidden  cursor-pointer ${typeIndex === index && type === "image"
+                        ? " border-green-1"
+                        : "border-transparent"
+                        } h-[96px] w-[96px] object-cover`}
                     >
                       <Image
                         src={`${image}?t=${Date.now()}`}
@@ -147,11 +155,10 @@ function ServiceDetail({ serviceData }: { serviceData: ServiceDetailType }) {
                       key={`${serviceData?.video}?v=${serviceData?.updatedAt}`}
                       src={`${serviceData?.video}?v=${serviceData?.updatedAt}`}
                       controls={false}
-                      className={`h-[96px] w-[96px] border-[4px] object-cover rounded-[10px] cursor-pointer ${
-                        type === "video"
-                          ? " border-green-1"
-                          : "border-transparent"
-                      }`}
+                      className={`h-[96px] w-[96px] border-[4px] object-cover rounded-[10px] cursor-pointer ${type === "video"
+                        ? " border-green-1"
+                        : "border-transparent"
+                        }`}
                     />
                   )}
                 </div>
@@ -209,7 +216,7 @@ function ServiceDetail({ serviceData }: { serviceData: ServiceDetailType }) {
                   {serviceData.title ?? ""}
                 </h3>
                 <h3 className="font-light text-[14px] text-[#4B514F] ">
-                  4 Reviews
+                  {reviewCount} {reviewCount === 1 ? placeholders.review : placeholders.reviews}
                 </h3>
                 <div className="space-x-2 mt-4">
                   <span className="text-green-1 text-[16px] font-medium">
@@ -316,49 +323,7 @@ function ServiceDetail({ serviceData }: { serviceData: ServiceDetailType }) {
                 </button>
               </div>
             </div>
-            <div className="mt-10 w-full md:max-w-[496px] ">
-              <div className="flex  gap-[22px] items-center">
-                <h1 className="text-[19px] font-medium">Reviews</h1>
-                <div className="flex gap-2 ">
-                  <Image
-                    src={ratingIcons}
-                    className="w-[100px]"
-                    alt="rating_icons"
-                  />
-                  <span className="text-[14px] font-medium">4.0 (8)</span>
-                </div>
-              </div>
-              <div className=" grid sm:grid-cols-2 mt-8 gap-6">
-                {Array.from({ length: 4 }).map((_, index) => (
-                  <div key={index} className=" flex justify-between gap-2">
-                    <div className="h-[34px] w-[34px]">
-                      <Image
-                        src={dummyProfile}
-                        alt="profile"
-                        className="h-[34px] min-w-[34px] w-[34px] rounded-full object-cover"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <h1 className="text-[12px] text-[#030303] font-medium">
-                        Nouman Malik
-                      </h1>
-                      <Image src={ratingIcons} alt="rating_icons" />
-                      <p className="text-[13px] font-light text-[#4B514F]">
-                        Great price and quality! So happy with my purchase!
-                        Thankyou
-                      </p>
-                    </div>
-
-                    <div className="text-[13px] font-light text-[#4B514F]">
-                      3d
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div className="flex rounded-[8px] h-[46px] mt-6 text-[14px] font-medium bg-[#F6F6F6] items-center justify-center">
-                Read more reviews
-              </div>
-            </div>
+            <Reviews type="service" id={serviceData?.id} allowAddReview={allowedToBuy} />
           </div>
         </div>
       </div>
