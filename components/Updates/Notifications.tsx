@@ -114,7 +114,6 @@ function Notifications({ setOpenSidebar, unreadCount = 0, setReadCount }: Notifi
     }, [userId]);
     useLayoutEffect(() => {
         if (!userId || data == null || isFetching) return;
-
         const rows =
             (data?.data?.notifications as NotificationApiItem[] | undefined) ?? [];
         const mergeKey = `${page}-${fulfilledTimeStamp ?? 0}`;

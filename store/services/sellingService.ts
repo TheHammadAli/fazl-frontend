@@ -149,9 +149,9 @@ export const profileService = baseApi.injectEndpoints({
       providesTags: ["SERVICES"],
     }),
     getServicesRequests: build.query({
-      query: (id) => {
+      query: ({ id, page, limit }) => {
         return {
-          url: `/services/requests/${id}`,
+          url: `/services/requests/${id}?page=${page}&limit=${limit}`,
           method: "GET",
         };
       },
@@ -165,9 +165,19 @@ export const profileService = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["SERVICES_REQUESTS"],
     }),
+
+    startJob: build.mutation({
+      query: (body) => ({
+        url: `/services/job-status`,
+        method: "PATCH",
+        body: body,
+      }),
+      invalidatesTags: ["SERVICES_REQUESTS"],
+    }),
   }),
 });
 export const {
+  useStartJobMutation,
   useUpdateServiceRequestMutation,
   useGetServicesRequestsQuery,
   useDeleteServiceMediaMutation,

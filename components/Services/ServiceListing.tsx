@@ -76,7 +76,7 @@ function ServiceListing() {
         setUserId(typeof id === "string" ? id : undefined);
         setIsHydrated(true);
     }, []);
-    const { data: servicesRequests, isLoading, isFetching } = useGetServicesRequestsQuery(userId, { skip: !userId || activeTab === "booked_services" });
+    const { data: servicesRequests, isLoading, isFetching } = useGetServicesRequestsQuery({ id: userId, page: 1, limit: 100 }, { skip: !userId || activeTab === "booked_services" });
     const [spinnerIndex, setSpinnerIndex] = useState<number>(-1);
     const [spinnerAction, setSpinnerAction] = useState<ServiceAction | null>(null);
     const [updateServiceRequest, { isLoading: isUpdating }] = useUpdateServiceRequestMutation();
