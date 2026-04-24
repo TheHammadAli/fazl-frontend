@@ -15,13 +15,29 @@ export default function ChatPage() {
   const [chatId, setChatId] = useState("");
   const [selectedThread, setSelectedThread] = useState<ChatThread | null>(null);
 
-
   useEffect(() => {
     const chatId = params.get("chatId");
     if (chatId) {
       setChatId(chatId || "");
     }
+    if (params.get("threadType") === "broadcast") {
+      setThreadType("broadcast_messages");
+    }
   }, [params]);
+  useEffect(() => {
+    if (threadType === "broadcast_messages") {
+      setChatId("");
+      setSelectedThread(null);
+    }
+    if (threadType === "direct_messages") {
+      if (params.get("chatId")) {
+        setChatId(params.get("chatId") || "");
+      }
+      else {
+        setChatId("");
+      }
+    }
+  }, [threadType]);
 
 
   return (
@@ -43,6 +59,7 @@ export default function ChatPage() {
         <div className={`${mobileShowConversation ? "block" : "hidden lg:block"} h-full flex-1`}>
           {selectedThread ? (
             <ChatWindow
+              threadType={threadType}
               thread={selectedThread}
               onBack={() => setMobileShowConversation(false)}
             />

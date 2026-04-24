@@ -31,4 +31,5 @@ export type ChatMessage = {
   createdAt?: string;
   sender: string;
   mine: boolean;
+  message?: string;
 };

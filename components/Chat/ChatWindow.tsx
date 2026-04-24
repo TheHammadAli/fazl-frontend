@@ -8,7 +8,7 @@ import camIcon from "@/assets/icons/cam-icon.svg";
 import SquareAddIcon from "@/assets/icons/add-square.svg";
 import whiteArrowIcon from "@/assets/icons/white-arrow.svg";
 import { getUserId } from "@/utils/getUserId";
-import { useGetConversationMessagesQuery, useMarkMessagesAsReadMutation } from "@/store/services/chatService";
+import { useGetBroadcastThreadMessagesQuery, useGetConversationMessagesQuery, useMarkMessagesAsReadMutation } from "@/store/services/chatService";
 import { useEffect, useMemo, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { parsePositiveInt } from "../Updates/Notifications";
@@ -19,9 +19,10 @@ import { useAppDispatch } from "@/store/store";
 type ChatWindowProps = {
   thread: ChatThread;
   onBack?: () => void;
+  threadType: string;
 };
 
-export default function ChatWindow({ thread, onBack }: ChatWindowProps) {
+export default function ChatWindow({ thread, onBack, threadType }: ChatWindowProps) {
   const { placeholders } = useDictionary();
   type PlaceholderKey = keyof typeof placeholders;
   const [isSendingMessage, setIsSendingMessage] = useState(false);
@@ -48,6 +49,7 @@ export default function ChatWindow({ thread, onBack }: ChatWindowProps) {
   const headerAvatar = headerUser?.image ?? thread?.avatar ?? "https://i.pravatar.cc/80?img=11";
   const [messageText, setMessageText] = useState("");
   const [filteredMessages, setFilteredMessages] = useState<ChatMessage[]>([]);
+
   const [markMessagesAsRead] = useMarkMessagesAsReadMutation();
   const messagesQueryArgs = useMemo(
     () => ({
@@ -58,7 +60,14 @@ export default function ChatWindow({ thread, onBack }: ChatWindowProps) {
     [conversationId, page],
   );
   const { data: messages, isLoading, isFetching, refetch } = useGetConversationMessagesQuery(messagesQueryArgs, {
-    skip: !conversationId,
+    skip: !conversationId || threadType === "broadcast_messages",
+    refetchOnMountOrArgChange: true,
+  });
+  const { data: broadcastMessages, isLoading: isLoadingBroadcastMessages, isFetching: isFetchingBroadcastMessages, refetch: refetchBroadcastMessages } = useGetBroadcastThreadMessagesQuery({
+    id: thread?.seller?.id ?? "",
+    threadId: thread?._id ?? thread?.id ?? "",
+  }, {
+    skip: threadType !== "broadcast_messages",
     refetchOnMountOrArgChange: true,
   });
   const totalPages = parsePositiveInt(messages?.meta?.totalPages);
@@ -105,13 +114,23 @@ export default function ChatWindow({ thread, onBack }: ChatWindowProps) {
     }
   }
   useEffect(() => {
-    if (!incomingMessages) return;
-    if (page === 1) {
-      setFilteredMessages(incomingMessages);
-    } else {
-      setFilteredMessages((prev) => [...prev, ...incomingMessages]);
+    if (threadType === "broadcast_messages") {
+      if (!broadcastMessages?.data) return;
+      console.log("working")
+      setFilteredMessages(broadcastMessages?.data ?? []);
+      return;
     }
-  }, [incomingMessages, page]);
+    else {
+      if (!incomingMessages) return;
+      if (page === 1) {
+        setFilteredMessages(incomingMessages);
+      } else {
+        setFilteredMessages((prev) => [...prev, ...incomingMessages]);
+      }
+    }
+  }, [incomingMessages, page, broadcastMessages?.data]);
+
+  console.log("filteredMessages", filteredMessages);
   useEffect(() => {
     const socket = initializeSocket();
     if (!socket) return;
@@ -120,7 +139,7 @@ export default function ChatWindow({ thread, onBack }: ChatWindowProps) {
     shouldStickToBottomRef.current = true;
     prevScrollHeightRef.current = 0;
     socket?.emit('joinConversation', { conversationId });
-    if (conversationId && userId) {
+    if (conversationId && userId && threadType === "direct_messages") {
       markMessagesAsRead({ conversationId, userId }).unwrap().catch(() => {
         // Keep chat usable even if marking read fails.
       });
@@ -198,7 +217,7 @@ export default function ChatWindow({ thread, onBack }: ChatWindowProps) {
                   <div
                     className={`max-w-[85%] break-words rounded-2xl px-4 py-2 text-sm leading-relaxed lg:max-w-[60%] ${mine ? "bg-[#EEF2F3] text-[#030303]" : "bg-[#F6F6F6] text-gray-900"}`}
                   >
-                    {message.text}
+                    {threadType === "broadcast_messages" ? message.message : message.text}
                   </div>
                 </div>
               </div>

@@ -16,7 +16,6 @@ function Layout({ children }: { children: React.ReactNode }) {
   const [unreadMessages, setUnreadMessages] = useState(0);
   const { data: unreadNotificationsCount } = useGetUnreadNotificationsCountQuery(userId, { skip: !userId });
   const { data: unreadMessagesCount } = useUnreadMessagesCountQuery({ userId: userId ?? "" }, { skip: !userId });
-  console.log(unreadMessagesCount, "unreadMessagesCount");
   const dispatch = useAppDispatch();
   useEffect(() => {
     setReadCount(unreadNotificationsCount?.data?.count || 0);

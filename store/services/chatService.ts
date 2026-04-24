@@ -85,13 +85,74 @@ export const chatService = baseApi.injectEndpoints({
       },
       invalidatesTags: ["Chat"],
     }),
+    broadcastMessage: build.mutation({
+      query: (body) => {
+        return {
+          url: `/broadcast/create`,
+          method: "POST",
+          body: body,
+        };
+      },
+      invalidatesTags: ["BROADCAST"],
+    }),
+    receivedBroadcastMessages: build.query({
+      query: ({ page, limit }: { page: number; limit: number }) => {
+        return {
+          url: `/broadcast/my/received?page=${page}&limit=${limit}`,
+          method: "GET",
+        };
+      },
+      providesTags: ["BROADCAST"],
+    }),
+    sentBroadcastMessages: build.query({
+      query: ({ page, limit }: { page: number; limit: number }) => {
+        return {
+          url: `/broadcast/my/broadcasts?page=${page}&limit=${limit}`,
+          method: "GET",
+        };
+      },
+      providesTags: ["BROADCAST"],
+    }),
+    getAllThreadsForBroadcast: build.query({
+      query: ({
+        id,
+        // page,
+        // limit,
+      }: {
+        id: string;
+        // page: number;
+        // limit: number;
+      }) => {
+        return {
+          url: `/broadcast/threads/${id}`,
+          // ?page=${page}&limit=${limit}`,
+          method: "GET",
+        };
+      },
+      providesTags: ["BROADCAST"],
+    }),
+    getBroadcastThreadMessages: build.query({
+      query: ({ id, threadId }: { id: string; threadId: string }) => {
+        return {
+          url: `/broadcast/${id}/threads/${threadId}`,
+          method: "GET",
+        };
+      },
+      providesTags: ["BROADCAST"],
+    }),
   }),
 });
+
 export const {
+  useGetBroadcastThreadMessagesQuery,
+  useReceivedBroadcastMessagesQuery,
+  useSentBroadcastMessagesQuery,
   useMarkMessagesAsReadMutation,
   useUnreadMessagesCountQuery,
   useSendMessageMutation,
   useGetAllConversationsForUserQuery,
   useInitiateChatMutation,
   useGetConversationMessagesQuery,
+  useBroadcastMessageMutation,
+  useGetAllThreadsForBroadcastQuery,
 } = chatService;
