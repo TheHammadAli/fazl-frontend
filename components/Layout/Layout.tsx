@@ -38,6 +38,9 @@ function Layout({ children }: { children: React.ReactNode }) {
     socket.on("receiveMessage", (data) => {
       dispatch(baseApi.util.invalidateTags(["Chat"]));
     });
+    socket.on("receiveBroadcastMessage", (data) => {
+      dispatch(baseApi.util.invalidateTags(["BROADCAST"]));
+    });
   }, [dispatch]);
 
   return (

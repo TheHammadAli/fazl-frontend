@@ -38,7 +38,6 @@ function MyJobs() {
   const [filteredRequests, setFilteredRequests] = useState<RequestCard[]>([]);
   const [action, setAction] = useState<string>("");
   const { data: servicesRequests, isLoading, isFetching } = useGetServicesRequestsQuery({ id: userId, page: page, limit: limit }, { skip: !userId });
-  console.log(servicesRequests, "servicesRequests");
   const [startJob, { isLoading: isJobActionLoading }] = useStartJobMutation();
   const [updateReqId, setUpdateReqId] = useState<string>("");
   const totalPages = parsePositiveInt(servicesRequests?.meta?.totalPages);

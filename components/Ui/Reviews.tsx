@@ -257,7 +257,7 @@ function Reviews({ type, id, allowAddReview }: ReviewsProps) {
                             </div>
                         ))
                     ) : visibleReviews.length ? (
-                        visibleReviews.map((review, index: number) => (
+                        visibleReviews.map((review: any, index: number) => (
                             <div key={index} className=" flex justify-between gap-2 ">
                                 <div className="flex gap-2">
                                     <div className="h-[34px] w-[34px] ">

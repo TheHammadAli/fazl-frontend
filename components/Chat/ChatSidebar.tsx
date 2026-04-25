@@ -31,8 +31,6 @@ export default function ChatSidebar({
     direct_messages: <DirectMessages threadType={threadType} setThreadType={setThreadType} chatId={chatId} onSelectChat={onSelectChat} />,
     broadcast_messages: <BroadCatMessages chatId={chatId} onSelectChat={onSelectChat} />,
   }
-
-
   return (
     <aside className="h-full w-full border-r border-gray-200 bg-white lg:w-[320px]" >
       <div className="flex justify-between h-16 items-center border-b border-gray-200 px-4">

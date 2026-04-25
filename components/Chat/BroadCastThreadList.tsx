@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react'
+import React, { useCallback, useRef, useState } from 'react'
 import { useDispatch } from 'react-redux';
 import { useDictionary } from '@/dictionaries/DictionaryProvider';
 import { useGetAllThreadsForBroadcastQuery } from '@/store/services/chatService';
@@ -11,6 +11,7 @@ import { type ChatThread } from "./types";
 import { ChatSidebarProps } from './ChatSidebar';
 import moment from 'moment';
 import noMessagesIcon from "@/assets/icons/no-message.svg";
+
 function BroadCastThreadList({
     chatId,
     broadcast,
@@ -28,6 +29,10 @@ function BroadCastThreadList({
     const userId = getUserId() ?? "";
     const broadcastId = broadcast?._id ?? broadcast?.id ?? "";
     const lastBroadcastIdRef = useRef<string>("");
+    const withBroadcastId = useCallback((thread: ChatThread): ChatThread => ({
+        ...thread,
+        broadcastId,
+    }), [broadcastId]);
     const { data: conversations, isLoading } = useGetAllThreadsForBroadcastQuery({
         id: broadcastId,
         // page,
@@ -53,8 +58,8 @@ function BroadCastThreadList({
     useEffect(() => {
         const socket = initializeSocket();
         if (!socket) return;
-        socket.on("receiveMessage", () => {
-            dispatch(baseApi.util.invalidateTags(["Chat"]));
+        socket.on("receiveBroadcastMessage", () => {
+            dispatch(baseApi.util.invalidateTags(["BROADCAST"]));
         });
     }, [dispatch]);
 
@@ -67,7 +72,7 @@ function BroadCastThreadList({
         if (broadcastId && lastBroadcastIdRef.current !== broadcastId) {
             lastBroadcastIdRef.current = broadcastId;
             if (firstConversation) {
-                onSelectChat(firstConversation);
+                onSelectChat(withBroadcastId(firstConversation));
             }
             return;
         }
@@ -76,13 +81,13 @@ function BroadCastThreadList({
             (conversation) => (conversation?._id ?? conversation?.id) === chatId,
         );
         if (matchedConversation) {
-            onSelectChat(matchedConversation);
+            onSelectChat(withBroadcastId(matchedConversation));
             return;
         }
         if (firstConversation) {
-            onSelectChat(firstConversation);
+            onSelectChat(withBroadcastId(firstConversation));
         }
-    }, [broadcastId, chatId, conversations?.data, onSelectChat]);
+    }, [broadcastId, chatId, conversations?.data, onSelectChat, withBroadcastId]);
 
     return (
         <ul
@@ -115,7 +120,7 @@ function BroadCastThreadList({
                             {ph("messages_appear_here")}
                         </p>
                     </li>
-                ) : conversations?.data?.map((thread: ChatThread, index: number) => {
+                ) : conversations?.data?.map((thread: any, index: number) => {
                     const isActive = (thread?._id ?? thread?.id) === chatId;
                     const thread_user = thread?.buyer?.id !== userId ? thread?.buyer : thread?.seller;
                     return (
@@ -123,8 +128,7 @@ function BroadCastThreadList({
                             <button
                                 type="button"
                                 onClick={() => {
-                                    console.log("thread", thread);
-                                    onSelectChat(thread);
+                                    onSelectChat(withBroadcastId(thread));
                                 }}
                                 className={`flex w-full cursor-pointer items-start gap-3 px-4 py-4 text-left ${isActive ? "bg-[#E7F4F5]" : "hover:bg-gray-50"}`}
                             >

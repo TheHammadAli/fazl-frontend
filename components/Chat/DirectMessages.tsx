@@ -103,7 +103,7 @@ function DirectMessages({
                             {ph("messages_appear_here")}
                         </p>
                     </li>
-                ) : filteredThreads?.map((thread: ChatThread, index) => {
+                ) : filteredThreads?.map((thread: any, index) => {
                     const isActive = thread?._id === chatId;
                     const thread_user = thread?.buyer?.id !== userId ? thread?.buyer : thread?.seller;
                     return (

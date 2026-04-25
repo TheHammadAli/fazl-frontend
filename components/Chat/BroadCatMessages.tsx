@@ -110,6 +110,20 @@ function BroadCatMessages({ chatId, onSelectChat }: { chatId: string, onSelectCh
         }
     }, [receivedItems?.data, receivedPage]);
 
+    useEffect(() => {
+        if (activeTab !== "received") return;
+        if (!filteredReceived.length) return;
+
+        const currentExistsInReceived = filteredReceived.some((item: any) => {
+            const itemThreadId = item?.threadId ?? item?._id ?? item?.id ?? "";
+            return !!chatId && itemThreadId === chatId;
+        });
+        if (currentExistsInReceived) return;
+
+        const first = filteredReceived[0] as any;
+        onSelectChat({ ...first, type: "broadcast_received" } as any);
+    }, [activeTab, filteredReceived, chatId, onSelectChat]);
+
     const handleTabChange = (tab: BroadcastTab) => {
         if (tab === activeTab) return;
         setShowBroadcastThreadList(false);
@@ -123,10 +137,14 @@ function BroadCatMessages({ chatId, onSelectChat }: { chatId: string, onSelectCh
     };
 
     const handleSelectBroadcastMessage = (broadcast: BroadcastItem) => {
-        if (activeTab !== "sent") return;
+        if (activeTab !== "sent") {
+            onSelectChat({ ...broadcast, type: "broadcast_received" } as any);
+            return
+        };
         setShowBroadcastThreadList(true);
         setSelectedBroadcast(broadcast);
     };
+
     return (
         <div className="flex h-[calc(100%-104px)] flex-col ">
             <div className="border-b border-gray-9 bg-white px-5 py-5">
@@ -169,6 +187,7 @@ function BroadCatMessages({ chatId, onSelectChat }: { chatId: string, onSelectCh
                     onSelectChat={onSelectChat}
 
                 />
+                // <></>
             ) : isLoadingCurrentTab && currentPage === 1 ? (
                 <div className="flex-1 space-y-1 overflow-y-auto bg-white px-5 py-4">
                     {Array.from({ length: 7 }).map((_, index) => (
@@ -181,11 +200,14 @@ function BroadCatMessages({ chatId, onSelectChat }: { chatId: string, onSelectCh
                 </div>
             ) : (
                 <BroadCastList
+                    activeTab={activeTab}
+                    chatId={chatId}
                     key={activeTab}
                     items={items}
                     onScroll={handleScrollNearBottom}
                     onSelectItem={(broadcast) => handleSelectBroadcastMessage(broadcast)}
                 />
+                // <></>
             )}
         </div>
     );

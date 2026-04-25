@@ -140,10 +140,19 @@ export const chatService = baseApi.injectEndpoints({
       },
       providesTags: ["BROADCAST"],
     }),
+    sendBroadcastMessage: build.mutation({
+      query: ({ id, body }) => ({
+        url: `/broadcast/message/${id}`,
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["BROADCAST"],
+    }),
   }),
 });
 
 export const {
+  useSendBroadcastMessageMutation,
   useGetBroadcastThreadMessagesQuery,
   useReceivedBroadcastMessagesQuery,
   useSentBroadcastMessagesQuery,
