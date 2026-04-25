@@ -12,6 +12,7 @@ import { toast } from "react-hot-toast";
 import moment from "moment";
 import noImageAvtar from "@/assets/images/no-image-av.png";
 import AvatarUi from "./AvatarUi";
+import formatFromNowShort from "@/utils/formatFromNowShort";
 
 const STAR_EMPTY = "#7878804D";
 const STAR_FILLED = "#FFB03A";
@@ -84,30 +85,7 @@ function AvgRatingStars({
 const REVIEW_FEEDBACK_TOAST_MS = 2500;
 const REVIEWS_PAGE_SIZE = 2;
 
-function formatFromNowShort(date: string, language: "en" | "ur" = "en") {
-    const units =
-        language === "ur"
-            ? { w: "ہف", d: "دن", h: "گ", m: "م", s: "س" }
-            : { w: "w", d: "d", h: "h", m: "m", s: "s" };
 
-    const diffMs = Date.now() - moment(date).valueOf();
-    const duration = moment.duration(Math.max(0, diffMs));
-
-    const weeks = Math.floor(duration.asWeeks());
-    if (weeks >= 1) return `${weeks}${units.w}`;
-
-    const days = Math.floor(duration.asDays());
-    if (days >= 1) return `${days}${units.d}`;
-
-    const hours = Math.floor(duration.asHours());
-    if (hours >= 1) return `${hours}${units.h}`;
-
-    const minutes = Math.floor(duration.asMinutes());
-    if (minutes >= 1) return `${minutes}${units.m}`;
-
-    const seconds = Math.floor(duration.asSeconds());
-    return `${seconds}${units.s}`;
-}
 
 type ReviewsProps = {
     type: "product" | "service" | "selling";
@@ -279,7 +257,7 @@ function Reviews({ type, id, allowAddReview }: ReviewsProps) {
                             </div>
                         ))
                     ) : visibleReviews.length ? (
-                        visibleReviews.map((review, index: number) => (
+                        visibleReviews.map((review: any, index: number) => (
                             <div key={index} className=" flex justify-between gap-2 ">
                                 <div className="flex gap-2">
                                     <div className="h-[34px] w-[34px] ">

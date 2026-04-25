@@ -71,7 +71,7 @@ function Navigations({
               <Image
                 src={
                   profileData?.data?.image &&
-                  !profileData?.data?.image.includes("default-avatar")
+                    !profileData?.data?.image.includes("default-avatar")
                     ? `${profileData?.data?.image}?t=${new Date().getTime()}`
                     : dummyProfile
                 }
@@ -109,10 +109,13 @@ function Navigations({
           return (
             <div
               key={index}
-              className={`px-4 xl:px-6 py-4 flex items-center gap-2 cursor-pointer ${
-                active && "bg-green-4"
-              } `}
+              className={`px-4 xl:px-6 py-4 flex items-center gap-2 cursor-pointer ${active && "bg-green-4"
+                } `}
               onClick={() => {
+                if (tab?.title === "broadcast_messages") {
+                  router.push("/chat?threadType=broadcast");
+                  return;
+                }
                 setSelectedTab(tab?.title);
                 setToggle(!toggle);
               }}
@@ -146,9 +149,8 @@ function Navigations({
       </div>
       <div className="bg-gray-12 border-t-[1px] border-gray-9 h-[27px]"></div>
       <div
-        className={`px-4 xl:px-6 py-4 flex items-center gap-2 cursor-pointer  ${
-          selectedTab === "settings" && "bg-green-4"
-        }`}
+        className={`px-4 xl:px-6 py-4 flex items-center gap-2 cursor-pointer  ${selectedTab === "settings" && "bg-green-4"
+          }`}
         onClick={() => {
           setSelectedTab("settings");
           setToggle(!toggle);

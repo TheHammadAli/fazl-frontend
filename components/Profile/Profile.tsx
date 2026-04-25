@@ -5,6 +5,7 @@ import cartIcon from "@/assets/icons/my-cart.svg";
 import ordersIcon from "@/assets/icons/my-orders.svg";
 import requestsIcon from "@/assets/icons/my-requests.svg";
 import jobsIcon from "@/assets/icons/my-jobs.svg";
+import broadcastMessagesIcon from "@/assets/icons/broadcast.svg";
 import MyCart from "./MyCart";
 import MyOrders from "./MyOrders";
 import MyRequests from "./MyRequests";
@@ -29,6 +30,7 @@ function Profile() {
     { title: "my_orders", icon: ordersIcon },
     { title: "my_requests", icon: requestsIcon },
     { title: "my_jobs", icon: jobsIcon },
+    { title: "broadcast_messages", icon: broadcastMessagesIcon },
   ];
 
   const tabsComponents: tabsComponentsTypes = {
@@ -44,9 +46,8 @@ function Profile() {
   return (
     <div className="flex w-full max-w-full flex-1 flex-col min-h-[calc(100dvh-5rem)] md:min-h-0 md:flex-row lg:min-h-0 lg:h-full">
       <div
-        className={`w-full shrink-0 overflow-y-auto md:w-auto md:overflow-visible ${
-          toggle && "hidden md:block"
-        }`}
+        className={`w-full shrink-0 overflow-y-auto md:w-auto md:overflow-visible ${toggle && "hidden md:block"
+          }`}
       >
         <Navigations
           toggle={toggle}
@@ -58,9 +59,8 @@ function Profile() {
       </div>
 
       <div
-        className={`flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden overflow-y-auto lg:overflow-visible ${
-          !toggle && "hidden md:block"
-        }`}
+        className={`flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden overflow-y-auto lg:overflow-visible ${!toggle && "hidden md:block"
+          }`}
       >
         {tabsComponents[selectedTab as TabKeys]}
       </div>

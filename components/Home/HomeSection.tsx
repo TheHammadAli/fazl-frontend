@@ -13,8 +13,13 @@ import {
 } from "@/store/services/homeService";
 import linkIcon from "@/assets/icons/link.png";
 import { useDebounce } from "use-debounce";
+import BroadCastModal from "../Ui/BroadCastModal";
+import Modal from "../Ui/Modals/Modal";
+import CategoryModal from "../Services/CategoryModal";
 
 function HomeSection() {
+  const [openBroadcast, setOpenBroadcast] = useState(false);
+  const broadcastRef = useRef<HTMLDivElement>(null);
   const tabsComponents: { [key: string]: React.ReactNode } = {
     products: <></>,
     services: <></>,
@@ -63,9 +68,8 @@ function HomeSection() {
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder={`${placeholders.search_for} ${
-            placeholders?.[activeTab as keyof typeof placeholders]
-          }`}
+          placeholder={`${placeholders.search_for} ${placeholders?.[activeTab as keyof typeof placeholders]
+            }`}
           className=" h-[46px] pl-8 text-[14px] placeholder:text-[14px] text-[#727272] placeholder:text-[#727272] font-normal w-full bg-[#EEF2F3] focus:outline-0 rounded-[8px]"
         />
       </div>
@@ -113,10 +117,20 @@ function HomeSection() {
             {info_messages.tell_sellers}
           </p>
         </div>
-        <div className="bg-white rounded-[12px] px-4 py-3 text-green-2 font-medium">
+        <div onClick={() => setOpenBroadcast(true)} className="bg-white cursor-pointer rounded-[12px] px-4 py-3 text-green-2 font-medium" >
           {info_messages.broadcast_request}
         </div>
       </div>
+      <Modal
+        editModalRef={broadcastRef}
+        open={openBroadcast}
+        setOpen={setOpenBroadcast}
+        centered={false}
+      >
+        <div className=" h-full w-full flex justify-center  pt-20 ">
+          <BroadCastModal setOpenBroadcast={setOpenBroadcast} />
+        </div>
+      </Modal>
     </div>
   );
 }
