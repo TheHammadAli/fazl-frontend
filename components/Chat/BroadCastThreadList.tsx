@@ -146,7 +146,7 @@ function BroadCastThreadList({
                                         <span className="shrink-0 text-[13px] font-normal text-[#4B514F]">{moment(thread.createdAt).locale(currentLanguage).fromNow()}</span>
                                     </div>
                                     <div className="mt-1 flex items-center justify-between gap-2">
-                                        <p className="truncate text-sm text-gray-600">I need iPhone 16 pro Gold Titanium...</p>
+                                        <p className="truncate text-sm text-gray-600">{thread.latestMessage?.message ?? ""}</p>
                                         {thread.unread ? <span className="h-2 w-2 shrink-0 rounded-full bg-[#3C9197]" /> : null}
                                     </div>
                                 </div>
