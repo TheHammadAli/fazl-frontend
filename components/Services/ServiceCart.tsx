@@ -4,6 +4,7 @@ import chevron from "@/assets/icons/chev-down-icon.svg";
 import { useDictionary } from "@/dictionaries/DictionaryProvider";
 import { Star } from "lucide-react";
 import { useServiceBookRequestMutation } from "@/store/services/sellingService";
+import { useGetAvgReviewsQuery } from "@/store/services/reviewService";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { BeatLoader } from "react-spinners";
@@ -30,7 +31,12 @@ function ServiceCart({
 }) {
   const { pages, placeholders, currentLanguage } = useDictionary();
   const router = useRouter();
-
+  const { data: avgReview, isLoading: isLoadingAvgReview } = useGetAvgReviewsQuery(
+    { type: "service", id: service?.data?.id ?? "" },
+    { skip: !service?.data?.id || !service?.data?.id }
+  );
+  const reviewCount = avgReview?.data?.count ?? 0;
+  const avgRating = avgReview?.data?.avgRating ?? 0;
   const [serviceBookRequest, { isLoading, isError, isSuccess, error, data }] =
     useServiceBookRequestMutation();
 
@@ -169,9 +175,9 @@ function ServiceCart({
                   </h2>
                   <div className="flex items-center gap-1 mt-1">
                     <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
-                    <span className="text-sm font-medium">4.9</span>
+                    <span className="text-sm font-medium">{avgRating.toFixed(1)}</span>
                     <span className="text-sm text-gray-500">
-                      (150) {placeholders.reviews}
+                      {reviewCount} {reviewCount === 1 ? placeholders.review : placeholders.reviews}
                     </span>
                   </div>
                 </div>

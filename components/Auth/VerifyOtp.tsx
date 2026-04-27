@@ -12,6 +12,7 @@ import { useAppSelector } from "@/store/store";
 import toast from "react-hot-toast";
 import { BeatLoader } from "react-spinners";
 import { useRouter } from "next/navigation";
+import Footer from "./Footer";
 
 function VerifyOtp() {
   const router = useRouter();
@@ -79,7 +80,7 @@ function VerifyOtp() {
     if (isSendOtpError && "data" in sendOtpError) {
       toast.error(
         (sendOtpError?.data as { message?: string })?.message ||
-          "something went wrong!"
+        "something went wrong!"
       );
     }
   }, [isSendOtpSuccess, isSendOtpError, sendOtpData, sendOtpError]);
@@ -110,7 +111,7 @@ function VerifyOtp() {
     if (isVerifyError && "data" in verifyError) {
       toast.error(
         (verifyError?.data as { message?: string })?.message ||
-          "something went wrong!"
+        "something went wrong!"
       );
     }
   }, [isVerifySuccess, isVerifyError, verifyData, verifyError]);
@@ -155,9 +156,8 @@ function VerifyOtp() {
               00:{timer < 10 ? `0${timer}` : timer} Sec
             </div>
             <div
-              className={`font-light text-center lg:text-start text-[13px] text-gray-8 mt-5 leading-none w-full ${
-                timer > 0 && "pointer-events-none opacity-50 "
-              }`}
+              className={`font-light text-center lg:text-start text-[13px] text-gray-8 mt-5 leading-none w-full ${timer > 0 && "pointer-events-none opacity-50 "
+                }`}
             >
               Didn’t get the code?{" "}
               <span
@@ -180,19 +180,8 @@ function VerifyOtp() {
               )}
             </button>
           </div>
-          <div className="w-full">
-            <div className="flex justify-center -mt-28">
-              <div className="h-[30px] w-[70px] bg-green-1 rounded-[6px] text-white flex items-center justify-center text-[18px] font-semibold">
-                market
-              </div>
-            </div>
-            <div className="flex flex-wrap justify-center items-center font-[400] text-[12px] text-green-1 gap-[6px] mt-3">
-              <p>Contact</p>
-              <div className="h-1 w-1 bg-green-1 rounded-full"></div>
-              <p>Terms and Conditions</p>
-              <div className="h-1 w-1 bg-green-1 rounded-full"></div>
-              <p>Privacy Policy</p>
-            </div>
+          <div className="mt-14 w-full">
+            <Footer />
           </div>
         </form>
       </div>

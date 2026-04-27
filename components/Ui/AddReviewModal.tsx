@@ -43,7 +43,7 @@ function AddReviewModal({ setOpen, onSubmit, loading }: AddReviewModalProps) {
   };
 
   return (
-    <div className="bg-white w-screen max-w-[496px] sm:rounded-[10px] shadow-lg">
+    <div className="bg-white w-screen max-w-[496px]  sm:rounded-[10px] shadow-lg hide-scrollbar">
       <div className="p-4 flex items-center justify-between border-b border-[#E3EDF3]">
         <h2 className="text-[16px] font-semibold text-[#0F172A]">
           {ph("write_a_review")}

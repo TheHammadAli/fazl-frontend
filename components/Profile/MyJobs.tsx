@@ -9,9 +9,8 @@ import { useGetServicesRequestsQuery, useStartJobMutation } from "@/store/servic
 import { getCookie } from "cookies-next";
 import { formatRequestedDateTime } from "@/utils/formatRequestedDateTime";
 import { toast } from "react-hot-toast";
-import { BeatLoader } from "react-spinners";
 import { parsePositiveInt } from "../Updates/Notifications";
-
+import JobActionConfirmModal from "./JobActionConfirmModal";
 type RequestFilterKey = "sent" | "new_offer" | "accepted" | "rejected";
 
 type RequestCard = {
@@ -28,8 +27,8 @@ type RequestCard = {
 function MyJobs() {
   const limit = 10;
   const [page, setPage] = useState(1);
-  const shouldStickToBottomRef = useRef(true);
   const prevScrollHeightRef = useRef(0);
+  const isLoadingNextPageRef = useRef(false);
   const jobsContainerRef = useRef<HTMLDivElement>(null);
   const { currentLanguage } = useDictionary();
   const { placeholders } = useDictionary();
@@ -37,6 +36,9 @@ function MyJobs() {
   const userId = getCookie("userId") ?? "";
   const [filteredRequests, setFilteredRequests] = useState<RequestCard[]>([]);
   const [action, setAction] = useState<string>("");
+  const [openConfirmModal, setOpenConfirmModal] = useState(false);
+  const [pendingAction, setPendingAction] = useState<"start_job" | "complete_job" | null>(null);
+  const [pendingRequestId, setPendingRequestId] = useState<string>("");
   const { data: servicesRequests, isLoading, isFetching } = useGetServicesRequestsQuery({ id: userId, page: page, limit: limit }, { skip: !userId });
   const [startJob, { isLoading: isJobActionLoading }] = useStartJobMutation();
   const [updateReqId, setUpdateReqId] = useState<string>("");
@@ -45,10 +47,10 @@ function MyJobs() {
     totalPages != null ? page < totalPages : servicesRequests?.meta?.total >= limit;
   function handleScrollNearBottom(e: React.UIEvent<HTMLDivElement>) {
     const el = e.currentTarget;
-    shouldStickToBottomRef.current = el.scrollHeight - el.scrollTop - el.clientHeight <= 120;
-    if (!userId || isFetching || !canLoadMore) return;
+    if (!userId || isFetching || !canLoadMore || isLoadingNextPageRef.current) return;
     const nearTop = el.scrollTop <= 80;
     if (!nearTop) return;
+    isLoadingNextPageRef.current = true;
     prevScrollHeightRef.current = el.scrollHeight;
     setPage((p) => p + 1);
   }
@@ -68,6 +70,16 @@ function MyJobs() {
       setUpdateReqId("");
     });
   };
+  const openActionConfirm = (id: string, action: "start_job" | "complete_job") => {
+    setPendingRequestId(id);
+    setPendingAction(action);
+    setOpenConfirmModal(true);
+  };
+  const handleConfirmAction = () => {
+    if (!pendingRequestId || !pendingAction) return;
+    handleJobAction(pendingRequestId, pendingAction);
+    setOpenConfirmModal(false);
+  };
 
 
   useEffect(() => {
@@ -84,9 +96,37 @@ function MyJobs() {
     }
   }, [servicesRequests, userId, page]);
 
+  useEffect(() => {
+    if (page <= 1) return;
+    if (isFetching) return;
+    const el = jobsContainerRef.current;
+    if (!el || prevScrollHeightRef.current <= 0) return;
+    const heightDiff = el.scrollHeight - prevScrollHeightRef.current;
+    el.scrollTop = el.scrollTop + heightDiff;
+    prevScrollHeightRef.current = 0;
+    isLoadingNextPageRef.current = false;
+  }, [isFetching, page, filteredRequests.length]);
+
+  useEffect(() => {
+    if (!isFetching) {
+      isLoadingNextPageRef.current = false;
+    }
+  }, [isFetching]);
+
   const ph = (key: PlaceholderKey) => placeholders[key];
   return (
     <div className=" h-screen ">
+      <JobActionConfirmModal
+        open={openConfirmModal}
+        setOpen={setOpenConfirmModal}
+        pendingAction={pendingAction}
+        isLoading={isJobActionLoading}
+        isActionMatching={updateReqId === pendingRequestId && action === pendingAction}
+        startTimerLabel={ph("start_timer")}
+        endServiceLabel={ph("end_service")}
+        cancelLabel={ph("cancel")}
+        onConfirm={handleConfirmAction}
+      />
       <div>
         <div className="border-b border-gray-9 flex items-center justify-center">
           <div className="h-[72px]   w-[522px]  flex items-center gap-2 text-[14px]">
@@ -101,8 +141,6 @@ function MyJobs() {
               <span className="text-[#4B514F] text-[14px] font-normal">{ph("start_timer_when_service_begins")}</span>
               <Image src={infoCircleIcon} alt="plus" />
             </div>
-
-
             <div ref={jobsContainerRef} onScroll={handleScrollNearBottom} className="mt-4 max-w-[760px] bg-white overflow-y-auto h-[calc(100dvh-10rem)]">
               {isLoading || isFetching ? (
                 Array.from({ length: 5 }).map((_, index) => (
@@ -119,42 +157,60 @@ function MyJobs() {
                   <p className="text-[14px] font-normal text-[#4B514F]">{ph("no_jobs_available")}</p>
                 </div>
               ) : (
-                filteredRequests.map((item: RequestCard, index: number) => (
-                  <div key={index} className="py-4 border-b border-gray-9">
-                    <p className="text-[15px] text-[#3C9197] font-medium leading-none first-letter:capitalize">
-                      {ph("booked_your_service").replace("{name}", item?.customer?.name ?? "")}
-                    </p>
+                filteredRequests.map((item: RequestCard, index: number) => {
+                  const isExpired = new Date(item.requestedDateTime).getTime() < Date.now();
+                  return (
+                    <div key={index} className="py-4 border-b border-gray-9">
+                      <div className="flex items-center justify-between">
+                        <p className="text-[15px] text-[#3C9197] font-medium leading-none first-letter:capitalize">
+                          {ph("booked_your_service").replace("{name}", item?.customer?.name ?? "")}
+                        </p>
+                        {/* <h1 className="text-[26px] font-semibold text-green-1">04:32</h1> */}
+                      </div>
 
-                    <p className="text-[15px] font-medium mt-2 leading-none text-black-1">
-                      {formatRequestedDateTime(item.requestedDateTime, currentLanguage)}
-                    </p>
-                    {item.jobStatus === "in_progress" && (
-                      <p className="text-[14px] font-normal text-[#FF9500] mt-2 leading-none">
-                        {ph("service_in_progress")}
+                      <p className="text-[15px] font-medium mt-2 leading-none text-black-1">
+                        {formatRequestedDateTime(item.requestedDateTime, currentLanguage)}
                       </p>
-                    )}
-
-                    {item.jobStatus === "completed" && (
-                      <p className="text-[14px] font-normal text-[#007781] mt-2 leading-none">
-                        {ph("service_completed")}
-                      </p>
-                    )}
-
-
-                    <div className="flex justify-end rtl:pl-3 ltr:pr-2">
                       {item.jobStatus === "in_progress" && (
-                        <button onClick={() => handleJobAction(item._id, "complete_job")} className="text-[14px] min-h-[38px] font-normal w-[222px] py-[8px] rounded-[6px] cursor-pointer bg-[#E92440] text-white">
-                          {isJobActionLoading && updateReqId === item._id && action === "complete_job" ? <div className="flex items-center justify-center"><BeatLoader color="#fff" size={6} /></div> : ph("end_service")}
-                        </button>
+                        <p
+                          className={`text-[14px] font-normal mt-2 leading-none 
+                          text-[#FF9500]
+                            `}
+                        >
+                          {ph("service_in_progress")}
+                        </p>
                       )}
-                      {item.jobStatus === "not_started" && (
-                        <button onClick={() => handleJobAction(item._id, "start_job")} className="text-[14px] min-h-[38px] font-normal w-[222px] py-[8px] rounded-[6px] cursor-pointer bg-green-1 text-white">
-                          {isJobActionLoading && updateReqId === item._id && action === "start_job" ? <div className="flex items-center justify-center"><BeatLoader color="#fff" size={6} /></div> : ph("start_timer")}
-                        </button>
+                      {isExpired && item?.jobStatus === "not_started" &&
+                        <p
+                          className={`text-[14px] font-normal mt-2 leading-none 
+                          text-red-1
+                            `}
+                        >
+                          {ph("booking_date_passed")}
+                        </p>}
+
+                      {item.jobStatus === "completed" && (
+                        <p className="text-[14px] font-normal text-[#007781] mt-2 leading-none">
+                          {ph("service_completed")}
+                        </p>
                       )}
+
+
+                      <div className="flex justify-end rtl:pl-3 ltr:pr-2">
+                        {item.jobStatus === "in_progress" && (
+                          <button onClick={() => openActionConfirm(item._id, "complete_job")} className="text-[14px] min-h-[38px] font-normal w-[222px] py-[8px] rounded-[6px] cursor-pointer bg-[#E92440] text-white">
+                            {ph("end_service")}
+                          </button>
+                        )}
+                        {item.jobStatus === "not_started" && (
+                          <button disabled={isExpired} onClick={() => openActionConfirm(item._id, "start_job")} className="text-[14px] disabled:opacity-50 disabled:cursor-not-allowed min-h-[38px] font-normal w-[222px] py-[8px] rounded-[6px] cursor-pointer bg-green-1 text-white">
+                            {ph("start_timer")}
+                          </button>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))
+                  )
+                })
               )}
             </div>
           </div>

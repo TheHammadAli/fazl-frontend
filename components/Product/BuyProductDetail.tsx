@@ -49,6 +49,7 @@ export type ProductDetailProps = {
   setSelectedVariants?: React.Dispatch<
     React.SetStateAction<Record<string, unknown>>
   >;
+  ownerDetail?: any;
 };
 function BuyProductDetail({
   setStep,
@@ -56,6 +57,7 @@ function BuyProductDetail({
   selectedVariants,
   shopData,
   setSelectedVariants,
+  ownerDetail,
 }: ProductDetailProps) {
   const userId = getUserId() ?? "";
   const { onInitiateChat, isLoading } = useInitiateChat();
@@ -68,12 +70,7 @@ function BuyProductDetail({
   useClickOutside(ref, () => {
     setToggle(-1);
   });
-  const { data: ownerDetail } = useGetProductOwnerDetailQuery(
-    product?.data?.ownerId,
-    {
-      skip: !product?.data?.ownerId,
-    },
-  );
+
   const { data: avgReview, isLoading: isLoadingAvgReview } = useGetAvgReviewsQuery(
     { type: "product", id: product?.data?.id ?? "" },
     { skip: !product?.data?.id || !product?.data?.id }

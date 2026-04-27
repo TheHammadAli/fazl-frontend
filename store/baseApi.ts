@@ -6,16 +6,27 @@ import {
   createApi,
 } from "@reduxjs/toolkit/query/react";
 import { BASE_URL } from "@/assets/content/constants";
+
 import { getRefreshToken, getToken } from "@/utils/getToken";
 import { logout, setToken } from "./reducers/authReducer";
-interface BaseQueryArgs {
-  url: string;
-  method: string;
-  // Add other properties as needed
-}
+import { getCookie } from "cookies-next";
+import { i18n } from "@/i18n.config";
+
+const resolveLanguage = () => {
+  if (typeof window !== "undefined") {
+    const firstSegment = window.location.pathname.split("/")[1];
+    if (i18n.locales.includes(firstSegment as (typeof i18n.locales)[number])) {
+      return firstSegment;
+    }
+  }
+  return getCookie("lang")?.toString() || i18n.defaultLocale;
+};
+
 const rawBaseQuery = fetchBaseQuery({
   baseUrl: BASE_URL,
   prepareHeaders: (headers, { endpoint }) => {
+    const lang = resolveLanguage();
+    headers.set("accept-language", lang);
     const token = getToken();
     const excludeToken = [
       "sendOtp",
@@ -87,7 +98,7 @@ export const baseApi = createApi({
     "REVIEW",
     "BROADCAST",
   ],
-  endpoints: (builder) => ({}),
+  endpoints: () => ({}),
 });
 
 export default baseApi;

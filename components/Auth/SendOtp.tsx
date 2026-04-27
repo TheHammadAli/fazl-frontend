@@ -15,6 +15,7 @@ import { useAppDispatch } from "@/store/store";
 import { setOtpInfo } from "@/store/reducers/authReducer";
 import { useRouter } from "next/navigation";
 import { BASE_URL } from "@/assets/content/constants";
+import Footer from "./Footer";
 
 export type Body = {
   email?: string;
@@ -113,7 +114,7 @@ function Signup() {
     if (isError && "data" in error) {
       toast.error(
         (error?.data as { message?: string })?.message ||
-          "something went wrong!"
+        "something went wrong!"
       );
     }
   }, [isSuccess, isError, data, error]);
@@ -144,9 +145,8 @@ function Signup() {
           {withEmail && (
             <div className="space-y-2 mt-5 w-full ">
               <p
-                className={`text-[14px] font-normal  ${
-                  emailError ? "text-red-1" : "text-gray-8"
-                }`}
+                className={`text-[14px] font-normal  ${emailError ? "text-red-1" : "text-gray-8"
+                  }`}
               >
                 Email
               </p>
@@ -156,9 +156,8 @@ function Signup() {
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                   setEmail(e.target.value)
                 }
-                className={`h-[28px]  text-[14px] text-gray-8  font-normal focus:outline-none w-full ${
-                  emailError ? "border-red-1" : "border-gray-9"
-                } border-b-[1px] `}
+                className={`h-[28px]  text-[14px] text-gray-8  font-normal focus:outline-none w-full ${emailError ? "border-red-1" : "border-gray-9"
+                  } border-b-[1px] `}
               />
               {emailError && (
                 <p className="text-red-1 text-[14px] font-normal">
@@ -242,9 +241,8 @@ function Signup() {
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                     setPhone(e.target.value);
                   }}
-                  className={`h-[28px] text-[14px] text-gray-8  font-normal focus:outline-none w-full ${
-                    phoneError ? "border-red-1" : "border-gray-9"
-                  } border-b-[1px] `}
+                  className={`h-[28px] text-[14px] text-gray-8  font-normal focus:outline-none w-full ${phoneError ? "border-red-1" : "border-gray-9"
+                    } border-b-[1px] `}
                 />
                 {phoneError && (
                   <p className="text-red-1 text-[14px] font-normal">
@@ -300,17 +298,8 @@ function Signup() {
               Sign in
             </span>
           </div>
-          <div className="flex justify-center mt-[80px] w-full">
-            <div className="h-[30px] w-[70px] bg-green-1 rounded-[6px] text-white flex items-center justify-center text-[18px] font-semibold">
-              market
-            </div>
-          </div>
-          <div className="w-full flex justify-center items-center font-[400] text-[12px] text-green-1 gap-[6px] mt-3">
-            <p>Contact</p>
-            <div className="h-1 w-1 bg-green-1 rounded-full"></div>
-            <p>Terms and Conditions</p>
-            <div className="h-1 w-1 bg-green-1 rounded-full"></div>
-            <p>Privacy Policy</p>
+          <div className="mt-14 w-full">
+            <Footer />
           </div>
         </div>
       </form>

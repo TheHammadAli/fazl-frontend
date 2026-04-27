@@ -11,7 +11,8 @@ import LangSwitcher from "../Ui/LangSwitcher";
 import { useAppSelector } from "@/store/store";
 import { useGetUserDetailQuery } from "@/store/services/profileService";
 import { Dialog, DialogPanel } from "@headlessui/react";
-
+import logo from "@/assets/icons/fazal-logo.svg";
+import Link from "next/link";
 // Avoid SSR + hydration issues with cookies, sockets, and Headless UI Dialog.
 const Notifications = dynamic(() => import("../Updates/Notifications"), {
   ssr: false,
@@ -59,9 +60,9 @@ function Sidebar({
         </DialogPanel>
       </Dialog>
       <div className="space-y-[22px]">
-        <div className="bg-green-1 mx-[14px] rounded-[6px] py-1.5 px-1.5 w-max leading-[18px] text-white font-medium text-[18px]">
-          <p className="">{placeholders.market}</p>
-        </div>
+        <Link href="/home" className="px-[14px] block">
+          <Image src={logo} alt="logo" />
+        </Link>
         <div>
           {links.map((link, index) => {
             const active: boolean = path.includes(link?.href);
@@ -137,15 +138,15 @@ function Sidebar({
             {placeholders.company}
           </span>
           <div className="h-1 w-1 rounded-full bg-gray-7"></div>
-          <span className="text-green-1 underline cursor-pointer">
+          <span onClick={() => router.push("/contact-us")} className="text-green-1 underline cursor-pointer">
             {placeholders.contact}
           </span>
           <div className="h-1 w-1 rounded-full bg-gray-7"></div>
-          <span className="text-green-1 underline cursor-pointer">
+          <span onClick={() => router.push("/terms-conditions")} className="text-green-1 underline cursor-pointer">
             {placeholders.terms}
           </span>
         </div>
-        <div className="text-green-1 underline cursor-pointer text-[12px] font-normal -mt-[2px]">
+        <div onClick={() => router.push("/privacy-policy")} className="text-green-1 underline cursor-pointer text-[12px] font-normal -mt-[2px]">
           {placeholders.privacy}
         </div>
         <div className="flex items-center gap-2">

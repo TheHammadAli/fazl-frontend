@@ -171,7 +171,7 @@ function BroadCatMessages({ chatId, onSelectChat }: { chatId: string, onSelectCh
                     </button>
                 </div>}
                 {
-                    showBroadcastThreadList && <div className="flex gap-1 items-center cursor-pointer" onClick={() => { setShowBroadcastThreadList(false) }}>
+                    showBroadcastThreadList && <div className="flex gap-1 items-center cursor-pointer" onClick={() => { setShowBroadcastThreadList(false); onSelectChat(null) }}>
                         <Image src={backIcon} alt="back" className="ltr:rotate-0 rtl:rotate-180" />
                         <span className="text-[15px] font-normal text-[#030303]">{ph("back")}</span>
                     </div>

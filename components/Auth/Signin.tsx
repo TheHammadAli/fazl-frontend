@@ -14,6 +14,7 @@ import {
 } from "@/store/reducers/authReducer";
 import { BASE_URL } from "@/assets/content/constants";
 import GoogleIcon from "@/assets/icons/google-icon.svg";
+import Footer from "./Footer";
 
 export type Body = {
   email?: string;
@@ -93,7 +94,7 @@ function Signin() {
   };
 
   return (
-    <div className="w-screen h-screen flex min-h-[818px]">
+    <div className="w-screen h-screen flex min-h-[818px] ">
       {/* Left section */}
       <div className="hidden lg:block lg:w-[60%] pl-8 xl:pl-24 ">
         <Image
@@ -106,7 +107,7 @@ function Signin() {
       {/* Right section */}
       <form
         onSubmit={handleSignin}
-        className="w-full lg:w-[50%] px-5 sm:px-[50px] xl:px-[150px] pt-[80px] flex flex-col items-center lg:justify-between"
+        className="w-full lg:w-[50%] px-5 sm:px-[50px] xl:px-[150px] pt-[80px] flex flex-col  items-center lg:justify-between"
       >
         <div className="max-w-[500px] w-full">
           <h1 className="text-black-1 font-medium text-[22px] text-center">
@@ -119,9 +120,8 @@ function Signin() {
           {/* Email */}
           <div className="space-y-2 mt-5">
             <p
-              className={`text-[14px] ${
-                emailError ? "text-red-1" : "text-gray-8"
-              }`}
+              className={`text-[14px] ${emailError ? "text-red-1" : "text-gray-8"
+                }`}
             >
               Email
             </p>
@@ -129,9 +129,8 @@ function Signin() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className={`h-[28px] w-full border-b ${
-                emailError ? "border-red-1" : "border-gray-9"
-              } focus:outline-none`}
+              className={`h-[28px] w-full border-b ${emailError ? "border-red-1" : "border-gray-9"
+                } focus:outline-none`}
             />
             {emailError && (
               <p className="text-red-1 text-[14px]">{emailError}</p>
@@ -141,16 +140,14 @@ function Signin() {
           {/* Password */}
           <div className="space-y-2 mt-5">
             <p
-              className={`text-[14px] ${
-                passwordError ? "text-red-1" : "text-gray-8"
-              }`}
+              className={`text-[14px] ${passwordError ? "text-red-1" : "text-gray-8"
+                }`}
             >
               Password
             </p>
             <div
-              className={`flex items-center border-b ${
-                passwordError ? "border-red-1" : "border-gray-9"
-              }`}
+              className={`flex items-center border-b ${passwordError ? "border-red-1" : "border-gray-9"
+                }`}
             >
               <input
                 type={showPassword ? "text" : "password"}
@@ -206,6 +203,10 @@ function Signin() {
             </span>
           </div>
         </div>
+        <div className="lg:mb-10 mt-14 lg:mt-0">
+          <Footer />
+        </div>
+
       </form>
     </div>
   );
