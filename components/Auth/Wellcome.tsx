@@ -6,6 +6,7 @@ import Arrow from "@/assets/icons/right-gray-arrow-icon.svg";
 import { useDictionary } from "@/dictionaries/DictionaryProvider";
 import { useRouter } from "next/navigation";
 import LangSwitcher from "../Ui/LangSwitcher";
+import Footer from "./Footer";
 function Wellcome() {
   const router = useRouter();
   const { info_messages, placeholders } = useDictionary();
@@ -70,19 +71,8 @@ function Wellcome() {
             <Image src={Arrow} alt="arrow" className="rtl:-rotate-90 " />
           </div>
         </div>
-        <div className=" py-10 lg:py-0">
-          <div className="flex justify-center lg:-mt-28">
-            <div className="h-[30px] w-[70px] bg-green-1 rounded-[6px] text-white flex items-center justify-center text-[18px] font-semibold">
-              {placeholders.market}
-            </div>
-          </div>
-          <div className="flex justify-center items-center font-[400] text-[12px] text-green-1 gap-[6px] mt-3">
-            <p>{placeholders.contact}</p>
-            <div className="h-1 w-1 bg-green-1 rounded-full"></div>
-            <p>{placeholders.terms_condition}</p>
-            <div className="h-1 w-1 bg-green-1 rounded-full"></div>
-            <p>{placeholders.privacy_policy}</p>
-          </div>
+        <div className="mt-14 lg:mt-0 lg:mb-14  w-full">
+          <Footer />
         </div>
       </div>
     </div>

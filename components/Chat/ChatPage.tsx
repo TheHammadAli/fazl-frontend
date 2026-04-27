@@ -5,16 +5,27 @@ import ChatSidebar from "./ChatSidebar";
 import ChatWindow from "./ChatWindow";
 import { type ChatThread } from "./types";
 import { useSearchParams } from "next/navigation";
+import noMessagesIcon from "@/assets/icons/no-message.svg";
+import Image from "next/image";
+import { useDictionary } from "@/dictionaries/DictionaryProvider";
 
 
 
 export default function ChatPage() {
+  const { placeholders } = useDictionary();
   const params = useSearchParams();
   const [mobileShowConversation, setMobileShowConversation] = useState(false);
   const [threadType, setThreadType] = useState("direct_messages");
   const [chatId, setChatId] = useState("");
   const [selectedThread, setSelectedThread] = useState<ChatThread | null>(null);
-  const handleSelectChat = useCallback((thread: ChatThread) => {
+  const handleSelectChat = useCallback((thread: ChatThread | null) => {
+    if (!thread) {
+      setSelectedThread(null);
+      setChatId("");
+      setMobileShowConversation(false);
+      return;
+    }
+
     if (thread.type === "broadcast_received") {
       setSelectedThread(thread);
       setChatId(thread.threadId ?? "");
@@ -79,7 +90,14 @@ export default function ChatPage() {
               thread={selectedThread}
               onBack={() => setMobileShowConversation(false)}
             />
-          ) : null}
+          ) : <div className="h-full w-full">
+            <div className="flex h-full flex-col items-center justify-center px-6 text-center">
+              <Image src={noMessagesIcon} alt="no-messages-icon" />
+              <h3 className="mt-1 text-[22px] font-medium  text-black-1">{placeholders.no_messages_yet}</h3>
+              <p className="mt-1 max-w-[560px] text-[14px] font-normal  text-gray-8">
+                {placeholders.messages_appear_here}
+              </p>
+            </div></div>}
         </div>
       </div>
     </div>

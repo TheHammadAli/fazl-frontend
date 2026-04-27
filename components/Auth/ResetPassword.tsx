@@ -12,6 +12,7 @@ import redCross from "@/assets/icons/red-cross-icon.svg";
 import { useResetPasswordMutation } from "@/store/services/authService";
 import { useSearchParams } from "next/navigation";
 import toast from "react-hot-toast";
+import Footer from "./Footer";
 export type Body = {
   email?: string;
   phoneNumber?: string;
@@ -118,7 +119,7 @@ function ResetPassword() {
     if (isError && "data" in error) {
       toast.error(
         (error?.data as { message?: string })?.message ||
-          "something went wrong!"
+        "something went wrong!"
       );
     }
   }, [isSuccess, isError, data, error]);
@@ -158,9 +159,8 @@ function ResetPassword() {
                 Password
               </p>
               <div
-                className={`flex gap-1 items-center ${
-                  passwordError ? "border-red-1" : "border-gray-9"
-                } border-b-[1px]`}
+                className={`flex gap-1 items-center ${passwordError ? "border-red-1" : "border-gray-9"
+                  } border-b-[1px]`}
               >
                 <input
                   type={showPassword ? "text" : "password"}
@@ -190,9 +190,8 @@ function ResetPassword() {
                     className="inline-block "
                   />
                   <p
-                    className={`text-[14px] font-normal ${
-                      validationStatus.length ? "text-green-1" : "text-red-500"
-                    }`}
+                    className={`text-[14px] font-normal ${validationStatus.length ? "text-green-1" : "text-red-500"
+                      }`}
                   >
                     Must be at least 8 characters
                   </p>
@@ -206,11 +205,10 @@ function ResetPassword() {
                     className="inline-block "
                   />
                   <p
-                    className={`text-[14px] font-normal leading-none ${
-                      validationStatus.specialCharacter
+                    className={`text-[14px] font-normal leading-none ${validationStatus.specialCharacter
                         ? "text-green-1"
                         : "text-red-500"
-                    }`}
+                      }`}
                   >
                     Must have at least one special character
                   </p>
@@ -222,11 +220,10 @@ function ResetPassword() {
                     className="inline-block "
                   />
                   <p
-                    className={`text-[14px] font-normal ${
-                      validationStatus.noSpaces
+                    className={`text-[14px] font-normal ${validationStatus.noSpaces
                         ? "text-green-1"
                         : "text-red-500"
-                    }`}
+                      }`}
                   >
                     Can&apos;t contain spaces
                   </p>
@@ -244,9 +241,8 @@ function ResetPassword() {
                 Confirm password
               </p>
               <div
-                className={`flex gap-1 items-center ${
-                  confirmPasswordError ? "border-red-1" : "border-gray-9"
-                } border-b-[1px]`}
+                className={`flex gap-1 items-center ${confirmPasswordError ? "border-red-1" : "border-gray-9"
+                  } border-b-[1px]`}
               >
                 <input
                   type={showConfirmPassword ? "text" : "password"}
@@ -279,19 +275,8 @@ function ResetPassword() {
               {isLoading ? <BeatLoader color="white" size={8} /> : "Continue"}
             </button>
           </div>
-          <div className="w-full lg:mb-16">
-            <div className="flex justify-center mt-[80px]">
-              <div className="h-[30px] w-[70px] bg-green-1 rounded-[6px] text-white flex items-center justify-center text-[18px] font-semibold">
-                market
-              </div>
-            </div>
-            <div className="flex justify-center items-center font-[400] text-[12px] text-green-1 gap-[6px] mt-3">
-              <p>Contact</p>
-              <div className="h-1 w-1 bg-green-1 rounded-full"></div>
-              <p>Terms and Conditions</p>
-              <div className="h-1 w-1 bg-green-1 rounded-full"></div>
-              <p>Privacy Policy</p>
-            </div>
+          <div className="mt-14 w-full">
+            <Footer />
           </div>
         </form>
       </div>

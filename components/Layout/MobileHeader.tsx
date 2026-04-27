@@ -4,7 +4,7 @@ import { act, useState } from "react";
 import { Dialog, DialogPanel } from "@headlessui/react";
 import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
 import Image from "next/image";
-import logo from "@/assets/icons/logo-with-text.svg";
+import logo from "@/assets/icons/fazal-logo.svg";
 import { useDictionary } from "@/dictionaries/DictionaryProvider";
 import dummyProfile from "@/assets/images/profile-placehonder.png";
 import { links } from "@/assets/content/links";
@@ -34,9 +34,10 @@ export default function MobileHeader({ unreadMessages, unreadCount, openSidebar,
           aria-label="Global"
           className=" flex  items-center gap-5 justify-between w-full "
         >
-          <div className="bg-green-1  rounded-[6px] py-1.5 px-1.5 w-max leading-[18px] text-white font-medium text-[18px]">
-            <p className="">{placeholders.market}</p>
+          <div onClick={() => router.push("/home")}>
+            <Image src={logo} alt="logo" />
           </div>
+
           <div className="flex lg:hidden">
             <button
               type="button"

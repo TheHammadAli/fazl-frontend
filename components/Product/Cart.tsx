@@ -15,8 +15,9 @@ import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { BeatLoader } from "react-spinners";
 import addIcon from "@/assets/icons/add.svg";
+import { useGetAvgReviewsQuery } from "@/store/services/reviewService";
 
-function Cart({ product, shopData, selectedVariants }: ProductDetailProps) {
+function Cart({ product, shopData, selectedVariants, ownerDetail }: ProductDetailProps) {
   const { pages, placeholders, info_messages, error_messages } =
     useDictionary();
   const router = useRouter();
@@ -25,6 +26,13 @@ function Cart({ product, shopData, selectedVariants }: ProductDetailProps) {
   const [paymentMethod, setPaymentMethod] = useState("");
   const [orderProduct, { isLoading, isError, isSuccess, error, data }] =
     useOrderProductMutation();
+  const { data: avgReview, isLoading: isLoadingAvgReview } = useGetAvgReviewsQuery(
+    { type: "product", id: product?.data?.id ?? "" },
+    { skip: !product?.data?.id || !product?.data?.id }
+  );
+  const reviewCount = avgReview?.data?.count ?? 0;
+  const avgRating = avgReview?.data?.avgRating ?? 0;
+  const ownerData = ownerDetail?.data;
 
   const { user } =
     typeof window !== "undefined"
@@ -63,15 +71,15 @@ function Cart({ product, shopData, selectedVariants }: ProductDetailProps) {
     if (isError && "data" in error) {
       toast.error(
         (error?.data as { message?: string })?.message ||
-          "something went wrong!"
+        "something went wrong!"
       );
-      const timer = setTimeout(() => {}, 500);
+      const timer = setTimeout(() => { }, 500);
       return () => clearTimeout(timer);
     }
   }, [isSuccess, isError, data, error]);
 
   return (
-    <div>
+    <div className=" ">
       <div className="h-full min-h-screen  flex flex-col items-center">
         <div className="px-5 sm:px-10 h-[61px] border-b-[1px] border-gray-9 bg-white w-full  flex justify-center">
           <div className="w-full   flex items-center gap-[6px] font-normal text-[14px] mt-5">
@@ -98,11 +106,10 @@ function Cart({ product, shopData, selectedVariants }: ProductDetailProps) {
                     {({ checked }) => (
                       <div className="flex items-center gap-2 cursor-pointer">
                         <span
-                          className={`h-[18px] w-[18px] rounded-full border ${
-                            checked
-                              ? "border-4 border-green-1"
-                              : "border-[#E5E5E5]"
-                          }`}
+                          className={`h-[18px] w-[18px] rounded-full border ${checked
+                            ? "border-4 border-green-1"
+                            : "border-[#E5E5E5]"
+                            }`}
                         />
                         <span className="text-[#030303] text-[15px] ">
                           {placeholders.delivery}
@@ -115,11 +122,10 @@ function Cart({ product, shopData, selectedVariants }: ProductDetailProps) {
                     {({ checked }) => (
                       <div className="flex items-center gap-2 cursor-pointer">
                         <span
-                          className={`h-[18px] w-[18px] rounded-full border ${
-                            checked
-                              ? "border-4 border-green-1"
-                              : "border-[#E5E5E5]"
-                          }`}
+                          className={`h-[18px] w-[18px] rounded-full border ${checked
+                            ? "border-4 border-green-1"
+                            : "border-[#E5E5E5]"
+                            }`}
                         />
                         <span className="text-[#030303] text-[15px] ">
                           {placeholders.self_pickup}
@@ -199,11 +205,10 @@ function Cart({ product, shopData, selectedVariants }: ProductDetailProps) {
                           }
                         >
                           <span
-                            className={`h-[24px] w-[24px] rounded-full border ${
-                              paymentMethod === "easypaisa"
-                                ? "border-4 border-green-1"
-                                : "border-[#E5E5E5]"
-                            }`}
+                            className={`h-[24px] w-[24px] rounded-full border ${paymentMethod === "easypaisa"
+                              ? "border-4 border-green-1"
+                              : "border-[#E5E5E5]"
+                              }`}
                           />
                         </div>
                       </div>
@@ -231,11 +236,10 @@ function Cart({ product, shopData, selectedVariants }: ProductDetailProps) {
                           }
                         >
                           <span
-                            className={`h-[24px] w-[24px] rounded-full border ${
-                              paymentMethod === "cashondelivery"
-                                ? "border-4 border-green-1"
-                                : "border-[#E5E5E5]"
-                            }`}
+                            className={`h-[24px] w-[24px] rounded-full border ${paymentMethod === "cashondelivery"
+                              ? "border-4 border-green-1"
+                              : "border-[#E5E5E5]"
+                              }`}
                           />
                         </div>
                       </div>
@@ -281,7 +285,11 @@ function Cart({ product, shopData, selectedVariants }: ProductDetailProps) {
               {/* Product Info */}
               <div className="flex items-start gap-4">
                 <Image
-                  src={shopData?.image ?? noImageAvtar} // replace with actual product image
+                  src={product?.data?.shopId && shopData?.image
+                    ? shopData.image
+                    : product?.data?.ownerId && ownerData?.image
+                      ? ownerData.image
+                      : noImageAvtar} // replace with actual product image
                   alt="Red Cowboy Hat"
                   width={100}
                   height={100}
@@ -290,16 +298,21 @@ function Cart({ product, shopData, selectedVariants }: ProductDetailProps) {
                 />
                 <div>
                   <p className="text-sm text-[#4B514F] text-[14px]">
-                    Alexcloth
+                    {product?.data?.shopId
+                      ? shopData?.title
+                      : product?.data?.ownerId
+                        ? ownerData?.name
+                        : ""}
                   </p>
                   <h2 className="font-medium text-[#030303] text-[16px]">
-                    {shopData?.title ?? ""}
+                    {product?.data?.title ?? ""}
                   </h2>
                   <div className="flex items-center gap-1 mt-1">
                     <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
-                    <span className="text-sm font-medium">4.9</span>
+                    <span className="text-sm font-medium">{avgRating.toFixed(1)}</span>
                     <span className="text-sm text-gray-500">
-                      (150) {placeholders.reviews}
+                      (                  {reviewCount}
+                      ) {reviewCount === 1 ? placeholders.review : placeholders.reviews}
                     </span>
                   </div>
                 </div>

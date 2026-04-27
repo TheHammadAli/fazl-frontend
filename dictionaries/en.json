@@ -75,6 +75,7 @@
         "my_jobs": "My jobs",
         "start_timer": "Start timer",
         "end_service": "End service",
+        "booking_date_passed": "Booking date passed",
         "service_in_progress": "Service in progress",
         "service_completed": "Service completed",
         "no_jobs_available": "No jobs available",

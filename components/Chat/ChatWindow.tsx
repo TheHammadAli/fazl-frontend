@@ -8,7 +8,7 @@ import camIcon from "@/assets/icons/cam-icon.svg";
 import SquareAddIcon from "@/assets/icons/add-square.svg";
 import whiteArrowIcon from "@/assets/icons/white-arrow.svg";
 import { getUserId } from "@/utils/getUserId";
-import { useGetBroadcastThreadMessagesQuery, useGetConversationMessagesQuery, useMarkMessagesAsReadMutation, useSendBroadcastMessageMutation } from "@/store/services/chatService";
+import { useGetBroadcastThreadMessagesQuery, useGetConversationMessagesQuery, useMarkMessagesAsReadMutation } from "@/store/services/chatService";
 import { useEffect, useMemo, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { parsePositiveInt } from "../Updates/Notifications";
@@ -21,6 +21,7 @@ type ChatWindowProps = {
   onBack?: () => void;
   threadType: string;
 };
+import noMessagesIcon from "@/assets/icons/no-message.svg";
 
 export default function ChatWindow({ thread, onBack, threadType }: ChatWindowProps) {
   const { placeholders } = useDictionary();
@@ -65,16 +66,23 @@ export default function ChatWindow({ thread, onBack, threadType }: ChatWindowPro
     skip: !conversationId || threadType === "broadcast_messages",
     refetchOnMountOrArgChange: true,
   });
-  const { data: broadcastMessages, refetch: refetchBroadcastMessages } = useGetBroadcastThreadMessagesQuery({
+  const {
+    data: broadcastMessages,
+    isFetching: isFetchingBroadcastMessages,
+    refetch: refetchBroadcastMessages,
+  } = useGetBroadcastThreadMessagesQuery({
     id: broadcastRequestId,
     threadId: broadcastThreadId,
   }, {
     skip: threadType !== "broadcast_messages" || !broadcastRequestId || !broadcastThreadId,
     refetchOnMountOrArgChange: true,
   });
-  const [sendBroadcastMessage] = useSendBroadcastMessageMutation();
   const totalPages = parsePositiveInt(messages?.meta?.totalPages);
   const incomingMessages = (messages?.data as ChatMessage[] | undefined) ?? undefined;
+  const isMessagesLoading =
+    threadType === "broadcast_messages"
+      ? isFetchingBroadcastMessages && filteredMessages.length === 0
+      : isFetching && page === 1 && filteredMessages.length === 0;
   const canLoadMore =
     totalPages != null ? page < totalPages : messages?.meta?.total >= PAGE_LIMIT;
   function handleScrollNearBottom(e: React.UIEvent<HTMLDivElement>) {
@@ -205,7 +213,7 @@ export default function ChatWindow({ thread, onBack, threadType }: ChatWindowPro
         // Keep chat usable even if marking read fails.
       });
     }
-  }, [conversationId, markMessagesAsRead, userId, threadType, broadcastMessages?.data]);
+  }, [conversationId, markMessagesAsRead, userId, threadType, broadcastMessages?.data, broadcastThreadId, isBroadcastReceived, thread?._id, thread?.broadcastId]);
 
   const sortedFilteredMessages = useMemo(
     () =>
@@ -266,32 +274,50 @@ export default function ChatWindow({ thread, onBack, threadType }: ChatWindowPro
       </header>
 
       <div ref={messagesContainerRef} onScroll={handleScrollNearBottom} className="flex-1 overflow-y-auto px-4 py-4 lg:px-8 lg:py-6">
-        <div className="flex min-h-full flex-col justify-end gap-6">
-          {sortedFilteredMessages.map((message: any, index: number) => {
-            console.log(message, "message");
-            const mine = (threadType === "broadcast_messages" ? message?.sender?.id : message?.sender) === userId;
-            const currentDateLabel = getDateLabel(message.createdAt);
-            const previousDateLabel = getDateLabel(sortedFilteredMessages[index - 1]?.createdAt);
-            const showDateSeparator = currentDateLabel && currentDateLabel !== previousDateLabel;
-            return (
-              <div key={index}>
-                {showDateSeparator ? (
-                  <p className="mb-2 text-center text-xs text-gray-400">{currentDateLabel}</p>
-                ) : null}
-                <div className={`flex gap-2 items-end ${mine ? "justify-end" : "justify-start"}`}>
-                  {!mine && <div className="h-[32px] w-[32px] rounded-full bg-gray-200">
-                    <Image src={headerAvatar} alt="sender-image" width={32} height={32} unoptimized className="h-full w-full rounded-full object-cover" />
-                  </div>}
-                  <div
-                    className={`max-w-[85%] break-words rounded-2xl px-4 py-2 text-sm leading-relaxed lg:max-w-[60%] ${mine ? "bg-[#EEF2F3] text-[#030303]" : "bg-[#F6F6F6] text-gray-900"}`}
-                  >
-                    {threadType === "broadcast_messages" ? message.message : message.text}
-                  </div>
+        {isMessagesLoading ? (
+          <div className="flex min-h-full flex-col justify-end gap-6">
+            {Array.from({ length: 6 }).map((_, idx) => (
+              <div key={`msg-skeleton-${idx}`} className={`flex gap-2 items-end ${idx % 2 === 0 ? "justify-start" : "justify-end"}`}>
+                {idx % 2 === 0 && <div className="h-[32px] w-[32px] rounded-full bg-gray-200 animate-pulse" />}
+                <div className="max-w-[85%] lg:max-w-[60%]">
+                  <div className="h-10 w-[180px] rounded-2xl bg-gray-200 animate-pulse" />
                 </div>
               </div>
-            );
-          })}
-        </div>
+            ))}
+          </div>
+        ) : sortedFilteredMessages?.length === 0 ?
+          <div className="flex flex-col justify-center items-center h-full ">
+            <Image src={noMessagesIcon} alt="no-messages-icon" />
+            <h1 className="text-black-1 text-[22px] font-medium">Start converstaion</h1>
+            <p className="text-[#4B514F] text-[14px] font-normal">Say Hi, to begin your conversation</p>
+          </div>
+          :
+          <div className="flex min-h-full flex-col justify-end gap-6">
+            {sortedFilteredMessages?.map((message: any, index: number) => {
+              const mine = (threadType === "broadcast_messages" ? message?.sender?.id : message?.sender) === userId;
+              const currentDateLabel = getDateLabel(message.createdAt);
+              const previousDateLabel = getDateLabel(sortedFilteredMessages[index - 1]?.createdAt);
+              const showDateSeparator = currentDateLabel && currentDateLabel !== previousDateLabel;
+              return (
+                <div key={index}>
+                  {showDateSeparator ? (
+                    <p className="mb-2 text-center text-xs text-gray-400">{currentDateLabel}</p>
+                  ) : null}
+                  <div className={`flex gap-2 items-end ${mine ? "justify-end" : "justify-start"}`}>
+                    {!mine && <div className="h-[32px] w-[32px] rounded-full bg-gray-200">
+                      <Image src={headerAvatar} alt="sender-image" width={32} height={32} unoptimized className="h-full w-full rounded-full object-cover" />
+                    </div>}
+                    <div
+                      className={`max-w-[85%] break-words rounded-2xl px-4 py-2 text-sm leading-relaxed lg:max-w-[60%] ${mine ? "bg-[#EEF2F3] text-[#030303]" : "bg-[#F6F6F6] text-gray-900"}`}
+                    >
+                      {threadType === "broadcast_messages" ? message.message : message.text}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        }
       </div>
 
 

@@ -15,7 +15,8 @@ export function middleware(request: NextRequest) {
   let pathname = request.nextUrl.pathname;
   const locale = request.cookies.get("lang")?.value || "en";
   const pathnameIsMissingLocale = i18n.locales.every(
-    (locale) => !pathname.startsWith(`/${locale}/`) && pathname !== `/${locale}`
+    (locale) =>
+      !pathname.startsWith(`/${locale}/`) && pathname !== `/${locale}`,
   );
 
   const publicRoutes: string[] = [`/${locale}/google/auth/success`];
@@ -32,10 +33,18 @@ export function middleware(request: NextRequest) {
     `/${locale}/set-password`,
     // `/${locale}/complete-info`,
   ];
+  const publicInfoRoutes: string[] = [
+    `/${locale}/contact-us`,
+    `/${locale}/terms-conditions`,
+    `/${locale}/privacy-policy`,
+  ];
 
   function checkPathStartsWith(path: string) {
     // if (path === "/" || path === `/${locale}`) return true;
     return authRoutes.some((p: string) => path.startsWith(p));
+  }
+  function isPublicInfoRoute(path: string) {
+    return publicInfoRoutes.some((p: string) => path.startsWith(p));
   }
 
   // Add locale if there is no locale
@@ -65,7 +74,7 @@ export function middleware(request: NextRequest) {
     // Allow access if already on /complete-info
     if (pathname !== `/${locale}/complete-info`) {
       return NextResponse.redirect(
-        new URL(`/${locale}/complete-info`, request.url)
+        new URL(`/${locale}/complete-info`, request.url),
       );
     }
   }
@@ -73,7 +82,7 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL(`/${locale}/home`, request.url));
   }
 
-  if (!token && !checkPathStartsWith(pathname)) {
+  if (!token && !checkPathStartsWith(pathname) && !isPublicInfoRoute(pathname)) {
     return NextResponse.redirect(new URL(`/${locale}/signin`, request.url));
   }
 
