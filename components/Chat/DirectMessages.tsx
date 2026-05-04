@@ -13,6 +13,7 @@ import { parsePositiveInt } from '../Updates/Notifications';
 import moment from 'moment';
 import noMessagesIcon from "@/assets/icons/no-message.svg";
 import noImageAvtar from "@/assets/images/profile-placehonder.png";
+import AvatarUi from '../Ui/AvatarUi';
 function DirectMessages({
     threadType,
     setThreadType,
@@ -106,7 +107,7 @@ function DirectMessages({
                     </li>
                 ) : filteredThreads?.map((thread: any, index) => {
                     const isActive = thread?._id === chatId;
-                    const thread_user = thread?.buyer?.id !== userId ? thread?.buyer : thread?.seller;
+                    const thread_user = thread?.buyer?.id || thread?.buyer?._id !== userId ? thread?.buyer : thread?.seller;
                     return (
                         <li key={index}>
                             <button
@@ -116,13 +117,10 @@ function DirectMessages({
                                 }}
                                 className={`flex w-full cursor-pointer items-start gap-3 px-4 py-4 text-left ${isActive ? "bg-[#E7F4F5]" : "hover:bg-gray-50"}`}
                             >
-                                <Image
-                                    src={thread_user?.image ?? noImageAvtar}
-                                    alt={thread_user?.name ?? ""}
-                                    width={44}
-                                    height={44}
-                                    className="h-11 w-11 rounded-full object-cover"
-                                    unoptimized
+                                <AvatarUi
+                                    image={thread_user?.image ?? noImageAvtar.src}
+                                    name={thread_user?.name ?? ""}
+                                    className="h-11 w-11 rounded-full "
                                 />
                                 <div className="min-w-0 flex-1">
                                     <div className="flex items-center justify-between gap-2">

@@ -46,12 +46,7 @@ export const chatService = baseApi.injectEndpoints({
       providesTags: ["Chat"],
     }),
     sendMessage: build.mutation({
-      query: (body: {
-        conversationId: string;
-        text: string;
-        senderId: string;
-        receiverId: string;
-      }) => {
+      query: (body: any) => {
         return {
           url: `/chat/message`,
           method: "POST",

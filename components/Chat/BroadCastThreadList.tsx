@@ -123,8 +123,7 @@ function BroadCastThreadList({
                     </li>
                 ) : conversations?.data?.map((thread: any, index: number) => {
                     const isActive = (thread?._id ?? thread?.id) === chatId;
-                    const thread_user = thread?.buyer?.id !== userId ? thread?.buyer : thread?.seller;
-                    console.log(thread, "thread");
+                    const thread_user = thread?.buyer?.id || thread?.buyer?._id !== userId ? thread?.buyer : thread?.seller;
                     return (
                         <li key={index}>
                             <button
