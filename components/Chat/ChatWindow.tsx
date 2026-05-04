@@ -8,7 +8,7 @@ import camIcon from "@/assets/icons/cam-icon.svg";
 import SquareAddIcon from "@/assets/icons/add-square.svg";
 import whiteArrowIcon from "@/assets/icons/white-arrow.svg";
 import { getUserId } from "@/utils/getUserId";
-import { useGetBroadcastThreadMessagesQuery, useGetConversationMessagesQuery, useMarkMessagesAsReadMutation } from "@/store/services/chatService";
+import { useGetBroadcastThreadMessagesQuery, useGetConversationMessagesQuery, useMarkMessagesAsReadMutation, useSendBroadcastMessageMutation, useSendMessageMutation } from "@/store/services/chatService";
 import { useEffect, useMemo, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { parsePositiveInt } from "../Updates/Notifications";
@@ -16,17 +16,19 @@ import moment from "moment";
 import { initializeSocket } from "@/utils/socket";
 import baseApi from "@/store/baseApi";
 import { useAppDispatch } from "@/store/store";
+import { XMarkIcon } from "@heroicons/react/24/outline";
+import noImageAvtar from "@/assets/images/profile-placehonder.png";
 type ChatWindowProps = {
   thread: any;
   onBack?: () => void;
   threadType: string;
 };
 import noMessagesIcon from "@/assets/icons/no-message.svg";
+import AvatarUi from "../Ui/AvatarUi";
 
 export default function ChatWindow({ thread, onBack, threadType }: ChatWindowProps) {
   const { placeholders } = useDictionary();
   type PlaceholderKey = keyof typeof placeholders;
-  const [isSendingMessage, setIsSendingMessage] = useState(false);
   const ph = (key: PlaceholderKey) => placeholders[key];
   const PAGE_LIMIT = 15;
   const [page, setPage] = useState(1);
@@ -47,13 +49,17 @@ export default function ChatWindow({ thread, onBack, threadType }: ChatWindowPro
   const isBroadcastReceived = thread?.type === "broadcast_received";
   const broadcastRequestId = isBroadcastReceived ? thread?.buyer : thread?.seller?.id
   const broadcastThreadId = isBroadcastReceived ? (thread?.threadId ?? "") : (conversationId ?? "");
-  const headerUser = thread?.buyer?.id !== userId ? thread?.buyer : thread?.seller;
+  const headerUser = thread?.buyer?.id || thread?.buyer?._id !== userId ? thread?.buyer : thread?.seller;
   const headerName = headerUser?.name ?? thread?.name ?? "";
   const headerEmail = headerUser?.email ?? thread?.email ?? "";
   const headerAvatar = headerUser?.image ?? thread?.avatar ?? "https://i.pravatar.cc/80?img=11";
   const [messageText, setMessageText] = useState("");
   const [filteredMessages, setFilteredMessages] = useState<ChatMessage[]>([]);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [markMessagesAsRead] = useMarkMessagesAsReadMutation();
+  const [sendMessage, { isLoading: isSendingMessage }] = useSendMessageMutation();
+  const [sendBroadcastMessage, { isLoading: isSendingBroadcastMessage }] = useSendBroadcastMessageMutation();
   const messagesQueryArgs = useMemo(
     () => ({
       conversationId,
@@ -85,6 +91,11 @@ export default function ChatWindow({ thread, onBack, threadType }: ChatWindowPro
       : isFetching && page === 1 && filteredMessages.length === 0;
   const canLoadMore =
     totalPages != null ? page < totalPages : messages?.meta?.total >= PAGE_LIMIT;
+  const scrollToBottom = () => {
+    const el = messagesContainerRef.current;
+    if (!el) return;
+    el.scrollTop = el.scrollHeight;
+  };
   function handleScrollNearBottom(e: React.UIEvent<HTMLDivElement>) {
     if (threadType === "broadcast_messages") return;
     const el = e.currentTarget;
@@ -96,11 +107,10 @@ export default function ChatWindow({ thread, onBack, threadType }: ChatWindowPro
     setPage((p) => p + 1);
   }
   const handleSendMessage = async () => {
-    if (messageText.trim() === "") {
+    if (messageText.trim() === "" && !selectedFile) {
       return;
     }
     try {
-      setIsSendingMessage(true);
 
       if (threadType === "broadcast_messages") {
         const broadcastMessageId = isBroadcastReceived ? thread?._id : thread?.broadcastId;
@@ -121,18 +131,35 @@ export default function ChatWindow({ thread, onBack, threadType }: ChatWindowPro
           receiverId: broadcastRequestId,
           message: messageText.trim(),
         };
-        socket?.emit('sendBroadcastMessage', messageData);
-
-        // await sendBroadcastMessage({
-        //   id: broadcastMessageId,
-        //   body,
-        // }).unwrap();
-
-        toast.success("Operation completed successfully");
-        setMessageText("");
-        shouldStickToBottomRef.current = true;
-        prevScrollHeightRef.current = 0;
-        await refetchBroadcastMessages();
+        const messageWithFile = {
+          ...messageData,
+          file: selectedFile,
+        };
+        const formData = new FormData();
+        Object.entries(messageWithFile).forEach(([key, value]) => {
+          if (value) {
+            formData.append(key, value);
+          }
+        });
+        sendBroadcastMessage({
+          id: broadcastMessageId,
+          body: selectedFile ? formData : messageData,
+        }).unwrap().then((res) => {
+          toast.success(res?.message ?? "Operation completed successfully");
+          setMessageText("");
+          setSelectedFile(null);
+          if (fileInputRef.current) {
+            fileInputRef.current.value = "";
+          }
+          shouldStickToBottomRef.current = true;
+          prevScrollHeightRef.current = 0;
+          refetchBroadcastMessages();
+          requestAnimationFrame(() => {
+            scrollToBottom();
+          });
+        }).catch((err) => {
+          toast.error(err?.data?.message ?? "Unable to send message");
+        });
         return;
       }
 
@@ -140,31 +167,55 @@ export default function ChatWindow({ thread, onBack, threadType }: ChatWindowPro
         return;
       }
 
-      const socket = initializeSocket();
-      if (!socket) {
+      const buyerId = thread?.buyer?.id ?? thread?.buyer?._id ?? "";
+      const sellerId = thread?.seller?.id ?? thread?.seller?._id ?? "";
+      const receiverId = buyerId !== userId ? buyerId : sellerId;
+      if (!receiverId) {
         toast.error("Unable to send message");
         return;
       }
-      socket.emit("sendMessage", {
-        conversationId,
-        text: messageText,
-        senderId: userId,
-        receiverId: thread?.buyer?.id !== userId ? thread?.buyer?.id ?? "" : thread?.seller?.id ?? "",
-      });
-      // Keep spinner visible briefly while socket event propagates.
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      toast.success("Operation completed successfully");
-      setMessageText("");
-      shouldStickToBottomRef.current = true;
-      prevScrollHeightRef.current = 0;
-      setPage(1);
-      refetch();
 
+      const messageData = {
+        conversationId,
+        text: messageText.trim(),
+        senderId: userId,
+        receiverId,
+      };
+      const messageWithFile = {
+        ...messageData,
+        file: selectedFile,
+      };
+      const formData = new FormData();
+      Object.entries(messageWithFile).forEach(([key, value]) => {
+        if (value) {
+          formData.append(key, value);
+        }
+      });
+      try {
+        const res = await sendMessage(selectedFile ? formData : messageData).unwrap();
+        toast.success(res?.message ?? "Operation completed successfully");
+        setMessageText("");
+        setSelectedFile(null);
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
+        }
+        shouldStickToBottomRef.current = true;
+        prevScrollHeightRef.current = 0;
+        setPage(1);
+        refetch();
+        requestAnimationFrame(() => {
+          scrollToBottom();
+        });
+      } catch (err: unknown) {
+        const message =
+          err && typeof err === "object" && "data" in err
+            ? (err as { data?: { message?: string } }).data?.message
+            : undefined;
+        toast.error(message ?? "Unable to send message");
+      }
     } catch {
       toast.error("Unable to send message");
 
-    } finally {
-      setIsSendingMessage(false);
     }
   }
   useEffect(() => {
@@ -259,13 +310,10 @@ export default function ChatWindow({ thread, onBack, threadType }: ChatWindowPro
             <ArrowLeftIcon className="h-5 w-5" />
           </button>
         ) : null}
-        <Image
-          src={headerAvatar}
-          alt={headerName}
-          width={44}
-          height={44}
-          className="h-11 w-11 rounded-full object-cover"
-          unoptimized
+        <AvatarUi
+          image={headerAvatar ?? noImageAvtar.src}
+          name={headerName}
+          className="h-11 w-11 rounded-full"
         />
         <div className="min-w-0">
           <p className="truncate text-[15px] font-semibold text-gray-900 first-letter:uppercase">{headerName}</p>
@@ -305,19 +353,41 @@ export default function ChatWindow({ thread, onBack, threadType }: ChatWindowPro
               const currentDateLabel = getDateLabel(message.createdAt);
               const previousDateLabel = getDateLabel(sortedFilteredMessages[index - 1]?.createdAt);
               const showDateSeparator = currentDateLabel && currentDateLabel !== previousDateLabel;
+              const textContent =
+                threadType === "broadcast_messages" ? message?.message : message?.text;
+              const imageUrl = message?.imageUrl as string | undefined;
+              const hasImage = Boolean(imageUrl?.trim());
+              const showText = Boolean(textContent != null && String(textContent).trim());
               return (
                 <div key={index}>
                   {showDateSeparator ? (
                     <p className="mb-2 text-center text-xs text-gray-400">{currentDateLabel}</p>
                   ) : null}
                   <div className={`flex gap-2 items-end ${mine ? "justify-end" : "justify-start"}`}>
-                    {!mine && <div className="h-[32px] w-[32px] rounded-full bg-gray-200">
-                      <Image src={headerAvatar} alt="sender-image" width={32} height={32} unoptimized className="h-full w-full rounded-full object-cover" />
-                    </div>}
+                    {!mine && <AvatarUi image={headerAvatar ?? noImageAvtar.src} name={headerName} className="h-8 w-8 rounded-full" />}
                     <div
-                      className={`max-w-[85%] break-words rounded-2xl px-4 py-2 text-sm leading-relaxed lg:max-w-[60%] ${mine ? "bg-[#EEF2F3] text-[#030303]" : "bg-[#F6F6F6] text-gray-900"}`}
+                      className={`w-fit max-w-[85%] overflow-hidden rounded-2xl lg:max-w-[60%] ${mine ? "bg-[#EEF2F3]" : "bg-[#F6F6F6]"}`}
                     >
-                      {threadType === "broadcast_messages" ? message.message : message.text}
+                      {hasImage ? (
+                        <div className="flex justify-center bg-black/[0.03]">
+                          <Image
+                            src={imageUrl}
+                            alt=""
+                            width={100}
+                            height={100}
+                            // sizes="(max-width: 768px) 72vw, 100%"
+                            className="block h-auto w-auto object-contain"
+                            unoptimized
+                          />
+                        </div>
+                      ) : null}
+                      {showText ? (
+                        <div
+                          className={`break-words text-sm leading-relaxed ${mine ? "text-[#030303]" : "text-gray-900"} ${hasImage ? "px-3 pb-2.5 pt-2" : "px-4 py-2.5"} whitespace-pre-wrap`}
+                        >
+                          {textContent}
+                        </div>
+                      ) : null}
                     </div>
                   </div>
                 </div>
@@ -328,21 +398,47 @@ export default function ChatWindow({ thread, onBack, threadType }: ChatWindowPro
       </div>
 
 
-      <div className="border-t border-gray-200 bg-white px-3 py-2.5 lg:px-7">
-        <div className="flex items-center gap-2">
-          <button type="button" className="rounded-md p-1 text-gray-500 cursor-pointer">
+      <div className="border-t  border-gray-200 bg-[white] px-3 py-2.5 lg:px-7">
+        {selectedFile && <div className="w-[80px] h-[80px] relative">
+          <div className="absolute cursor-pointer h-5 w-5 -top-2 -right-2 rounded-full bg-[red] flex items-center justify-center">
+            <XMarkIcon
+              onClick={() => {
+                setSelectedFile(null);
+                if (fileInputRef.current) {
+                  fileInputRef.current.value = "";
+                }
+              }}
+              className="h-4 w-4 text-white"
+            />
+          </div>
+          {selectedFile && (
+            <Image className="h-full w-full object-cover" src={URL.createObjectURL(selectedFile)} alt="selected-file" width={100} height={100} />
+          )}
+        </div>}
+        <input
+          id="file-input"
+          ref={fileInputRef}
+          onChange={(e) => {
+            setSelectedFile(e.target.files?.[0] ?? null);
+            e.currentTarget.value = "";
+          }}
+          type="file"
+          accept="image/*"
+          className="hidden"
+        />
+        <div className=" mt-3 flex items-center gap-2">
+          {/* <button type="button" className="rounded-md p-1 text-gray-500 cursor-pointer">
             <Image src={camIcon} alt="cam-icon" />
-          </button>
-          <button type="button" className="rounded-md p-1 text-gray-500 cursor-pointer">
-            <Image src={SquareAddIcon} alt="square-add-icon" />
-          </button>
+          </button> */}
+          <label htmlFor="file-input" className="rounded-md cursor-pointer p-1 text-gray-500">
+            <Image src={camIcon} alt="cam-icon" />          </label>
           <div className="relative w-full">
             <input
               type="text"
               value={messageText}
               onChange={(e) => setMessageText(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === "Enter" && !isSendingMessage) {
+                if (e.key === "Enter" && !isSendingMessage && !isSendingBroadcastMessage) {
                   e.preventDefault();
                   handleSendMessage();
                 }
@@ -351,7 +447,7 @@ export default function ChatWindow({ thread, onBack, threadType }: ChatWindowPro
               className=" bg-[#EEF2F3] w-full pr-8 rtl:pl-8 rounded-[10px] flex-1 h-10 text px-4 text-[#949494] text-sm outline-none placeholder:text-[#949494]"
             />
             <div className="absolute rtl:rotate-180 ltr:right-3 rtl:left-3 top-1/2 -translate-y-1/2 p-1 hover:bg-green-1/10 rounded-full">
-              {isSendingMessage ? (
+              {isSendingMessage || isSendingBroadcastMessage ? (
                 <span className="">
                   <span className="block h-4 w-4 animate-spin rounded-full border-2 border-[#3C9197] border-t-transparent" />
                 </span>
