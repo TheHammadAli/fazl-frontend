@@ -116,7 +116,7 @@ function ServiceListing() {
             .filter((request: ServiceRequestItem) => request.provider?.id === userId)
             .filter((request: ServiceRequestItem) => {
                 if (activeRequestTab === "my_offers") {
-                    return request.status === "proposed";
+                    return request.status === "pending";
                 }
                 if (activeRequestTab === "service_history") {
                     return request.status === "accepted" || request.status === "rejected";
@@ -161,7 +161,7 @@ function ServiceListing() {
                     onClick={() => router.push("/services/my-service")}
                     className="self-start sm:self-auto font-medium text-[15px] cursor-pointer text-green-1 hover:underline"
                 >
-                    My service
+                    {placeholders["my_service" as keyof typeof placeholders] ?? "My service"}
                 </button>
 
             </div>
@@ -190,7 +190,7 @@ function ServiceListing() {
                                     key={tab}
                                     type="button"
                                     onClick={() => setActiveStatusTab(tab)}
-                                    className={`w-full h-[48px] px-5 text-left text-[15px] font-medium text-black-1 leading-none cursor-pointer ${activeStatusTab === tab ? "bg-green-4" : ""
+                                    className={`w-full h-[48px] px-5 ltr:text-left rtl:text-right text-[15px] font-medium text-black-1 leading-none cursor-pointer ${activeStatusTab === tab ? "bg-green-4" : ""
                                         }`}
                                 >
                                     {ph(tab)}
@@ -265,7 +265,7 @@ function ServiceListing() {
 
                                         </div>
 
-                                        {activeRequestTab === "service_request" && activeStatusTab === "incoming" && <div className="w-full shrink-0 xl:w-[297px] lg:max-w-full">
+                                        {(activeRequestTab === "service_request" && activeStatusTab === "incoming") || (activeRequestTab === "my_offers") && <div className="w-full shrink-0 xl:w-[297px] lg:max-w-full">
                                             <button
                                                 type="button"
                                                 disabled={isUpdating && spinnerAction === "accept"}

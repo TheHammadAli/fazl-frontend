@@ -147,14 +147,14 @@ function AddParameterValueModal({
             onClick={handleDeleteParameter}
             // disabled={parameter.trim().length === 0}
             type="button"
-            className="bg-red-1 disabled:opacity-50 cursor-pointer text-white h-[34px] w-[80px] rounded-[6px] flex items-center justify-center"
+            className="bg-red-1 disabled:opacity-50 cursor-pointer text-white h-[34px] w-max px-4 rounded-[6px] flex items-center justify-center"
           >
             {placeholders.delete}
           </button>
           <button
             disabled={parameter.trim().length === 0}
             type="submit"
-            className="bg-green-1 disabled:opacity-50 cursor-pointer text-white h-[34px] w-[80px] rounded-[6px] flex items-center justify-center"
+            className="bg-green-1 disabled:opacity-50 cursor-pointer text-white h-[34px] w-max px-4 rounded-[6px] flex items-center justify-center"
           >
             {placeholders.confirm}
           </button>

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import "@fontsource-variable/ibm-plex-sans";
 import { Locale } from "@/i18n.config";
-import { Noto_Nastaliq_Urdu } from "next/font/google";
+import { Noto_Nastaliq_Urdu, Gulzar } from "next/font/google";
 import DictionaryProvider from "@/dictionaries/DictionaryProvider";
 import { getDictionary } from "@/utils/dictionary";
 
@@ -17,6 +17,11 @@ const nastaliq = Noto_Nastaliq_Urdu({
   display: "swap",
 });
 
+const gulzar = Gulzar({
+  subsets: ["latin"],
+  weight: ["400"],
+  display: "swap",
+});
 export default async function Layout({
   children,
   params,
@@ -30,7 +35,7 @@ export default async function Layout({
 
   return (
     <html className="font-plex" lang={lang} dir={lang === "en" ? "ltr" : "rtl"}>
-      <body>
+      <body className={lang === "en" ? "" : gulzar.className}>
         <DictionaryProvider dictionary={dictionary}>
           {children}
         </DictionaryProvider>

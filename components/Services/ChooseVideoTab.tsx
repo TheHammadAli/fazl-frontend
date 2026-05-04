@@ -9,12 +9,19 @@ interface Props {
   setVideo: React.Dispatch<React.SetStateAction<File | null | string>>;
 }
 function ChooseVideoTab({ video, setVideo }: Props) {
-  const { pages, placeholders } = useDictionary();
+  const { placeholders } = useDictionary();
+  const [isDragging, setIsDragging] = useState(false);
+
+  const addVideoFile = (fileList: FileList | null) => {
+    if (!fileList?.length) return;
+    const file = Array.from(fileList).find((f) => f.type.startsWith("video/"));
+    if (!file) return;
+    setVideo(file);
+  };
 
   const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files || e.target.files.length === 0) return;
-    const selectedFile = e.target.files[0];
-    setVideo(selectedFile);
+    addVideoFile(e.target.files);
+    e.target.value = "";
   };
 
   const removeVideo = () => {
@@ -56,7 +63,33 @@ function ChooseVideoTab({ video, setVideo }: Props) {
 
         {/* Upload Button */}
         {!video && (
-          <div className="h-[126px] min-w-[126px] flex items-center justify-center">
+          <div
+            className={`h-[126px] min-w-[126px] ${!video ? "w-full border-green-1 " : "w-auto"} flex items-center justify-center rounded-[12px] border-2 border-dashed transition-colors ${isDragging
+              && "border-green-1 bg-green-3/40"
+              }`}
+            onDragOver={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
+            onDragEnter={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setIsDragging(true);
+            }}
+            onDragLeave={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              if (!e.currentTarget.contains(e.relatedTarget as Node | null)) {
+                setIsDragging(false);
+              }
+            }}
+            onDrop={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setIsDragging(false);
+              addVideoFile(e.dataTransfer.files);
+            }}
+          >
             <label
               htmlFor="video-upload"
               className="h-[46px] border-green-1 border-[1px] px-3 rounded-[12px] flex items-center justify-center gap-1 cursor-pointer"

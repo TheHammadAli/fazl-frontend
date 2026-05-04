@@ -192,7 +192,7 @@ function Cart({ product, shopData, selectedVariants, ownerDetail }: ProductDetai
                       <div className="flex gap-2 items-center">
                         <Image src={easyPaisaIcon} alt="easypaisa-icon" />
                         <span className="text-[#030303] text-[16px] font-medium">
-                          Easypaisa
+                          {placeholders["easypaisa" as keyof typeof placeholders] ?? "Easypaisa"}
                         </span>
                       </div>
                       <div>
@@ -223,7 +223,8 @@ function Cart({ product, shopData, selectedVariants, ownerDetail }: ProductDetai
                       <div className="flex gap-2 items-center">
                         <Image src={cashOnDelivery} alt="cashondelivery-icon" />
                         <span className="text-[#030303] text-[16px] font-medium">
-                          Cash on Delivery
+                          {placeholders["cash_on_delivery" as keyof typeof placeholders] ??
+                            "Cash on Delivery"}
                         </span>
                       </div>
                       <div>

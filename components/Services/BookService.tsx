@@ -23,9 +23,9 @@ function BookService() {
   });
 
   const [selectedVariants, setSelectedVariants] = useState({});
-
   return (
     <div>
+
       <Modal
         editModalRef={modalRef}
         open={openPciker}
@@ -53,7 +53,9 @@ function BookService() {
           />
         ))}
 
-      {step === "request" && <ServiceCart service={service} date={date} />}
+      {step === "request" &&
+        <ServiceCart service={service} date={date} />
+      }
     </div>
   );
 }

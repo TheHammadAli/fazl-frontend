@@ -49,9 +49,12 @@ function BroadCastList({ items, onScroll, onSelectItem, chatId, activeTab }: Bro
                             <Image src={chevron} alt="chevron" className="w-3 h-3 ltr:-rotate-90 rtl:rotate-90 shrink-0" />
                         </div>
 
-                        <p className="mt-1 text-[14px]  font-normal text-black-1">
+                        <p className="mt-1 text-[14px] rtl:text-right ltr:text-left  font-normal text-black-1">
                             {item.recipients} {ph("recipients")} <span className="mx-3 text-gray-2">|</span>{" "}
-                            <span className="text-[#FF8A00]">{item?.radius ?? ""}km</span>
+                            <span className="text-[#FF8A00]">
+                                {item?.radius ?? ""}{" "}
+                                {placeholders["km" as keyof typeof placeholders] ?? "km"}
+                            </span>
                         </p>
                     </button>
                 );

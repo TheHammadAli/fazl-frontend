@@ -174,9 +174,17 @@ export const profileService = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["SERVICES_REQUESTS"],
     }),
+    deleteProduct: build.mutation({
+      query: (id) => ({
+        url: `/products/${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["PRODUCT"],
+    }),
   }),
 });
 export const {
+  useDeleteProductMutation,
   useStartJobMutation,
   useUpdateServiceRequestMutation,
   useGetServicesRequestsQuery,

@@ -32,27 +32,41 @@ function HomeSection() {
   const catRef = useRef<HTMLDivElement>(null);
   const tabs = ["products", "services"];
   const [activeTab, setActiveTab] = useState<string>(tabs[0]);
-  const { placeholders, info_messages } = useDictionary();
+  const { placeholders, info_messages, error_messages } = useDictionary();
   const [openCat, setOpenCat] = useState(false);
   const [categoryId, setCategoryId] = useState<string>("");
-  const { data: productsData } = useSearchProductsQuery(
+  const { data: productsData, isLoading: isProductsLoading, isFetching: isProductsFetching } = useSearchProductsQuery(
     {
-      category: categoryId,
+      // category: categoryId,
       name: debounceSearch,
     },
-    { skip: !categoryId || activeTab !== "products" || !debounceSearch }
+    {
+      skip:
+        //  !categoryId ||
+        activeTab !== "products" ||
+        !debounceSearch
+    }
   );
-  const { data: servicesData } = useSearchServicesQuery(
+  const { data: servicesData, isLoading: isServicesLoading, isFetching: isServicesFetching } = useSearchServicesQuery(
     {
-      category: categoryId,
+      // category: categoryId,
       name: debounceSearch,
     },
-    { skip: !categoryId || activeTab !== "services" || !debounceSearch }
+    {
+      skip:
+        // !categoryId ||
+        activeTab !== "services" || !debounceSearch
+    }
   );
 
   useClickOutside(catRef, () => {
     setOpenCat(false);
   });
+  const isSearchLoading =
+    !!debounceSearch &&
+    (activeTab === "products"
+      ? isProductsLoading || isProductsFetching
+      : isServicesLoading || isServicesFetching);
 
   return (
     <div className="p-5">
@@ -82,7 +96,22 @@ function HomeSection() {
 
         {openCat && (
           <div className="max-h-[340px] overflow-scroll hide-scrollbar">
-            <div className=" overflow-scroll  hide-scrollbar">
+            {isSearchLoading ? (
+              <div className="overflow-scroll hide-scrollbar">
+                {Array.from({ length: 6 }).map((_, index) => (
+                  <div
+                    key={`search-skeleton-${index}`}
+                    className="px-[15px] h-[56px] flex justify-between items-center border-b-[1px] border-b-[#E5E5E5] animate-pulse"
+                  >
+                    <div className="h-4 w-3/5 rounded bg-gray-200" />
+                    <div className="h-4 w-4 rounded bg-gray-200" />
+                  </div>
+                ))}
+              </div>
+            ) : (activeTab === "products"
+              ? productsData?.data?.items?.length > 0
+              : servicesData?.data?.length > 0
+            ) ? <div className=" overflow-scroll  hide-scrollbar">
               {(activeTab === "products"
                 ? productsData?.data?.items
                 : servicesData?.data
@@ -100,11 +129,15 @@ function HomeSection() {
                   <Image src={linkIcon} alt="link" className="rtl:rotate-90" />
                 </div>
               ))}
-            </div>
-            <CategoriesList
+            </div> : debounceSearch && <div className="h-[410px] w-full flex items-center justify-center">
+              <h1 className="text-black-3 text-[16px] font-medium">
+                {activeTab === "products" ? error_messages.no_product_data : error_messages.no_service_data}
+              </h1>
+            </div>}
+            {/* <CategoriesList
               categoryId={categoryId}
               setCategoryId={setCategoryId}
-            />
+            /> */}
           </div>
         )}
       </div>

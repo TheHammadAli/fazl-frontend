@@ -39,8 +39,8 @@ export default function ShopDetail() {
     }
   }, []);
   return (
-    <div>
-      <div className="px-5 md:px-6 h-[61px] border-b-[1px] border-gray-9 bg-white w-full  flex justify-center">
+    <div className="w-full ">
+      <div className="px-5 md:px-6 h-[61px] border-b-[1px] border-gray-9 bg-[white] hide-scrollbar w-full  flex justify-center ">
         <div className="w-full min-w-max  overflow-scroll flex items-center gap-[6px] font-normal text-[14px] mt-5">
           <span className="text-gray-8">{pages.selling}</span>
           <Image

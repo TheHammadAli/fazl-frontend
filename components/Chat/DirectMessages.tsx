@@ -12,6 +12,7 @@ import { ChatSidebarProps } from './ChatSidebar';
 import { parsePositiveInt } from '../Updates/Notifications';
 import moment from 'moment';
 import noMessagesIcon from "@/assets/icons/no-message.svg";
+import noImageAvtar from "@/assets/images/profile-placehonder.png";
 function DirectMessages({
     threadType,
     setThreadType,
@@ -116,7 +117,7 @@ function DirectMessages({
                                 className={`flex w-full cursor-pointer items-start gap-3 px-4 py-4 text-left ${isActive ? "bg-[#E7F4F5]" : "hover:bg-gray-50"}`}
                             >
                                 <Image
-                                    src={"https://i.pravatar.cc/80?img=11"}
+                                    src={thread_user?.image ?? noImageAvtar}
                                     alt={thread_user?.name ?? ""}
                                     width={44}
                                     height={44}

@@ -18,7 +18,6 @@ function Services() {
     refetchOnMountOrArgChange: true,
   });
   const { error_messages } = useDictionary();
-
   return (
     <div>
       {service?.data && service?.data?.length > 0 && (

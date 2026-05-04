@@ -34,10 +34,14 @@ function SearchList() {
     isFetching: productsFetching,
   } = useSearchProductsQuery(
     {
-      category: categoryId,
+      // category: categoryId,
       name: debounceSearch,
     },
-    { skip: !categoryId || tab !== "products" }
+    {
+      skip:
+        // !categoryId || 
+        tab !== "products"
+    }
   );
   const {
     data: servicesData,
@@ -45,10 +49,14 @@ function SearchList() {
     isFetching: servicesFetching,
   } = useSearchServicesQuery(
     {
-      category: categoryId,
+      // category: categoryId,
       name: debounceSearch,
     },
-    { skip: !categoryId || tab !== "services" }
+    {
+      skip:
+        //  !categoryId ||
+        tab !== "services"
+    }
   );
 
   const loading =
@@ -67,9 +75,8 @@ function SearchList() {
           type="text"
           value={searchValue}
           onChange={(e) => setSearchValue(e.target.value)}
-          placeholder={`${placeholders.search_for} ${
-            placeholders?.[tab as keyof typeof placeholders]
-          }
+          placeholder={`${placeholders.search_for} ${placeholders?.[tab as keyof typeof placeholders]
+            }
           `}
           className=" h-[46px] px-8 text-[14px] placeholder:text-[14px] text-[#727272] placeholder:text-[#727272] font-normal w-full bg-[#EEF2F3] focus:outline-0 rounded-[8px]"
         />
@@ -97,8 +104,8 @@ function SearchList() {
                   ? placeholders.products
                   : placeholders.product
                 : productsData?.meta?.total > 1
-                ? placeholders.services
-                : placeholders.service}
+                  ? placeholders.services
+                  : placeholders.service}
             </h4>
           )}
         </div>
@@ -111,10 +118,10 @@ function SearchList() {
       {loading ? (
         <AllProductsSkeleton />
       ) : (
-          tab === "products"
-            ? productsData?.meta?.total > 0
-            : servicesData?.meta?.total > 0
-        ) ? (
+        tab === "products"
+          ? productsData?.meta?.total > 0
+          : servicesData?.meta?.total > 0
+      ) ? (
         <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2  md:gap-x-5 md:gap-y-14 mt-4">
           {(tab === "products"
             ? productsData?.data?.items

@@ -92,10 +92,10 @@ function ListProduct() {
     if (selectedPrice.price === "") {
       setPriceError(error_messages.price_required);
     }
-    if (video === null || video === "") {
-      toast.error(error_messages.video_required);
-      return null;
-    }
+    // if (video === null || video === "") {
+    //   toast.error(error_messages.video_required);
+    //   return null;
+    // }
     if (parameters.length === 0) {
       setParameterError(error_messages.parameter_required);
     }
@@ -163,7 +163,7 @@ function ListProduct() {
       setType("");
       toast.error(
         (error?.data as { message?: string })?.message ||
-          "something went wrong!"
+        "something went wrong!"
       );
     }
   }, [isSuccess, isError, data, error]);
@@ -195,9 +195,9 @@ function ListProduct() {
             setSelectedPrice={setSelectedPrice}
             setIsPriceOpen={setIsPriceOpen}
 
-            // setIsCatOpen={setIsCatOpen}
-            // selectedCategory={selectedCategory}
-            // setSelectedCategory={setSelectedCategory}
+          // setIsCatOpen={setIsCatOpen}
+          // selectedCategory={selectedCategory}
+          // setSelectedCategory={setSelectedCategory}
           />
         </div>
       </Modal>
@@ -292,9 +292,8 @@ function ListProduct() {
                 {/*  title */}
                 <div className="space-y-1 mt-5 w-full">
                   <p
-                    className={`text-[14px] font-normal  ${
-                      titleError ? "text-red-1" : "text-gray-8"
-                    }`}
+                    className={`text-[14px] font-normal  ${titleError ? "text-red-1" : "text-gray-8"
+                      }`}
                   >
                     {placeholders.title}
                   </p>
@@ -315,9 +314,8 @@ function ListProduct() {
                 {/* descripton */}
                 <div className="space-y-1 mt-5 w-full">
                   <p
-                    className={`text-[14px] font-normal  ${
-                      descriptionError ? "text-red-1" : "text-gray-8"
-                    }`}
+                    className={`text-[14px] font-normal  ${descriptionError ? "text-red-1" : "text-gray-8"
+                      }`}
                   >
                     {info_messages?.describe_product}
                   </p>
@@ -440,7 +438,7 @@ function ListProduct() {
                     onClick={() => setIsPriceOpen(true)}
                   >
                     <h4 className="text-[15px] font-normal text-gray-8 leading-none">
-                      {selectedPrice?.price + "-/" + selectedPrice?.paymentType}
+                      {selectedPrice?.price + "-/" + (placeholders?.[selectedPrice?.paymentType as keyof typeof placeholders] ?? "Fixed")}
                     </h4>
                     <Image
                       src={chevron}
