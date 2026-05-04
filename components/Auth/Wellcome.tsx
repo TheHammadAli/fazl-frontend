@@ -29,27 +29,27 @@ function Wellcome() {
               onClick={() => router.push("/home")}
               className="font-normal text-[14px] text-black-1 cursor-pointer hover:underline"
             >
-              Skip
+              {placeholders["skip" as keyof typeof placeholders] ?? "Skip"}
             </div>
           </div>
-          <h1 className="text-black-1 font-medium text-[22px] lg:w-[334px]  leading-[30px] ">
+          <h1 className="text-black-1 font-medium text-[22px] w-full  leading-[30px] rtl:text-right ltr:text-left ">
             {info_messages.welcome_market}
           </h1>
-          <p className="font-light text-[16px] text-gray-8">
+          <p className="font-light text-[16px] text-gray-8 rtl:text-right ltr:text-left">
             {info_messages.discover_market}
           </p>
-          <p className=" text-[16px] font-light text-gray-8">
+          <p className=" text-[16px] font-light text-gray-8 rtl:text-right ltr:text-left w-full  ">
             {info_messages.locally_globally}
           </p>
           <div
             onClick={() => router.push("/selling")}
-            className=" max-w-[500px] lg:max-w-full cursor-pointer mt-12 w-full bg-[#C7F1EE80] flex gap-[10px] justify-between items-start lg:h-[102px] rounded-[12px] p-5"
+            className=" max-w-[500px] lg:max-w-full cursor-pointer mt-12 w-full bg-[#C7F1EE80]  flex rtl:flex-row-reverse gap-[10px] justify-between items-start lg:h-[102px] rounded-[12px] p-5"
           >
             <div>
-              <h2 className="text-[16px] leading-tight font-medium text-black-1">
+              <h2 className="text-[16px] rtl:text-right ltr:text-left leading-tight font-medium text-black-1">
                 {info_messages.list_product}
               </h2>
-              <p className="text-[14px] font-light text-[#4B514F] leading-[20px] mt-1">
+              <p className="text-[14px] rtl:text-right ltr:text-left font-light text-[#4B514F] leading-[20px] mt-1">
                 {info_messages.sell_physical}
               </p>
             </div>
@@ -58,13 +58,13 @@ function Wellcome() {
 
           <div
             onClick={() => router.push("/services")}
-            className="max-w-[500px] lg:max-w-full cursor-pointer w-full mt-3 bg-[#C7F1EE80] flex gap-[10px] justify-between items-start lg:h-[102px] rounded-[12px] p-5"
+            className="max-w-[500px] lg:max-w-full cursor-pointer w-full mt-3 bg-[#C7F1EE80] flex rtl:flex-row-reverse gap-[10px] justify-between items-start lg:h-[102px] rounded-[12px] p-5"
           >
             <div>
-              <h2 className="text-[16px] leading-tight font-medium text-black-1">
+              <h2 className="text-[16px] rtl:text-right ltr:text-left leading-tight font-medium text-black-1">
                 {info_messages.list_service}
               </h2>
-              <p className="text-[14px] font-light text-[#4B514F] leading-[20px] mt-1">
+              <p className="text-[14px] rtl:text-right ltr:text-left font-light text-[#4B514F] leading-[20px] mt-1">
                 {info_messages.offer_expertise}
               </p>
             </div>

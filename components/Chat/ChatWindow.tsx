@@ -288,8 +288,15 @@ export default function ChatWindow({ thread, onBack, threadType }: ChatWindowPro
         ) : sortedFilteredMessages?.length === 0 ?
           <div className="flex flex-col justify-center items-center h-full ">
             <Image src={noMessagesIcon} alt="no-messages-icon" />
-            <h1 className="text-black-1 text-[22px] font-medium">Start converstaion</h1>
-            <p className="text-[#4B514F] text-[14px] font-normal">Say Hi, to begin your conversation</p>
+            <h1 className="text-black-1 text-[22px] font-medium">
+              {placeholders["start_conversation" as keyof typeof placeholders] ??
+                "Start conversation"}
+            </h1>
+            <p className="text-[#4B514F] text-[14px] font-normal">
+              {placeholders[
+                "say_hi_to_begin_conversation" as keyof typeof placeholders
+              ] ?? "Say hi to begin a conversation"}
+            </p>
           </div>
           :
           <div className="flex min-h-full flex-col justify-end gap-6">

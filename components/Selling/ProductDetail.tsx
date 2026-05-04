@@ -9,13 +9,19 @@ import { useGetProductDetailQuery } from "@/store/services/homeService";
 import { useSearchParams } from "next/navigation";
 import noImageAvtar from "@/assets/images/no-image-av.png";
 import { useClickOutside } from "@/custom-hooks/useClickOutside";
-import { useGetShopDetailQuery } from "@/store/services/sellingService";
+import {
+  useDeleteProductMutation,
+  useGetShopDetailQuery,
+} from "@/store/services/sellingService";
 import threeDots from "@/assets/icons/three-dots.svg";
 import { useRouter } from "next/navigation";
 import { useGetProductOwnerDetailQuery } from "@/store/services/authService";
 import Reviews from "../Ui/Reviews";
 import { getUserId } from "@/utils/getUserId";
 import { useGetAvgReviewsQuery } from "@/store/services/reviewService";
+import Modal from "../Ui/Modals/Modal";
+import { toast } from "react-hot-toast";
+import { BeatLoader } from "react-spinners";
 export type ProductDetailProps = {
   //   setStep?: (val: "product" | "cart") => void;
   product: {
@@ -82,6 +88,9 @@ function ProductDetail() {
   const [typeIndex, setTypeIndex] = useState(0);
   const [mounted, setMounted] = useState(false);
   const [videoVersion, setVideoVersion] = useState(0);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [deleteProduct, { isLoading: isDeleteLoading }] = useDeleteProductMutation();
+  const deleteModalRef = React.useRef<HTMLDivElement>(null);
 
   const allowedToBuy = product?.data?.shopId
     ? userId !== shopData?.ownerId?.id
@@ -101,8 +110,55 @@ function ProductDetail() {
       setVideoVersion((v) => v + 1);
     }
   }, [product?.data?.video]);
+
+  const handleDeleteProduct = () => {
+    if (!id) return;
+    deleteProduct(id)
+      .unwrap()
+      .then((res) => {
+        toast.success(res?.message || placeholders.delete_product);
+        setIsDeleteModalOpen(false);
+        setIsEdit(false);
+        router.push("/selling");
+      })
+      .catch((err) => {
+        toast.error(err?.data?.message || error_messages.something_went_wrong);
+      });
+  };
   return (
     <div>
+      <Modal
+        editModalRef={deleteModalRef}
+        open={isDeleteModalOpen}
+        setOpen={setIsDeleteModalOpen}
+        centered={true}
+      >
+        <div className="bg-white rounded-[12px] w-[92vw] max-w-[390px] p-5 shadow-xl">
+          <h2 className="text-[16px] font-semibold text-black-1">
+            {placeholders.delete_product}
+          </h2>
+          <p className="text-[14px] text-gray-8 mt-2">
+            {placeholders[
+              "are_you_sure_you_want_to_delete_this_product" as keyof typeof placeholders
+            ] ?? "Are you sure you want to delete this product?"}
+          </p>
+          <div className="mt-5 flex gap-3">
+            <button
+              onClick={() => setIsDeleteModalOpen(false)}
+              className="h-[40px] flex-1 cursor-pointer rounded-[8px] border border-green-1 text-green-1 text-[14px] font-medium"
+            >
+              {placeholders.cancel}
+            </button>
+            <button
+              disabled={isDeleteLoading}
+              onClick={handleDeleteProduct}
+              className="h-[40px] cursor-pointer flex-1 rounded-[8px] border border-[#E92440] bg-[#E92440] text-white text-[14px] font-medium disabled:opacity-60"
+            >
+              {isDeleteLoading ? <BeatLoader color="white" size={8} /> : placeholders.confirm}
+            </button>
+          </div>
+        </div>
+      </Modal>
       <div className="h-full min-h-screen flex flex-col items-center">
         <div className="px-5 sm:px-10 min-h-[61px] border-b-[1px] border-gray-9 bg-white w-full  flex justify-center">
           <div className="w-full   flex flex-wrap items-center gap-[6px] font-normal text-[14px] mt-5">
@@ -243,7 +299,10 @@ function ProductDetail() {
                           {placeholders.edit_product}
                         </div>
                         <div
-                          onClick={() => setIsEdit(false)}
+                          onClick={() => {
+                            setIsEdit(false);
+                            setIsDeleteModalOpen(true);
+                          }}
                           className="p-[8px] text-[12px] leading-none hover:bg-green-3"
                         >
                           {placeholders.delete_product}

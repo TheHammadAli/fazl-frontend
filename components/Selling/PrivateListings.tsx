@@ -35,10 +35,10 @@ function PrivateListings() {
               : placeholders.product}
           </h4>
         </div>
-        <div className="px-[12px] h-[38px] text-[14px] rounded-full border-[1px] border-gray-9 flex items-center gap-2">
+        {/* <div className="px-[12px] h-[38px] text-[14px] rounded-full border-[1px] border-gray-9 flex items-center gap-2">
           <Image src={filterIcon} alt="filter_icon" />
           {placeholders.filter}
-        </div>
+        </div> */}
       </div>
       {products?.data?.length > 0 ? (
         <div className="mt-6 space-y-7">

@@ -102,13 +102,13 @@ function BroadCastModal({ setOpenBroadcast }: { setOpenBroadcast: (open: boolean
                                 <button
                                     key={radius}
                                     type="button"
-                                    className="w-full cursor-pointer border-b border-gray-9 px-3 py-2 text-left text-[14px] text-black-1 last:border-b-0 hover:bg-gray-10"
+                                    className="w-full cursor-pointer border-b border-gray-9 rtl:text-right ltr:text-left px-3 py-2 text-left text-[14px] text-black-1 last:border-b-0 hover:bg-gray-10"
                                     onClick={() => {
                                         setSelectedRadius(radius);
                                         setIsRadiusOpen(false);
                                     }}
                                 >
-                                    {radius} km
+                                    {radius} {placeholders["km" as keyof typeof placeholders] ?? "km"}
                                 </button>
                             ))}
                         </div>
@@ -147,7 +147,7 @@ function BroadCastModal({ setOpenBroadcast }: { setOpenBroadcast: (open: boolean
                                         setIsTypeOpen(false);
                                     }}
                                 >
-                                    <p className="first-letter:uppercase">{type.label}</p>
+                                    <p className="first-letter:uppercase rtl:text-right ltr:text-left">{type.label}</p>
                                 </button>
                             ))}
                         </div>
@@ -167,7 +167,7 @@ function BroadCastModal({ setOpenBroadcast }: { setOpenBroadcast: (open: boolean
                         className="flex cursor-pointer w-full items-center justify-between text-left disabled:cursor-not-allowed"
                     >
                         <span className="text-[15px] font-normal text-gray-8">
-                            {selectedCategory?.name ?? "Choose category"}
+                            {selectedCategory?.name ?? ph("choose_category")}
                         </span>
                         <Image src={chevDown} alt="cross-icon" />
                     </button>

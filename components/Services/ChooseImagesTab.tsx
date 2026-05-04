@@ -9,18 +9,29 @@ interface Props {
   setDeleteMedia?: React.Dispatch<React.SetStateAction<string[]>>;
 }
 
+const MAX_IMAGES = 5;
+
 function ChooseImagesTab({
   images,
   setImages,
   deleteMedia,
   setDeleteMedia,
 }: Props) {
-  const { pages, placeholders } = useDictionary();
-  const handleUpdate = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files) return;
-    const selectedFiles = Array.from(e.target.files);
+  const { placeholders } = useDictionary();
+  const [isDragging, setIsDragging] = useState(false);
 
-    setImages((prev) => [...prev, ...selectedFiles].slice(0, 5));
+  const addImageFiles = (fileList: FileList | null) => {
+    if (!fileList?.length) return;
+    const selectedFiles = Array.from(fileList).filter((f) =>
+      f.type.startsWith("image/"),
+    );
+    if (!selectedFiles.length) return;
+    setImages((prev) => [...prev, ...selectedFiles].slice(0, MAX_IMAGES));
+  };
+
+  const handleUpdate = (e: React.ChangeEvent<HTMLInputElement>) => {
+    addImageFiles(e.target.files);
+    e.target.value = "";
   };
   const removeImage = (index: number) => {
     if (typeof images[index] === "string") {
@@ -62,8 +73,35 @@ function ChooseImagesTab({
             </div>
           </div>
         ))}
-        {images.length < 5 && (
-          <div className="h-[126px] min-w-[126px]  flex items-center justify-center ">
+        {images.length < MAX_IMAGES && (
+          <div
+            className={`h-[126px] min-w-[126px] ${images.length === 0 ? "w-full border-green-1 " : "w-auto border-green-1"} flex items-center justify-center rounded-[12px] border-2 border-dashed transition-colors ${isDragging
+              && "border-green-1 bg-green-3/40"
+
+              }`}
+            onDragOver={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
+            onDragEnter={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setIsDragging(true);
+            }}
+            onDragLeave={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              if (!e.currentTarget.contains(e.relatedTarget as Node | null)) {
+                setIsDragging(false);
+              }
+            }}
+            onDrop={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setIsDragging(false);
+              addImageFiles(e.dataTransfer.files);
+            }}
+          >
             <label
               htmlFor="photo-upload"
               className="h-[46px] border-green-1 border-[1px] px-3 rounded-[12px] flex items-center justify-center gap-1 cursor-pointer"
@@ -83,7 +121,7 @@ function ChooseImagesTab({
                 />
               </svg>
 
-              {images.length == 0 && (
+              {images.length === 0 && (
                 <h1 className="font-medium text-green-1 text-[16px]">
                   {placeholders.upload_photos}
                 </h1>
@@ -101,7 +139,7 @@ function ChooseImagesTab({
         )}
       </div>
       <div className="w-full flex mt-4 items-center justify-center text-[14px] font-normal text-green-2">
-        {images.length}/5
+        {images.length}/{MAX_IMAGES}
       </div>
     </div>
   );

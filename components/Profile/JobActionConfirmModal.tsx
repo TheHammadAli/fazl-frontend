@@ -5,6 +5,7 @@ import Image from "next/image";
 import { BeatLoader } from "react-spinners";
 import Modal from "../Ui/Modals/Modal";
 import crossIcon from "@/assets/icons/cross-icon.svg";
+import { useDictionary } from "@/dictionaries/DictionaryProvider";
 
 type Props = {
   open: boolean;
@@ -30,6 +31,7 @@ function JobActionConfirmModal({
   onConfirm,
 }: Props) {
   const confirmModalRef = useRef<HTMLDivElement | null>(null);
+  const { placeholders } = useDictionary();
 
   return (
     <Modal
@@ -54,8 +56,14 @@ function JobActionConfirmModal({
         <div className="px-4 py-4">
           <p className="text-[#4B514F] text-[14px] font-normal leading-relaxed">
             {pendingAction === "start_job"
-              ? "This will begin tracking time for the service. Make sure you're ready to start before continuing."
-              : "This will mark the service as completed. Please confirm to continue."}
+              ? placeholders[
+                  "start_job_confirm_message" as keyof typeof placeholders
+                ] ??
+                "This will begin tracking time for the service. Make sure you're ready to start before continuing."
+              : placeholders[
+                  "end_job_confirm_message" as keyof typeof placeholders
+                ] ??
+                "This will mark the service as completed. Please confirm to continue."}
           </p>
           <div className="mt-8 flex items-center justify-end gap-4">
             <button

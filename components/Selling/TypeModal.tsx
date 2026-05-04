@@ -32,11 +32,10 @@ function TypeModal({ type, setType, setIsTypeOpen }: typeModal) {
         {/* fix */}
         <div className="flex gap-2 items-center">
           <div
-            className={`h-[18px] w-[18px] ${
-              type === "retail"
-                ? "border-[4px] border-green-1"
-                : "border-[1px] border-gray-9"
-            } rounded-full cursor-pointer`}
+            className={`h-[18px] w-[18px] ${type === "retail"
+              ? "border-[4px] border-green-1"
+              : "border-[1px] border-gray-9"
+              } rounded-full cursor-pointer`}
             onClick={() => setType("retail")}
           ></div>
           <div className="text-[15px] text-black-1">{placeholders.retail}</div>
@@ -44,11 +43,10 @@ function TypeModal({ type, setType, setIsTypeOpen }: typeModal) {
         {/* hourly */}
         <div className="flex gap-2 items-center mt-2">
           <div
-            className={`h-[18px] w-[18px] ${
-              type === "classified"
-                ? "border-[4px] border-green-1"
-                : "border-[1px] border-gray-9"
-            } rounded-full cursor-pointer`}
+            className={`h-[18px] w-[18px] ${type === "classified"
+              ? "border-[4px] border-green-1"
+              : "border-[1px] border-gray-9"
+              } rounded-full cursor-pointer`}
             onClick={() => setType("classified")}
           ></div>
           <div className="text-[15px] text-black-1">
@@ -60,7 +58,7 @@ function TypeModal({ type, setType, setIsTypeOpen }: typeModal) {
             disabled={type === ""}
             // type="submit"
             onClick={() => setIsTypeOpen(false)}
-            className="bg-green-1 disabled:opacity-50 cursor-pointer text-white h-[34px] w-[80px] rounded-[6px] flex items-center justify-center"
+            className="bg-green-1 disabled:opacity-50 cursor-pointer text-white h-[34px] w-max px-4 rounded-[6px] flex items-center justify-center"
           >
             {placeholders.confirm}
           </button>
