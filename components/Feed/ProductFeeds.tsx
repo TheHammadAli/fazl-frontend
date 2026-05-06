@@ -10,6 +10,7 @@ type ProductFeedItem = {
     price?: number;
     video?: string;
     images?: string[];
+    shopId?: string;
     category?: {
         name?: string;
     };
@@ -42,6 +43,7 @@ function ProductFeeds() {
 
     useEffect(() => {
         const response = (productsFeed as FeedResponse | undefined) ?? undefined;
+        console.log(response)
         const mapped: FeedReelItem[] =
             response?.data
                 ?.filter((product: ProductFeedItem) => !!product.video)
@@ -51,6 +53,7 @@ function ProductFeeds() {
                     title: product.title ?? "",
                     price: String(product.price ?? 0),
                     category: product.category?.name ?? "",
+                    shopId: product.shopId ?? "",
                 })) ?? [];
 
         setProducts((prev) => {

@@ -4,6 +4,7 @@ import ReelItem from "./ReelItem";
 
 export type ReelItem = {
     id: string;
+    shopId?: string;
     video: string;
     title: string;
     price: string;
@@ -38,6 +39,7 @@ SnapScroller.displayName = "SnapScroller";
 export default function ReelsFeed({ reels, onEndReached, isLoadingMore = false, type }: ReelsFeedProps) {
     const reelGap = 12;
     const [isMuted, setIsMuted] = useState(true);
+    const [activeReel, setActiveReel] = useState<string>("");
     const containerRef = useRef<HTMLDivElement | null>(null);
     const [itemHeight, setItemHeight] = useState(() =>
         typeof window !== "undefined" ? Math.max(320, window.innerHeight - 140) : 600,
@@ -77,7 +79,15 @@ export default function ReelsFeed({ reels, onEndReached, isLoadingMore = false, 
                             paddingBottom: `${reelGap}px`,
                         }}
                     >
-                        <ReelItem type={type} key={index} item={item} isMuted={isMuted} setIsMuted={setIsMuted} />
+                        <ReelItem
+                            type={type}
+                            key={index}
+                            item={item}
+                            isMuted={isMuted}
+                            setIsMuted={setIsMuted}
+                            activeReel={activeReel}
+                            onVisible={(reel) => setActiveReel(reel)}
+                        />
                     </div>
                 )}
                 components={{
