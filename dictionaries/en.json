@@ -26,6 +26,7 @@
         "submit": "Submit",
         "skip": "Skip",
         "send": "Send",
+        "share": "Share",
         "no_review_available": "No review available",
         "broadcast_message_title": "Broadcast message",
         "set_radius": "Set radius",
@@ -244,6 +245,14 @@
         "sell_product": "Sell product",
         "created_description": "Add physical products or anything that you want to sell in this shop.",
         "most_listings": "The more listings you have, the easier it is for buyers to find you in market’s feed."
+    },
+    "share_post": {
+        "share_Post_title": "Share post",
+        "copy": "Copy",
+        "search": "Search...",
+        "text_copied": "Text copied to clipboard!",
+        "select_photo": "You can only select 3 posts to feature",
+        "share_service": "Share service"
     },
     "pages": {
         "home": "Home",

@@ -17,7 +17,39 @@ export const feedService = baseApi.injectEndpoints({
         };
       },
     }),
+    likeVideo: build.mutation({
+      query: (body: any) => {
+        return {
+          url: `/likes`,
+          method: "POST",
+          body,
+        };
+      },
+    }),
+    unlikeVideo: build.mutation({
+      query: (body: any) => {
+        return {
+          url: `/likes`,
+          method: "DELETE",
+          body,
+        };
+      },
+    }),
+    likedVideoByUser: build.query({
+      query: ({ userId, type }: any) => {
+        return {
+          url: `/likes/user/${userId}?itemType=${type}`,
+          method: "GET",
+        };
+      },
+    }),
   }),
 });
-export const { useGetAllProductsFeedQuery, useGetAllServicesFeedQuery } =
-  feedService;
+export const {
+  useLikedVideoByUserQuery,
+
+  useLikeVideoMutation,
+  useUnlikeVideoMutation,
+  useGetAllProductsFeedQuery,
+  useGetAllServicesFeedQuery,
+} = feedService;

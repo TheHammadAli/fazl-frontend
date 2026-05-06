@@ -5,17 +5,29 @@ import catFasionIcon from "@/assets/icons/cat-fashion-image.svg";
 import Image from "next/image";
 import { useDictionary } from "@/dictionaries/DictionaryProvider";
 import { useRouter } from "next/navigation";
+import Modal from "../Ui/Modals/Modal";
+import SharePostModal from "../Ui/SharePostModal";
+import { useLikedVideoByUserQuery, useLikeVideoMutation, useUnlikeVideoMutation } from "@/store/services/feedService";
+import { getUserId } from "@/utils/getUserId";
+import shareSimpleIcon from "@/assets/icons/share-simple.svg";
 export default function ReelItem({
     type,
     item,
     isMuted,
     setIsMuted,
+    activeReel,
+    onVisible,
 }: {
     type: string;
     item: ReelItemType;
     isMuted: boolean;
     setIsMuted: React.Dispatch<React.SetStateAction<boolean>>;
+    activeReel: any;
+    onVisible: (reel: any) => void;
 }) {
+    const sharePostRef = useRef<HTMLDivElement>(null)
+    const [shareModal, setShareModal] = useState(false)
+    const userId = getUserId() ?? "";
     const router = useRouter();
     const { placeholders } = useDictionary();
     type PlaceholderKey = keyof typeof placeholders;
@@ -26,11 +38,26 @@ export default function ReelItem({
     const [isPlaying, setIsPlaying] = useState(false);
     const [duration, setDuration] = useState(0);
     const [currentTime, setCurrentTime] = useState(0);
-
+    const [isLiked, setIsLiked] = useState(false);
+    const feedType = type === "products" ? "product" : "service";
     const { ref, inView } = useInView({
-        threshold: 0.7, // 70% visible = play
+        threshold: 0.7, // 
     });
-
+    const shouldSkipLikedQuery = !userId || !inView || activeReel?.id !== item.id;
+    const { data: likedVideoByUser } = useLikedVideoByUserQuery(
+        { userId, type: feedType },
+        { skip: shouldSkipLikedQuery },
+    );
+    const [likeVideo, { isLoading: isLikeLoading }] = useLikeVideoMutation();
+    const [unlikeVideo, { isLoading: isUnlikeLoading }] = useUnlikeVideoMutation();
+    useEffect(() => {
+        if (!likedVideoByUser?.data) return;
+        const liked = likedVideoByUser.data.some(
+            (like: { itemId?: string }) =>
+                like.itemId === activeReel?.id
+        );
+        setIsLiked(liked);
+    }, [likedVideoByUser, item.id]);
     const playSafely = async () => {
         const video = videoRef.current;
         if (!video) return;
@@ -45,6 +72,7 @@ export default function ReelItem({
         }
     };
 
+
     const pauseSafely = () => {
         const video = videoRef.current;
         if (!video) return;
@@ -57,11 +85,19 @@ export default function ReelItem({
 
     useEffect(() => {
         if (inView) {
+            onVisible(item);
             playSafely();
         } else {
             pauseSafely();
         }
-    }, [inView]);
+    }, [inView, item.id, onVisible]);
+
+    // useEffect(() => {
+    //     if (activeReelId === item.id) {
+    //         console.log("Active reel:", item);
+    //     }
+    // }, [activeReelId, item]);
+
 
     useEffect(() => {
         if (!videoRef.current) return;
@@ -95,6 +131,33 @@ export default function ReelItem({
         const ratio = Math.min(Math.max(x / rect.width, 0), 1);
         handleSeek(ratio * duration);
     };
+    const onLikeClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+        e.stopPropagation();
+        if (!activeReel?.id || isLikeLoading || isUnlikeLoading) return;
+        const prevIsLiked = isLiked;
+        const nextIsLiked = !prevIsLiked;
+        // Optimistic UI update
+        setIsLiked(nextIsLiked);
+
+        const req = prevIsLiked
+            ? unlikeVideo({ itemId: activeReel?.id, itemType: feedType }).unwrap()
+            : likeVideo({
+                itemId: activeReel?.id,
+                itemType: feedType,
+                ownerModel: item?.shopId ? "Shop" : "User",
+            }).unwrap();
+
+        req.catch((error) => {
+            // Revert if API fails
+            setIsLiked(prevIsLiked);
+            console.log("error", error);
+        });
+    }
+    const onShareClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
+        e.stopPropagation();
+
+        setShareModal(true)
+    };
 
     return (
         <div
@@ -114,9 +177,21 @@ export default function ReelItem({
                 scrollSnapAlign: "start",
                 scrollSnapStop: "always",
                 borderRadius: "8px",
-                overflow: "hidden",
+                overflow: "visible",
             }}
         >
+            <Modal
+                editModalRef={sharePostRef}
+                open={shareModal}
+                setOpen={setShareModal}
+                centered={true}>
+                <SharePostModal
+                    type={type === "products" ? ph("product") : ph("service")}
+                    setShareModal={setShareModal}
+                    shareUrl={`${window.location.origin}${type === "products" ? `/buy-product?id=${item.id}` : `/book-service?id=${item.id}`}`}
+                    shareService={true}
+                />
+            </Modal>
             <video
                 ref={videoRef}
                 src={item.video}
@@ -133,6 +208,7 @@ export default function ReelItem({
                     width: "100%",
                     height: "100%",
                     objectFit: "cover",
+                    borderRadius: "8px",
                 }}
             />
 
@@ -215,6 +291,33 @@ export default function ReelItem({
                         {type === "products" ? ph("shop_now") : ph("book_now")}
                     </button>
                 </div>
+            </div>
+            <div className="absolute bottom-22 ltr:right-4 rtl:left-4 z-50 flex flex-col items-center gap-4">
+                <button
+                    type="button"
+                    onClick={onLikeClick}
+                    className={`flex h-12 w-12 cursor-pointer items-center justify-center rounded-full  text-white ${isLiked ? "bg-black" : "bg-[#f2f2f2]/50"}`}
+                    aria-label="Like"
+                >
+                    <svg
+                        viewBox="0 0 24 24"
+                        stroke={isLiked ? undefined : "black"}
+                        strokeWidth={isLiked ? undefined : 2}
+                        fill={isLiked ? "white" : "none"}
+                        className="h-6 w-6"
+                    >
+                        <path d="M2.25 10.5a2.25 2.25 0 0 1 2.25-2.25h2.4a1.5 1.5 0 0 0 1.42-.99l1.59-4.37a1.5 1.5 0 0 1 2.84.95l-.55 4.41H18a3 3 0 0 1 2.95 3.55l-1.1 6a3 3 0 0 1-2.95 2.45H9.75a3 3 0 0 1-3-3v-6.75H4.5a2.25 2.25 0 0 1-2.25-2.25Z" />
+                    </svg>
+                </button>
+                <button
+                    type="button"
+                    onClick={onShareClick}
+                    className="mt-1 cursor-pointer flex h-12 w-12 items-center justify-center rounded-full bg-[#f2f2f2]/50 text-white"
+                    aria-label="Share"
+                >
+                    <Image className="h-6 w-6" src={shareSimpleIcon} alt="share-simple-icon" />
+                </button>
+                {/* <span className="text-xs font-medium text-white drop-shadow">Share</span> */}
             </div>
             <div
                 className="absolute bottom-0 px-1 w-full pb-0.5 "
