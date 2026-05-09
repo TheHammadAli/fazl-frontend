@@ -45,7 +45,7 @@ interface Location {
 }
 
 function CompleteInfo() {
-  const { currentLanguage } = useDictionary();
+  const { currentLanguage, placeholders } = useDictionary();
   const router = useRouter();
   const dispatch = useAppDispatch();
   const optionsRef = useRef<HTMLDivElement | null>(null);
@@ -327,7 +327,7 @@ function CompleteInfo() {
                       !isLocationsFetching &&
                       locationsData?.data?.length === 0 && (
                         <div className="text-[15px]  text-gray-8 px-4 py-2 text-sm cursor-pointer font-light hover:bg-gray-100">
-                          No locations found
+                          {placeholders.no_locations_found || "No locations found"}
                         </div>
                       )}
                     {(isLocationsLoading || isLocationsFetching) && (
@@ -344,7 +344,7 @@ function CompleteInfo() {
                       !isLocationsLoading &&
                       !isLocationsFetching && (
                         <div className="text-[15px]  text-gray-8 px-4 py-2 text-sm cursor-pointer font-light hover:bg-gray-100">
-                          No locations found
+                          {placeholders.no_locations_found || "No locations found"}
                         </div>
                       )}
                   </div>

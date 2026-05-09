@@ -113,8 +113,8 @@ function ListProduct() {
       selectedCategory !== null &&
       selectedPrice.price !== "" &&
       type !== "" &&
-      video !== null &&
-      video !== "" &&
+      // video !== null &&
+      // video !== "" &&
       images?.length > 0 &&
       parameters.length > 0 &&
       parameters.some((parameter) => parameter.variants.length > 0)

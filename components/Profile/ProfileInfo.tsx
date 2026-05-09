@@ -88,13 +88,13 @@ function ProfileInfo({ toggle, setToggle }: ProfileInfoTypes) {
       setLocation(
         location
           ? {
-              coordinates: {
-                lat: location?.coordinates?.[0],
-                lng: location.coordinates?.[1],
-              },
-              description: address,
-              type: "Point",
-            }
+            coordinates: {
+              lat: location?.coordinates?.[0],
+              lng: location.coordinates?.[1],
+            },
+            description: address,
+            type: "Point",
+          }
           : {}
       );
       if (!image || image.includes("default-avatar")) {
@@ -113,7 +113,7 @@ function ProfileInfo({ toggle, setToggle }: ProfileInfoTypes) {
     if (isError && "data" in error) {
       toast.error(
         (error?.data as { message?: string })?.message ||
-          "something went wrong!"
+        "something went wrong!"
       );
     }
   }, [isSuccess, isError, data, error, refetch]);
@@ -232,9 +232,8 @@ function ProfileInfo({ toggle, setToggle }: ProfileInfoTypes) {
       <div className=" px-6 xl:px-0 flex justify-center">
         <form
           onSubmit={handleSubmit}
-          className={`w-full  max-w-[520px] ${
-            isLoading && "pointer-events-none"
-          }`}
+          className={`w-full  max-w-[520px] ${isLoading && "pointer-events-none"
+            }`}
         >
           <div className="mt-5 flex gap-[14px] items-center  w-full ">
             <div className="h-[62px] overflow-hidden  font-medium text-[16px] text-black-2 rounded-[22px] w-[62px] bg-[#E6FBFB] flex items-center justify-center">
@@ -282,9 +281,8 @@ function ProfileInfo({ toggle, setToggle }: ProfileInfoTypes) {
           {/*  name */}
           <div className="space-y-1 mt-5 w-full">
             <p
-              className={`text-[14px] font-normal  ${
-                nameError ? "text-red-1" : "text-gray-8"
-              }`}
+              className={`text-[14px] font-normal  ${nameError ? "text-red-1" : "text-gray-8"
+                }`}
             >
               {placeholders.name}
             </p>
@@ -306,9 +304,8 @@ function ProfileInfo({ toggle, setToggle }: ProfileInfoTypes) {
           {/* {mounted && type === "phone" && ( */}
           <div className="space-y-1 mt-5 w-full">
             <p
-              className={`text-[14px] font-normal  ${
-                emailError ? "text-red-1" : "text-gray-8"
-              }`}
+              className={`text-[14px] font-normal  ${emailError ? "text-red-1" : "text-gray-8"
+                }`}
             >
               {placeholders.email_address}
             </p>
@@ -329,9 +326,8 @@ function ProfileInfo({ toggle, setToggle }: ProfileInfoTypes) {
           {/* location */}
           <div className="mt-5 w-full">
             <div
-              className={`text-[14px] font-normal w-full ${
-                locationError ? "text-red-1" : "text-gray-8"
-              }`}
+              className={`text-[14px] font-normal w-full ${locationError ? "text-red-1" : "text-gray-8"
+                }`}
             >
               {placeholders.choose_location}
             </div>
@@ -396,7 +392,7 @@ function ProfileInfo({ toggle, setToggle }: ProfileInfoTypes) {
                       !isLocationsFetching &&
                       locationsData?.data?.length === 0 && (
                         <div className="text-[15px]  text-gray-8 px-4 py-2 text-sm cursor-pointer font-light hover:bg-gray-100">
-                          No locations found
+                          {placeholders.no_locations_found || "No locations found"}
                         </div>
                       )}
                     {(isLocationsLoading || isLocationsFetching) && (
@@ -413,7 +409,7 @@ function ProfileInfo({ toggle, setToggle }: ProfileInfoTypes) {
                       !isLocationsLoading &&
                       !isLocationsFetching && (
                         <div className="text-[15px]  text-gray-8 px-4 py-2 text-sm cursor-pointer font-light hover:bg-gray-100">
-                          No locations found
+                          {placeholders.no_locations_found || "No locations found"}
                         </div>
                       )}
                   </div>

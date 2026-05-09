@@ -129,6 +129,7 @@ function ServiceListing() {
     }, [servicesRequests, activeRequestTab, activeStatusTab, userId]);
     return (
         <div className="flex flex-col min-h-screen  w-full max-w-full min-w-0 overflow-x-hidden p-3 sm:p-4 lg:p-6">
+
             <Modal
                 editModalRef={modalRef}
                 open={offerForId !== null}
@@ -138,6 +139,7 @@ function ServiceListing() {
                 }}
                 centered={true}
             >
+
                 <DateTimePickerModal
                     setOpenPciker={() => setOfferForId(null)}
                     date={date}
@@ -153,7 +155,9 @@ function ServiceListing() {
                         });
                     }}
                 />
+
             </Modal>
+
             <div className="border-b border-gray-9 flex flex-col gap-2 sm:gap-0 sm:flex-row sm:justify-between sm:items-center w-full min-w-0 shrink-0 pb-2 sm:pb-0">
                 <Tabs tabs={tabs} activeTab={activeTab} setActiveTab={setActiveTab} />
                 <button
@@ -265,7 +269,7 @@ function ServiceListing() {
 
                                         </div>
 
-                                        {(activeRequestTab === "service_request" && activeStatusTab === "incoming") || (activeRequestTab === "my_offers") && <div className="w-full shrink-0 xl:w-[297px] lg:max-w-full">
+                                        {((activeRequestTab === "service_request" && activeStatusTab === "incoming") || (activeRequestTab === "my_offers")) && <div className="w-full shrink-0 xl:w-[297px] lg:max-w-full">
                                             <button
                                                 type="button"
                                                 disabled={isUpdating && spinnerAction === "accept"}

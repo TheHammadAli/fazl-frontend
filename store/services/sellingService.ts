@@ -46,7 +46,7 @@ export const profileService = baseApi.injectEndpoints({
     getShopProducts: build.query({
       query: (id) => {
         return {
-          url: `/products/${id}`,
+          url: `/products/shop/${id}`,
           method: "GET",
         };
       },

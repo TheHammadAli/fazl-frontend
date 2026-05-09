@@ -1,6 +1,7 @@
 {
     "currentLanguage": "ur",
     "placeholders": {
+        "no_locations_found": "کوئی مقام نہیں ملا",
         "you_offered_a_new_time": "آپ نے نیا وقت پیش کیا",
         "hour": "ساعت",
         "your_address": "آپ کا پتہ",

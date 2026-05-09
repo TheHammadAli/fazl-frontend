@@ -19,7 +19,7 @@ const STAR_FILLED = "#FFB03A";
 const STAR_PATH =
     "M12 3.09l2.35 4.76 5.26.77-3.8 3.7.9 5.24L12 14.9l-4.71 2.47.9-5.24-3.8-3.7 5.26-.77L12 3.09z";
 
-function AvgRatingStars({
+export function AvgRatingStars({
     rating,
     isLoading,
     size = 28,

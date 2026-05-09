@@ -126,14 +126,14 @@ function ProductDetail() {
       });
   };
   return (
-    <div>
+    <div className="">
       <Modal
         editModalRef={deleteModalRef}
         open={isDeleteModalOpen}
         setOpen={setIsDeleteModalOpen}
         centered={true}
       >
-        <div className="bg-white rounded-[12px] w-[92vw] max-w-[390px] p-5 shadow-xl">
+        <div className="bg-white rounded-[12px] w-[92vw] max-w-[390px] p-5 shadow-xl hide-scrollbar">
           <h2 className="text-[16px] font-semibold text-black-1">
             {placeholders.delete_product}
           </h2>
@@ -321,10 +321,7 @@ function ProductDetail() {
                   <span className="text-green-1 text-[16px] font-medium">
                     {placeholders.Rs} {product?.data?.price ?? ""}
                   </span>
-                  <span className="line-through font-light text-[14px]">
-                    Rs 2000
-                  </span>
-                  <span className="font-light text-[14px]">(30% off)</span>
+
                 </div>
                 <div className="text-[#4B514F] text-[14px] font-light mt-4">
                   {placeholders.description}
@@ -410,7 +407,7 @@ function ProductDetail() {
                 >
                   Add to cart
                 </button> */}
-                <button
+                {/* <button
                   //   disabled={
                   //     Object.keys(selectedVariants).length !==
                   //     product?.data?.parameters?.length
@@ -419,7 +416,7 @@ function ProductDetail() {
                   className="h-[46px] disabled:opacity-50 disabled:pointer-events-none mt-4 border-green-1 bg-green-1 border-[1px] w-full rounded-xl flex items-center justify-center font-medium text-[16px] text-white hover:text-green-1 hover:bg-white cursor-pointer"
                 >
                   {placeholders.promote_product}
-                </button>
+                </button> */}
               </div>
             </div>
             <Reviews type="product" id={product?.data?.id} allowAddReview={allowedToBuy} />

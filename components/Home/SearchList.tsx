@@ -15,6 +15,7 @@ import {
 } from "@/store/services/homeService";
 import AllProductsSkeleton from "./AllProductsSkelton";
 import { useDebounce } from "use-debounce";
+import { AvgRatingStars } from "../Ui/Reviews";
 
 function SearchList() {
   const { placeholders, error_messages } = useDictionary();
@@ -130,9 +131,12 @@ function SearchList() {
             (
               item: {
                 id: string;
+                _id: string;
                 title: string;
                 price: string | number;
                 images: string[];
+                reviewCount: number;
+                averageRating: number;
               },
               index: number
             ) => {
@@ -142,9 +146,9 @@ function SearchList() {
                   className=" cursor-pointer"
                   onClick={() => {
                     if (tab === "products") {
-                      router.push(`/buy-product?id=${item?.id}`);
+                      router.push(`/buy-product?id=${item?.id || item?._id}`);
                     } else if (tab === "services") {
-                      router.push(`/book-service?id=${item?.id}`);
+                      router.push(`/book-service?id=${item?.id || item?._id}`);
                     }
                   }}
                 >
@@ -166,9 +170,15 @@ function SearchList() {
                     {item?.title}
                   </h2>
                   <div className="flex gap-2">
-                    <Image src={ratingIcons} alt="rating_icon" />
+                    <div className="">
+                      <AvgRatingStars
+                        rating={item?.averageRating}
+                        isLoading={false}
+                        size={22}
+                      />
+                    </div>
                     <span className="text-gray-8 text-[14px] font-normal">
-                      (8)
+                      ({item?.reviewCount ?? 0})
                     </span>
                   </div>
                   <h2 className="text-green-1 font-normal text-[16px]  ">

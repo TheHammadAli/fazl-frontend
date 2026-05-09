@@ -73,10 +73,10 @@ function CreateService() {
     if (selectedPrice.price === "") {
       setPriceError(error_messages.price_required);
     }
-    if (video === null || video === "") {
-      toast.error(error_messages.video_required);
-      return;
-    }
+    // if (video === null || video === "") {
+    //   toast.error(error_messages.video_required);
+    //   return;
+    // }
     if (images?.length === 0) {
       toast.error(error_messages.image_required);
       return;
@@ -87,9 +87,10 @@ function CreateService() {
       description !== "" &&
       selectedCategory !== null &&
       selectedPrice.price !== "" &&
-      images.length > 0 &&
-      video !== null &&
-      video !== ""
+      images.length > 0
+      //  &&
+      // video !== null &&
+      // video !== ""
     ) {
       const formData = new FormData();
       formData.append("title", title);
@@ -127,7 +128,7 @@ function CreateService() {
       setDescription("");
       toast.error(
         (error?.data as { message?: string })?.message ||
-          "something went wrong!"
+        "something went wrong!"
       );
     }
   }, [isSuccess, isError, data, error]);
@@ -160,9 +161,9 @@ function CreateService() {
             setIsPriceOpen={setIsPriceOpen}
             type="service"
 
-            // setIsCatOpen={setIsCatOpen}
-            // selectedCategory={selectedCategory}
-            // setSelectedCategory={setSelectedCategory}
+          // setIsCatOpen={setIsCatOpen}
+          // selectedCategory={selectedCategory}
+          // setSelectedCategory={setSelectedCategory}
           />
         </div>
       </Modal>
@@ -208,9 +209,8 @@ function CreateService() {
                 {/*  title */}
                 <div className="space-y-1 mt-5 w-full">
                   <p
-                    className={`text-[14px] font-normal  ${
-                      titleError ? "text-red-1" : "text-gray-8"
-                    }`}
+                    className={`text-[14px] font-normal  ${titleError ? "text-red-1" : "text-gray-8"
+                      }`}
                   >
                     {placeholders.title}
                   </p>
@@ -231,9 +231,8 @@ function CreateService() {
                 {/* descripton */}
                 <div className="space-y-1 mt-5 w-full">
                   <p
-                    className={`text-[14px] font-normal  ${
-                      descriptionError ? "text-red-1" : "text-gray-8"
-                    }`}
+                    className={`text-[14px] font-normal  ${descriptionError ? "text-red-1" : "text-gray-8"
+                      }`}
                   >
                     {placeholders.describe_service}
                   </p>
