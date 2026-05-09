@@ -32,7 +32,7 @@ export default function ShopDetail() {
   } = useGetShopDetailQuery(id, {
     skip: !id,
   });
-
+  console.log("shop", shop);
   useEffect(() => {
     if (!id) {
       router.back();
@@ -40,8 +40,8 @@ export default function ShopDetail() {
   }, []);
   return (
     <div className="w-full ">
-      <div className="px-5 md:px-6 h-[61px] border-b-[1px] border-gray-9 bg-[white] hide-scrollbar w-full  flex justify-center ">
-        <div className="w-full min-w-max  overflow-scroll flex items-center gap-[6px] font-normal text-[14px] mt-5">
+      <div className=" px-5 md:px-6 h-[61px] border-b-[1px] border-gray-9 bg-[white] hide-scrollbar w-full  flex justify-center ">
+        <div className="w-full min-w-max hide-scrollbar overflow-scroll flex items-center gap-[6px] font-normal text-[14px] mt-5">
           <span className="text-gray-8">{pages.selling}</span>
           <Image
             src={chevron}
@@ -148,9 +148,9 @@ export default function ShopDetail() {
                   >
                     {placeholders.list_product}
                   </button>
-                  <button className="w-full max-w-[400px] bg-white border-[1px] border-green-1 text-green-1 text-[16px] h-[46px] font-medium flex items-center justify-center rounded-xl cursor-pointer">
+                  {/* <button className="w-full max-w-[400px] bg-white border-[1px] border-green-1 text-green-1 text-[16px] h-[46px] font-medium flex items-center justify-center rounded-xl cursor-pointer">
                     {placeholders.promote_shop}
-                  </button>
+                  </button> */}
                 </div>
               </div>
             )}

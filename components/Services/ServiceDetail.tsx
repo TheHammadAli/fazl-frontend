@@ -222,10 +222,6 @@ function ServiceDetail({ serviceData }: { serviceData: ServiceDetailType }) {
                   <span className="text-green-1 text-[16px] font-medium">
                     {placeholders.Rs} {serviceData?.price ?? ""}
                   </span>
-                  <span className="line-through font-light text-[14px]">
-                    Rs 2000
-                  </span>
-                  <span className="font-light text-[14px]">(30% off)</span>
                 </div>
                 <div className="text-[#4B514F] text-[14px] font-light mt-4 ">
                   {placeholders.description}

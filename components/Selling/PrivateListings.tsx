@@ -110,7 +110,7 @@ function PrivateListings() {
         !isLoading &&
         !isFetching && (
           <div className="w-full  h-[300px] flex items-center justify-center">
-            {error_messages.no_orders_data}
+            {error_messages.no_product_data}
           </div>
         )
       )}

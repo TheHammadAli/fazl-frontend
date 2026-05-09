@@ -159,7 +159,7 @@ function UpdateService() {
     if (isError && "data" in error) {
       toast.error(
         (error?.data as { message?: string })?.message ||
-          "something went wrong!"
+        "something went wrong!"
       );
     }
   }, [isSuccess, isError, data, error]);
@@ -204,9 +204,9 @@ function UpdateService() {
             setIsPriceOpen={setIsPriceOpen}
             type="service"
 
-            // setIsCatOpen={setIsCatOpen}
-            // selectedCategory={selectedCategory}
-            // setSelectedCategory={setSelectedCategory}
+          // setIsCatOpen={setIsCatOpen}
+          // selectedCategory={selectedCategory}
+          // setSelectedCategory={setSelectedCategory}
           />
         </div>
       </Modal>
@@ -214,19 +214,19 @@ function UpdateService() {
       <div className="h-full min-h-screen flex flex-col items-center">
         <div className="px-6 h-[61px] border-b-[1px] border-gray-9 bg-white w-full  flex justify-center">
           <div className="w-full   flex items-center gap-[6px] font-normal text-[14px] mt-5">
-            <span className="text-gray-8">{pages.selling}</span>
+            <span className="text-gray-8 first-letter:capitalize">{placeholders.service}</span>
             <Image
               src={chevron}
               alt="chevron"
               className="-rotate-90 rtl:rotate-90"
             />
-            <span className="text-gray-8">{placeholders.private_listing}</span>
+            <span className="text-gray-8">{title}</span>
             <Image
               src={chevron}
               alt="chevron"
               className="-rotate-90 rtl:rotate-90"
             />
-            <span className="text-green-1">{placeholders.edit_product}</span>
+            <span className="text-green-1">{placeholders.edit_service}</span>
           </div>
         </div>
         {status === "success" ? (
@@ -259,9 +259,8 @@ function UpdateService() {
                 {/*  title */}
                 <div className="space-y-1 mt-5 w-full">
                   <p
-                    className={`text-[14px] font-normal  ${
-                      titleError ? "text-red-1" : "text-gray-8"
-                    }`}
+                    className={`text-[14px] font-normal  ${titleError ? "text-red-1" : "text-gray-8"
+                      }`}
                   >
                     {placeholders.title}
                   </p>
@@ -282,9 +281,8 @@ function UpdateService() {
                 {/* descripton */}
                 <div className="space-y-1 mt-5 w-full">
                   <p
-                    className={`text-[14px] font-normal  ${
-                      descriptionError ? "text-red-1" : "text-gray-8"
-                    }`}
+                    className={`text-[14px] font-normal  ${descriptionError ? "text-red-1" : "text-gray-8"
+                      }`}
                   >
                     {info_messages?.describe_product}
                   </p>

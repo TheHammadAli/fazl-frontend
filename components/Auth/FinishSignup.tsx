@@ -19,6 +19,7 @@ import { useRouter } from "next/navigation";
 import dummyProfile from "@/assets/images/profile-placehonder.png";
 import { useDebounce } from "use-debounce";
 import Footer from "./Footer";
+import { useDictionary } from "@/dictionaries/DictionaryProvider";
 
 interface Location {
   description?: string;
@@ -31,6 +32,7 @@ interface Location {
 }
 
 function FinishSignup() {
+  const { currentLanguage, placeholders } = useDictionary();
   const router = useRouter();
   const {
     email: emailData,
@@ -486,7 +488,7 @@ function FinishSignup() {
                       !isLocationsFetching &&
                       locationsData?.data?.length === 0 && (
                         <div className="text-[15px]  text-gray-8 px-4 py-2 text-sm cursor-pointer font-light hover:bg-gray-100">
-                          No locations found
+                          {placeholders.no_locations_found || "No locations found"}
                         </div>
                       )}
                     {(isLocationsLoading || isLocationsFetching) && (
@@ -503,7 +505,7 @@ function FinishSignup() {
                       !isLocationsLoading &&
                       !isLocationsFetching && (
                         <div className="text-[15px]  text-gray-8 px-4 py-2 text-sm cursor-pointer font-light hover:bg-gray-100">
-                          No locations found
+                          {placeholders.no_locations_found || "No locations found"}
                         </div>
                       )}
                   </div>

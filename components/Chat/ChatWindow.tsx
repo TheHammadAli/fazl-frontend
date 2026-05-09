@@ -5,7 +5,6 @@ import Image from "next/image";
 import { type ChatMessage } from "./types";
 import { useDictionary } from "@/dictionaries/DictionaryProvider";
 import camIcon from "@/assets/icons/cam-icon.svg";
-import SquareAddIcon from "@/assets/icons/add-square.svg";
 import whiteArrowIcon from "@/assets/icons/white-arrow.svg";
 import { getUserId } from "@/utils/getUserId";
 import { useGetBroadcastThreadMessagesQuery, useGetConversationMessagesQuery, useMarkMessagesAsReadMutation, useSendBroadcastMessageMutation, useSendMessageMutation } from "@/store/services/chatService";
@@ -47,7 +46,7 @@ export default function ChatWindow({ thread, onBack, threadType }: ChatWindowPro
   const userId = getUserId() ?? "";
   const conversationId = thread?._id ?? thread?.id ?? "";
   const isBroadcastReceived = thread?.type === "broadcast_received";
-  const broadcastRequestId = isBroadcastReceived ? thread?.buyer : thread?.seller?.id
+  const broadcastRequestId = isBroadcastReceived ? thread?.buyer : thread?.seller?.id || thread?.seller?._id
   const broadcastThreadId = isBroadcastReceived ? (thread?.threadId ?? "") : (conversationId ?? "");
   const headerUser = thread?.buyer?.id || thread?.buyer?._id !== userId ? thread?.buyer : thread?.seller;
   const headerName = headerUser?.name ?? thread?.name ?? "";
@@ -114,6 +113,7 @@ export default function ChatWindow({ thread, onBack, threadType }: ChatWindowPro
 
       if (threadType === "broadcast_messages") {
         const broadcastMessageId = isBroadcastReceived ? thread?._id : thread?.broadcastId;
+
         if (!broadcastMessageId || !broadcastThreadId || !broadcastRequestId) {
           toast.error("Unable to send message");
           return;
@@ -170,6 +170,7 @@ export default function ChatWindow({ thread, onBack, threadType }: ChatWindowPro
       const buyerId = thread?.buyer?.id ?? thread?.buyer?._id ?? "";
       const sellerId = thread?.seller?.id ?? thread?.seller?._id ?? "";
       const receiverId = buyerId !== userId ? buyerId : sellerId;
+      console.log("receiverId", receiverId);
       if (!receiverId) {
         toast.error("Unable to send message");
         return;
@@ -192,6 +193,12 @@ export default function ChatWindow({ thread, onBack, threadType }: ChatWindowPro
         }
       });
       try {
+        const socket = initializeSocket();
+        if (!socket) {
+          toast.error("Unable to send message");
+          return;
+        }
+        // socket.emit('sendMessage', selectedFile ? formData : messageData);
         const res = await sendMessage(selectedFile ? formData : messageData).unwrap();
         toast.success(res?.message ?? "Operation completed successfully");
         setMessageText("");

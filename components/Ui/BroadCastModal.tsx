@@ -92,7 +92,7 @@ function BroadCastModal({ setOpenBroadcast }: { setOpenBroadcast: (open: boolean
                         className="flex w-full cursor-pointer items-center justify-between text-left disabled:cursor-not-allowed"
                     >
                         <span className="text-[15px] font-normal text-gray-8">
-                            {selectedRadius != null ? `${selectedRadius} km` : ph("choose_radius")}
+                            {selectedRadius != null ? `${selectedRadius} ${placeholders["km" as keyof typeof placeholders] ?? "km"}` : ph("choose_radius")}
                         </span>
                         <Image src={chevDown} alt="cross-icon" className="cursor-pointer" />
                     </button>
@@ -128,7 +128,7 @@ function BroadCastModal({ setOpenBroadcast }: { setOpenBroadcast: (open: boolean
                         className="flex w-full cursor-pointer items-center justify-between text-left disabled:cursor-not-allowed"
                     >
                         <span className="text-[15px] first-letter:capitalize font-normal text-gray-8">
-                            {selectedType ?? ph("choose_type")}
+                            {selectedType ? placeholders[selectedType as keyof typeof placeholders] ?? selectedType : ph("choose_type")}
                         </span>
                         <Image src={chevDown} alt="chev-down" />
                     </button>

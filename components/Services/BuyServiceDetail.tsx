@@ -149,7 +149,7 @@ function BuyServiceDetail({
                 </div>
               </div>
               <div className="w-full sm:max-w-[430px] ">
-                <div className="space-y-2 sm:space-y-0 flex flex-col md:flex-row md:justify-between gap-1 md:items-center">
+                <div className="space-y-2 sm:space-y-2 flex  flex-wrap md:space-y-2 justify-between gap-1 ">
                   <div className="flex gap-2">
                     <Image
                       className="h-[44px] w-[44px] rounded-full object-cover "

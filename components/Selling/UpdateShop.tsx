@@ -83,7 +83,7 @@ function UpdateShop() {
     if (isError && "data" in error) {
       toast.error(
         (error?.data as { message?: string })?.message ||
-          "something went wrong!"
+        "something went wrong!"
       );
     }
   }, [isSuccess, isError, data, error]);
@@ -234,9 +234,8 @@ function UpdateShop() {
           {/*  name */}
           <div className="space-y-1 mt-5 w-full">
             <p
-              className={`text-[14px] font-normal  ${
-                nameError ? "text-red-1" : "text-gray-8"
-              }`}
+              className={`text-[14px] font-normal  ${nameError ? "text-red-1" : "text-gray-8"
+                }`}
             >
               {info_messages.shop_name}
             </p>
@@ -278,9 +277,8 @@ function UpdateShop() {
           {/* location */}
           <div className="mt-5 w-full">
             <div
-              className={`text-[14px] font-normal w-full ${
-                locationError ? "text-red-1" : "text-gray-8"
-              }`}
+              className={`text-[14px] font-normal w-full ${locationError ? "text-red-1" : "text-gray-8"
+                }`}
             >
               {info_messages.shop_location}
             </div>
@@ -345,7 +343,7 @@ function UpdateShop() {
                       !isLocationsFetching &&
                       locationsData?.data?.length === 0 && (
                         <div className="text-[15px]  text-gray-8 px-4 py-2 text-sm cursor-pointer font-light hover:bg-gray-100">
-                          No locations found
+                          {placeholders.no_locations_found || "No locations found"}
                         </div>
                       )}
                     {(isLocationsLoading || isLocationsFetching) && (
@@ -362,7 +360,7 @@ function UpdateShop() {
                       !isLocationsLoading &&
                       !isLocationsFetching && (
                         <div className="text-[15px]  text-gray-8 px-4 py-2 text-sm cursor-pointer font-light hover:bg-gray-100">
-                          No locations found
+                          {placeholders.no_locations_found || "No locations found"}
                         </div>
                       )}
                   </div>
@@ -388,9 +386,8 @@ function UpdateShop() {
           </div>
           <div className="space-y-1 mt-5 w-full">
             <p
-              className={`text-[14px] font-normal  ${
-                descriptionError ? "text-red-1" : "text-gray-8"
-              }`}
+              className={`text-[14px] font-normal  ${descriptionError ? "text-red-1" : "text-gray-8"
+                }`}
             >
               {info_messages.describe_shop}
             </p>

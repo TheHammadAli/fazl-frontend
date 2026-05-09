@@ -33,6 +33,7 @@ function BroadCatMessages({ chatId, onSelectChat }: { chatId: string, onSelectCh
     const [filteredReceived, setFilteredReceived] = useState<BroadcastItem[]>([]);
     const [showBroadcastThreadList, setShowBroadcastThreadList] = useState(false);
     const [selectedBroadcast, setSelectedBroadcast] = useState<BroadcastItem | null>(null);
+
     const {
         data: sentItems,
         isLoading: isSentLoading,
@@ -185,7 +186,6 @@ function BroadCatMessages({ chatId, onSelectChat }: { chatId: string, onSelectCh
                     chatId={chatId}
                     broadcast={selectedBroadcast}
                     onSelectChat={onSelectChat}
-
                 />
                 // <></>
             ) : isLoadingCurrentTab && currentPage === 1 ? (

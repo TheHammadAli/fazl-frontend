@@ -25,9 +25,9 @@ function ProductListed({ setStatus }: Props) {
       </div>
 
       <div className="mt-42">
-        <button className="mt-6  h-[50px] w-full rounded-[12px] text-white font-medium text-[16px]  bg-green-1 cursor-pointer">
+        {/* <button className="mt-6  h-[50px] w-full rounded-[12px] text-white font-medium text-[16px]  bg-green-1 cursor-pointer">
           {placeholders.boost_product}
-        </button>
+        </button> */}
         <button
           onClick={() => {
             window.location.reload();

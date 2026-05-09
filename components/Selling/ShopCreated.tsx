@@ -23,12 +23,16 @@ function ShopCreated({ id }: Props) {
       </div>
 
       <div className="mt-42">
-        <button className="mt-6  h-[55px] w-full rounded-[12px] text-white font-medium text-[16px]  bg-green-1 cursor-pointer">
+        <button
+          onClick={() => {
+            router.push(`/selling/shop-detail?id=${id}`);
+          }}
+          className="mt-6  h-[55px] w-full rounded-[12px] text-white font-medium text-[16px]  bg-green-1 cursor-pointer">
           {info_messages.sell_product}
         </button>
-        <button className="mt-6 border-[1px] border-green-1 text-green-1   h-[55px] w-full rounded-[12px] hover:text-white font-medium text-[16px] hover:bg-green-1 cursor-pointer">
+        {/* <button className="mt-6 border-[1px] border-green-1 text-green-1   h-[55px] w-full rounded-[12px] hover:text-white font-medium text-[16px] hover:bg-green-1 cursor-pointer">
           {placeholders.promote_shop}
-        </button>
+        </button> */}
         <div className="text-center flex justify-center w-full text-green-1 font-medium text-[16px] mt-6 ">
           <p
             className="w-max cursor-pointer hover:underline"

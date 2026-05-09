@@ -180,7 +180,7 @@ function BuyProductDetail({
                 </div>
               </div>
               <div className="w-full sm:max-w-[364px] ">
-                <div className="space-y-2 sm:space-y-0 sm:flex sm:justify-between items-center">
+                <div className="space-y-2 sm:space-y-2 sm:flex sm:flex-wrap sm:justify-between items-center">
                   <div className="flex gap-2">
                     <Image
                       className="h-[44px] w-[44px] rounded-full object-cover "
@@ -244,10 +244,7 @@ function BuyProductDetail({
                   <span className="text-green-1 text-[16px] font-medium">
                     {placeholders.Rs} {product?.data?.price ?? ""}
                   </span>
-                  <span className="line-through font-light text-[14px]">
-                    Rs 2000
-                  </span>
-                  <span className="font-light text-[14px]">(30% off)</span>
+
                 </div>
                 <div className="text-[#4B514F] text-[14px] font-light mt-4">
                   {placeholders.description}
