@@ -34,13 +34,12 @@ const Modal = ({
   return (
     <>
       {open && (
-        <div className="bg-[#1E1E1E]/40 fixed z-[60] w-screen h-screen top-0  left-0 bg-opacity-50 overflow-scroll">
+        <div className="bg-[#1E1E1E]/40 fixed z-[60] w-screen h-screen top-0  left-0 bg-opacity-50 overflow-auto">
           <div
             ref={editModalRef}
-            className={`  ${
-              centered &&
-              "absolute max-h-[100vh] left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 overflow-scroll"
-            }
+            className={`  ${centered &&
+              "absolute max-h-[100vh] left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 overflow-auto"
+              }
               `}
           >
             {children}

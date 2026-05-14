@@ -109,7 +109,7 @@ function ServiceDetail({ serviceData }: { serviceData: ServiceDetailType }) {
         setOpen={setIsDeleteModalOpen}
         centered={true}
       >
-        <div className="bg-white rounded-[12px] w-[92vw] max-w-[390px] p-5 shadow-xl hide-scrollbar">
+        <div className="bg-white rounded-[12px] w-[92vw] max-w-[390px] p-5 shadow-xl !hide-scrollbar">
           <h2 className="text-[16px] font-semibold text-black-1">
             {placeholders.delete_service}
           </h2>
