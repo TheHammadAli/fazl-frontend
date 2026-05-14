@@ -13,7 +13,7 @@ type BroadcastItem = {
     _id?: string;
     id?: string;
     type: "Product" | "Service";
-    category: { name: string };
+    category: { name: { en: string; ur: string } };
     message: string;
     recipients: number;
     radius: number;
@@ -178,6 +178,7 @@ function BroadCatMessages({ chatId, onSelectChat }: { chatId: string, onSelectCh
                     </div>
                 }
             </div>
+
 
             {showBroadcastThreadList ? (
                 <BroadCastThreadList

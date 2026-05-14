@@ -3,9 +3,10 @@ import Image from 'next/image'
 import chevron from '@/assets/icons/chev-down-icon.svg'
 import formatFromNowShort from '@/utils/formatFromNowShort';
 import { useDictionary } from '@/dictionaries/DictionaryProvider';
+import { getFeedCategoryLabel } from '@/utils/getFeedCategoryLabel';
 type BroadcastItem = {
     type: "Product" | "Service";
-    category: { name: string };
+    category: { name: { en: string; ur: string } };
     message: string;
     recipients: number;
     radius: number;
@@ -40,7 +41,7 @@ function BroadCastList({ items, onScroll, onSelectItem, chatId, activeTab }: Bro
                     >
                         <div className="flex items-start justify-between gap-2  text-[13px]">
                             <p className="first-letter:uppercase leading-[22px] font-normal text-[#3C9197]">
-                                {item.type ?? ph("product")} &#8226; {item?.category?.name ?? ""}
+                                {item.type ?? ph("product")} &#8226; {getFeedCategoryLabel(item?.category, currentLanguage)}
                             </p>
                             <span className="shrink-0   font-normal text-gray-8">{formatFromNowShort(item?.createdAt ?? "", currentLanguage as "en" | "ur")}</span>
                         </div>

@@ -1,5 +1,6 @@
 import { forwardRef, useLayoutEffect, useRef, useState } from "react";
 import { Virtuoso } from "react-virtuoso";
+import type { ReelCategory } from "@/utils/getFeedCategoryLabel";
 import ReelItem from "./ReelItem";
 
 export type ReelItem = {
@@ -8,7 +9,7 @@ export type ReelItem = {
     video: string;
     title: string;
     price: string;
-    category: string;
+    category: ReelCategory;
 };
 
 type ReelsFeedProps = {

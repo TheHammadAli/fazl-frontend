@@ -4,6 +4,7 @@ import { ReelItem as ReelItemType } from "./ReelsFeed";
 import catFasionIcon from "@/assets/icons/cat-fashion-image.svg";
 import Image from "next/image";
 import { useDictionary } from "@/dictionaries/DictionaryProvider";
+import { getFeedCategoryLabel } from "@/utils/getFeedCategoryLabel";
 import { useRouter } from "next/navigation";
 import Modal from "../Ui/Modals/Modal";
 import SharePostModal from "../Ui/SharePostModal";
@@ -29,7 +30,7 @@ export default function ReelItem({
     const [shareModal, setShareModal] = useState(false)
     const userId = getUserId() ?? "";
     const router = useRouter();
-    const { placeholders } = useDictionary();
+    const { placeholders, currentLanguage } = useDictionary();
     type PlaceholderKey = keyof typeof placeholders;
     const ph = (key: PlaceholderKey) => placeholders[key];
     const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -273,7 +274,10 @@ export default function ReelItem({
                 >
                     <div className="flex overflow-hidden   bg-[#4A4A4A3D] w-max rounded-md  border-[0.5px] border-[#74747480]">
                         <div className="py-1 px-2 flex items-center justify-center bg-[#505050C2]"><Image src={catFasionIcon} alt="cat-fasion-icon" /></div>
-                        <div className="text-[14px] px-2 py-1 font-light text-white">{item.category}</div></div>
+                        <div className="text-[14px] px-2 py-1 font-light text-white">
+                            {getFeedCategoryLabel(item.category, currentLanguage)}
+                        </div>
+                    </div>
                     <h3 className="text-[16px] font-medium mt-2 ">{item.title}</h3>
                     <p className="mt-1">Rs {item.price}</p>
 

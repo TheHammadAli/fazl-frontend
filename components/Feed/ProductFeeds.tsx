@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { useGetAllProductsFeedQuery } from "@/store/services/feedService";
-import ReelsFeed from "./ReelsFeed";
+import ReelsFeed, { type ReelItem } from "./ReelsFeed";
 
 type ProductFeedItem = {
     _id?: string;
@@ -11,17 +11,7 @@ type ProductFeedItem = {
     video?: string;
     images?: string[];
     shopId?: string;
-    category?: {
-        name?: string;
-    };
-};
-
-type FeedReelItem = {
-    id: string;
-    video: string;
-    title: string;
-    price: string;
-    category: string;
+    category?: ReelItem["category"];
 };
 
 type FeedResponseMeta = {
@@ -36,15 +26,14 @@ type FeedResponse = {
 function ProductFeeds() {
     const LIMIT = 10;
     const [page, setPage] = useState(1);
-    const [products, setProducts] = useState<FeedReelItem[]>([]);
+    const [products, setProducts] = useState<ReelItem[]>([]);
     const [hasMore, setHasMore] = useState(true);
     const { data: productsFeed, isLoading, isFetching } = useGetAllProductsFeedQuery({ page, limit: LIMIT });
     const isInitialLoading = products.length === 0 && (isLoading || isFetching);
 
     useEffect(() => {
         const response = (productsFeed as FeedResponse | undefined) ?? undefined;
-        console.log(response)
-        const mapped: FeedReelItem[] =
+        const mapped: ReelItem[] =
             response?.data
                 ?.filter((product: ProductFeedItem) => !!product.video)
                 .map((product: ProductFeedItem) => ({
@@ -52,7 +41,7 @@ function ProductFeeds() {
                     video: product.video ?? "",
                     title: product.title ?? "",
                     price: String(product.price ?? 0),
-                    category: product.category?.name ?? "",
+                    category: product.category ?? "",
                     shopId: product.shopId ?? "",
                 })) ?? [];
 
