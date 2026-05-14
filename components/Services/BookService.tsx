@@ -7,13 +7,13 @@ import ServiceCart from "./ServiceCart";
 import Modal from "../Ui/Modals/Modal";
 import DateTimePickerModal from "./DateTimePickerModal";
 import ServiceDetailSkeleton from "../Ui/ServiceDetailPageSkelton";
-
 function BookService() {
   const [step, setStep] = useState<"service" | "request">("service");
   const id = useSearchParams().get("id");
   const modalRef = React.useRef<HTMLDivElement>(null);
   const [openPciker, setOpenPciker] = useState<boolean>(false);
   const [date, setDate] = useState<Date>(new Date());
+
   const {
     data: service,
     isLoading,
@@ -25,7 +25,6 @@ function BookService() {
   const [selectedVariants, setSelectedVariants] = useState({});
   return (
     <div>
-
       <Modal
         editModalRef={modalRef}
         open={openPciker}
@@ -39,7 +38,6 @@ function BookService() {
           setDate={setDate}
         />
       </Modal>
-
       {step === "service" &&
         (isLoading || isFetching ? (
           <ServiceDetailSkeleton />
@@ -52,7 +50,6 @@ function BookService() {
             setOpenPciker={setOpenPciker}
           />
         ))}
-
       {step === "request" &&
         <ServiceCart service={service} date={date} />
       }

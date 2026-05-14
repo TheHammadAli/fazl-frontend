@@ -1,21 +1,15 @@
 "use client";
-import React, { use, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import chevron from "@/assets/icons/chev-down-icon.svg";
 import { useDictionary } from "@/dictionaries/DictionaryProvider";
-import dummyProfile from "@/assets/images/dummy-profile-image.jpg";
-import ratingIcons from "@/assets/icons/rating-icons.svg";
-import { useGetProductDetailQuery } from "@/store/services/homeService";
-import { useSearchParams } from "next/navigation";
 import noImageAvtar from "@/assets/images/no-image-av.png";
 import { useClickOutside } from "@/custom-hooks/useClickOutside";
-import { get } from "http";
-import { getCookie } from "cookies-next";
-import { useGetProductOwnerDetailQuery } from "@/store/services/authService";
 import useInitiateChat from "@/custom-hooks/useInitiateChat";
 import { getUserId } from "@/utils/getUserId";
 import Reviews from "../Ui/Reviews";
 import { useGetAvgReviewsQuery } from "@/store/services/reviewService";
+import { getFeedCategoryLabel } from "@/utils/getFeedCategoryLabel";
 export type ProductDetailProps = {
   setStep?: (val: "product" | "cart") => void;
   product: {
@@ -30,7 +24,7 @@ export type ProductDetailProps = {
       images: string[];
       description: string;
       parameters: { name: string; variants: string[] }[];
-      category: { name: string };
+      category: { name: { en: string; ur: string } };
     };
     isLoading: boolean;
     isFetching: boolean;
@@ -61,8 +55,7 @@ function BuyProductDetail({
 }: ProductDetailProps) {
   const userId = getUserId() ?? "";
   const { onInitiateChat, isLoading } = useInitiateChat();
-  const { pages, placeholders, info_messages, error_messages } =
-    useDictionary();
+  const { pages, placeholders, currentLanguage } = useDictionary();
   const ref = React.useRef<HTMLDivElement>(null);
   const [toggle, setToggle] = useState(-1);
   const [type, setType] = useState("image");
@@ -70,13 +63,11 @@ function BuyProductDetail({
   useClickOutside(ref, () => {
     setToggle(-1);
   });
-
-  const { data: avgReview, isLoading: isLoadingAvgReview } = useGetAvgReviewsQuery(
+  const { data: avgReview } = useGetAvgReviewsQuery(
     { type: "product", id: product?.data?.id ?? "" },
-    { skip: !product?.data?.id || !product?.data?.id }
+    { skip: !product?.data?.id },
   );
   const reviewCount = avgReview?.data?.count ?? 0;
-
   const allowedToBuy = product?.data?.shopId
     ? userId !== shopData?.ownerId?.id
     : userId !== product?.data?.ownerId;
@@ -257,7 +248,7 @@ function BuyProductDetail({
                     {placeholders.category}
                   </span>
                   <span className="font-light text-[15px] leading-none">
-                    {product?.data?.category?.name ?? ""}
+                    {getFeedCategoryLabel(product?.data?.category, currentLanguage)}
                   </span>
                 </div>
                 {mounted &&
@@ -339,7 +330,7 @@ function BuyProductDetail({
                       Object.keys(selectedVariants).length !==
                       product?.data?.parameters?.length
                     }
-                    onClick={() => setStep && setStep("cart")}
+                    onClick={() => setStep?.("cart")}
                     className="h-[46px] disabled:opacity-50 disabled:pointer-events-none mt-4 border-green-1 bg-green-1 border-[1px] w-full rounded-xl flex items-center justify-center font-medium text-[16px] text-white hover:text-green-1 hover:bg-white cursor-pointer"
                   >
                     {placeholders.buy_now}

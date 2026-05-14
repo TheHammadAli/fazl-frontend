@@ -1,17 +1,15 @@
 "use client";
-import React, { use, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import chevron from "@/assets/icons/chev-down-icon.svg";
 import { useDictionary } from "@/dictionaries/DictionaryProvider";
-import dummyProfile from "@/assets/images/dummy-profile-image.jpg";
-import ratingIcons from "@/assets/icons/rating-icons.svg";
 import noImageAvtar from "@/assets/images/no-image-av.png";
-import { getCookie } from "cookies-next";
 import { useGetProductOwnerDetailQuery } from "@/store/services/authService";
 import { getUserId } from "@/utils/getUserId";
 import useInitiateChat from "@/custom-hooks/useInitiateChat";
 import Reviews from "../Ui/Reviews";
 import { useGetAvgReviewsQuery } from "@/store/services/reviewService";
+import { getFeedCategoryLabel } from "@/utils/getFeedCategoryLabel";
 export type ServiceDetailProps = {
   setStep?: (val: "service" | "request") => void;
   setOpenPciker?: (val: boolean) => void;
@@ -28,24 +26,28 @@ export type ServiceDetailProps = {
       images: string[];
       description: string;
       parameters: { name: string; variants: string[] }[];
-      category: { name: string };
+      category: {
+        name: {
+          en: string;
+          ur: string;
+        }
+      };
     };
     isLoading: boolean;
     isFetching: boolean;
   };
 
-  selectedVariants: Record<string, unknown>;
+  selectedVariants?: Record<string, unknown>;
   setSelectedVariants?: React.Dispatch<
     React.SetStateAction<Record<string, unknown>>
   >;
 };
 function BuyServiceDetail({
-  setStep,
   service,
   setOpenPciker,
 }: ServiceDetailProps) {
   const userId = getUserId() ?? "";
-  const { pages, placeholders } = useDictionary();
+  const { pages, placeholders, currentLanguage } = useDictionary();
   const [type, setType] = useState("image");
   const [typeIndex, setTypeIndex] = useState(0);
   const allowedToBuy = userId !== service?.data?.ownerId;
@@ -56,7 +58,7 @@ function BuyServiceDetail({
       skip: !service?.data?.ownerId,
     }
   );
-  const { data: avgReview, isLoading: isLoadingAvgReview } = useGetAvgReviewsQuery(
+  const { data: avgReview } = useGetAvgReviewsQuery(
     { type: "service", id: service?.data?.id ?? "" },
     { skip: !service?.data?.id }
   );
@@ -203,7 +205,7 @@ function BuyServiceDetail({
                     {placeholders.category}
                   </span>
                   <span className="font-light text-[15px] leading-none">
-                    {service?.data?.category?.name ?? ""}
+                    {getFeedCategoryLabel(service?.data?.category, currentLanguage)}
                   </span>
                 </div>
 

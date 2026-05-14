@@ -8,7 +8,7 @@ import camIcon from "@/assets/icons/cam-icon.svg";
 import whiteArrowIcon from "@/assets/icons/white-arrow.svg";
 import { getUserId } from "@/utils/getUserId";
 import { useGetBroadcastThreadMessagesQuery, useGetConversationMessagesQuery, useMarkMessagesAsReadMutation, useSendBroadcastMessageMutation, useSendMessageMutation } from "@/store/services/chatService";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { parsePositiveInt } from "../Updates/Notifications";
 import moment from "moment";
@@ -17,13 +17,32 @@ import baseApi from "@/store/baseApi";
 import { useAppDispatch } from "@/store/store";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import noImageAvtar from "@/assets/images/profile-placehonder.png";
+import noMessagesIcon from "@/assets/icons/no-message.svg";
+import AvatarUi from "../Ui/AvatarUi";
+
 type ChatWindowProps = {
   thread: any;
   onBack?: () => void;
   threadType: string;
 };
-import noMessagesIcon from "@/assets/icons/no-message.svg";
-import AvatarUi from "../Ui/AvatarUi";
+
+function getMessageImageUrls(message: {
+  imageUrl?: unknown;
+  imageUrls?: unknown;
+  images?: unknown;
+}): string[] {
+  const raw = message?.imageUrls ?? message?.imageUrl ?? message?.images;
+  if (raw == null) return [];
+  if (Array.isArray(raw)) {
+    return raw
+      .filter((u): u is string => typeof u === "string" && u.trim().length > 0)
+      .map((u) => u.trim());
+  }
+  if (typeof raw === "string" && raw.trim()) return [raw.trim()];
+  return [];
+}
+
+const MAX_BROADCAST_ATTACHMENTS = 5;
 
 export default function ChatWindow({ thread, onBack, threadType }: ChatWindowProps) {
   const { placeholders } = useDictionary();
@@ -31,30 +50,58 @@ export default function ChatWindow({ thread, onBack, threadType }: ChatWindowPro
   const ph = (key: PlaceholderKey) => placeholders[key];
   const PAGE_LIMIT = 15;
   const [page, setPage] = useState(1);
-  const getDateLabel = (createdAt?: string) => {
-    if (!createdAt) return "";
-    const date = moment(createdAt);
-    if (!date.isValid()) return "";
-    if (date.isSame(moment(), "day")) return ph("today");
-    if (date.isSame(moment().subtract(1, "day"), "day")) return ph("yesterday");
-    return date.format("MM/DD/YYYY");
-  };
   const dispatch = useAppDispatch();
   const messagesContainerRef = useRef<HTMLDivElement | null>(null);
   const prevScrollHeightRef = useRef(0);
   const shouldStickToBottomRef = useRef(true);
   const userId = getUserId() ?? "";
-  const conversationId = thread?._id ?? thread?.id ?? "";
-  const isBroadcastReceived = thread?.type === "broadcast_received";
-  const broadcastRequestId = isBroadcastReceived ? thread?.buyer : thread?.seller?.id || thread?.seller?._id
-  const broadcastThreadId = isBroadcastReceived ? (thread?.threadId ?? "") : (conversationId ?? "");
-  const headerUser = thread?.buyer?.id || thread?.buyer?._id !== userId ? thread?.buyer : thread?.seller;
-  const headerName = headerUser?.name ?? thread?.name ?? "";
-  const headerEmail = headerUser?.email ?? thread?.email ?? "";
-  const headerAvatar = headerUser?.image ?? thread?.avatar ?? "https://i.pravatar.cc/80?img=11";
+
+  const getDateLabel = useCallback(
+    (createdAt?: string) => {
+      if (!createdAt) return "";
+      const date = moment(createdAt);
+      if (!date.isValid()) return "";
+      if (date.isSame(moment(), "day")) return String(placeholders.today ?? "");
+      if (date.isSame(moment().subtract(1, "day"), "day"))
+        return String(placeholders.yesterday ?? "");
+      return date.format("MM/DD/YYYY");
+    },
+    [placeholders],
+  );
+
+  const {
+    conversationId,
+    isBroadcastReceived,
+    broadcastRequestId,
+    broadcastThreadId,
+    headerName,
+    headerEmail,
+    headerAvatar,
+  } = useMemo(() => {
+    const convId = thread?._id ?? thread?.id ?? "";
+    const broadcastReceived = thread?.type === "broadcast_received";
+    const bRequestId = broadcastReceived
+      ? thread?.buyer
+      : thread?.seller?.id || thread?.seller?._id;
+    const bThreadId = broadcastReceived ? (thread?.threadId ?? "") : convId;
+    const hUser =
+      thread?.buyer?.id || thread?.buyer?._id !== userId
+        ? thread?.buyer
+        : thread?.seller;
+    return {
+      conversationId: convId,
+      isBroadcastReceived: broadcastReceived,
+      broadcastRequestId: bRequestId,
+      broadcastThreadId: bThreadId,
+      headerName: hUser?.name ?? thread?.name ?? "",
+      headerEmail: hUser?.email ?? thread?.email ?? "",
+      headerAvatar: hUser?.image ?? thread?.avatar ?? "https://i.pravatar.cc/80?img=11",
+    };
+  }, [thread, userId]);
   const [messageText, setMessageText] = useState("");
   const [filteredMessages, setFilteredMessages] = useState<ChatMessage[]>([]);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  /** Direct chat: 0–1 image. Broadcast thread: 0–5 images. */
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [markMessagesAsRead] = useMarkMessagesAsReadMutation();
   const [sendMessage, { isLoading: isSendingMessage }] = useSendMessageMutation();
@@ -71,42 +118,125 @@ export default function ChatWindow({ thread, onBack, threadType }: ChatWindowPro
     skip: !conversationId || threadType === "broadcast_messages",
     refetchOnMountOrArgChange: true,
   });
+  const broadcastQueryArgs = useMemo(
+    () => ({
+      id: broadcastRequestId,
+      threadId: broadcastThreadId,
+    }),
+    [broadcastRequestId, broadcastThreadId],
+  );
+
   const {
     data: broadcastMessages,
     isFetching: isFetchingBroadcastMessages,
     refetch: refetchBroadcastMessages,
-  } = useGetBroadcastThreadMessagesQuery({
-    id: broadcastRequestId,
-    threadId: broadcastThreadId,
-  }, {
+  } = useGetBroadcastThreadMessagesQuery(broadcastQueryArgs, {
     skip: threadType !== "broadcast_messages" || !broadcastRequestId || !broadcastThreadId,
     refetchOnMountOrArgChange: true,
   });
-  const totalPages = parsePositiveInt(messages?.meta?.totalPages);
-  const incomingMessages = (messages?.data as ChatMessage[] | undefined) ?? undefined;
-  const isMessagesLoading =
-    threadType === "broadcast_messages"
-      ? isFetchingBroadcastMessages && filteredMessages.length === 0
-      : isFetching && page === 1 && filteredMessages.length === 0;
-  const canLoadMore =
-    totalPages != null ? page < totalPages : messages?.meta?.total >= PAGE_LIMIT;
-  const scrollToBottom = () => {
+  const totalPages = useMemo(
+    () => parsePositiveInt(messages?.meta?.totalPages),
+    [messages?.meta?.totalPages],
+  );
+  const incomingMessages = useMemo(
+    () => (messages?.data as ChatMessage[] | undefined) ?? undefined,
+    [messages?.data],
+  );
+  const canLoadMore = useMemo(
+    () =>
+      totalPages != null ? page < totalPages : (messages?.meta?.total ?? 0) >= PAGE_LIMIT,
+    [totalPages, page, messages?.meta?.total],
+  );
+  const isMessagesLoading = useMemo(
+    () =>
+      threadType === "broadcast_messages"
+        ? isFetchingBroadcastMessages && filteredMessages.length === 0
+        : isFetching && page === 1 && filteredMessages.length === 0,
+    [
+      threadType,
+      isFetchingBroadcastMessages,
+      isFetching,
+      page,
+      filteredMessages.length,
+    ],
+  );
+
+  const scrollToBottom = useCallback(() => {
     const el = messagesContainerRef.current;
     if (!el) return;
     el.scrollTop = el.scrollHeight;
-  };
-  function handleScrollNearBottom(e: React.UIEvent<HTMLDivElement>) {
-    if (threadType === "broadcast_messages") return;
-    const el = e.currentTarget;
-    shouldStickToBottomRef.current = el.scrollHeight - el.scrollTop - el.clientHeight <= 120;
-    if (!userId || isFetching || !canLoadMore) return;
-    const nearTop = el.scrollTop <= 80;
-    if (!nearTop) return;
-    prevScrollHeightRef.current = el.scrollHeight;
-    setPage((p) => p + 1);
-  }
-  const handleSendMessage = async () => {
-    if (messageText.trim() === "" && !selectedFile) {
+  }, []);
+
+  const handleScrollNearBottom = useCallback(
+    (e: React.UIEvent<HTMLDivElement>) => {
+      if (threadType === "broadcast_messages") return;
+      const el = e.currentTarget;
+      shouldStickToBottomRef.current =
+        el.scrollHeight - el.scrollTop - el.clientHeight <= 120;
+      if (!userId || isFetching || !canLoadMore) return;
+      const nearTop = el.scrollTop <= 80;
+      if (!nearTop) return;
+      prevScrollHeightRef.current = el.scrollHeight;
+      setPage((p) => p + 1);
+    },
+    [threadType, userId, isFetching, canLoadMore],
+  );
+
+  const maxChatImagesError = useMemo(
+    () =>
+      String(
+        placeholders["max_chat_images" as keyof typeof placeholders] ??
+        `Maximum ${MAX_BROADCAST_ATTACHMENTS} images`,
+      ),
+    [placeholders],
+  );
+
+  const handleFileInputChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const list = e.target.files;
+      if (!list?.length) {
+        e.currentTarget.value = "";
+        return;
+      }
+      const picked = Array.from(list).filter((f) => f.type.startsWith("image/"));
+      if (picked.length === 0) {
+        e.currentTarget.value = "";
+        return;
+      }
+      if (threadType === "broadcast_messages") {
+        setSelectedFiles((prev) => {
+          const merged = [...prev, ...picked];
+          if (merged.length > MAX_BROADCAST_ATTACHMENTS) {
+            toast.error(maxChatImagesError);
+            return merged.slice(0, MAX_BROADCAST_ATTACHMENTS);
+          }
+          return merged;
+        });
+      } else {
+        setSelectedFiles(picked.slice(0, 1));
+      }
+      e.currentTarget.value = "";
+    },
+    [threadType, maxChatImagesError],
+  );
+
+  const removeAttachment = useCallback((index: number) => {
+    setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
+  }, []);
+
+  const attachmentPreviewUrls = useMemo(
+    () => selectedFiles.map((f) => URL.createObjectURL(f)),
+    [selectedFiles],
+  );
+
+  useEffect(() => {
+    return () => {
+      attachmentPreviewUrls.forEach((u) => URL.revokeObjectURL(u));
+    };
+  }, [attachmentPreviewUrls]);
+
+  const handleSendMessage = useCallback(async () => {
+    if (messageText.trim() === "" && selectedFiles.length === 0) {
       return;
     }
     try {
@@ -131,35 +261,44 @@ export default function ChatWindow({ thread, onBack, threadType }: ChatWindowPro
           receiverId: broadcastRequestId,
           message: messageText.trim(),
         };
-        const messageWithFile = {
-          ...messageData,
-          file: selectedFile,
-        };
-        const formData = new FormData();
-        Object.entries(messageWithFile).forEach(([key, value]) => {
-          if (value) {
-            formData.append(key, value);
-          }
-        });
+        const body =
+          selectedFiles.length > 0
+            ? (() => {
+              const formData = new FormData();
+              Object.entries(messageData).forEach(([key, value]) => {
+                if (value != null && value !== "") {
+                  formData.append(key, String(value));
+                }
+              });
+              selectedFiles.forEach((file) => {
+                formData.append("files", file);
+              });
+              return formData;
+            })()
+            : messageData;
+
         sendBroadcastMessage({
           id: broadcastMessageId,
-          body: selectedFile ? formData : messageData,
-        }).unwrap().then((res) => {
-          toast.success(res?.message ?? "Operation completed successfully");
-          setMessageText("");
-          setSelectedFile(null);
-          if (fileInputRef.current) {
-            fileInputRef.current.value = "";
-          }
-          shouldStickToBottomRef.current = true;
-          prevScrollHeightRef.current = 0;
-          refetchBroadcastMessages();
-          requestAnimationFrame(() => {
-            scrollToBottom();
+          body,
+        })
+          .unwrap()
+          .then((res) => {
+            toast.success(res?.message ?? "Operation completed successfully");
+            setMessageText("");
+            setSelectedFiles([]);
+            if (fileInputRef.current) {
+              fileInputRef.current.value = "";
+            }
+            shouldStickToBottomRef.current = true;
+            prevScrollHeightRef.current = 0;
+            refetchBroadcastMessages();
+            requestAnimationFrame(() => {
+              scrollToBottom();
+            });
+          })
+          .catch((err) => {
+            toast.error(err?.data?.message ?? "Unable to send message");
           });
-        }).catch((err) => {
-          toast.error(err?.data?.message ?? "Unable to send message");
-        });
         return;
       }
 
@@ -170,7 +309,6 @@ export default function ChatWindow({ thread, onBack, threadType }: ChatWindowPro
       const buyerId = thread?.buyer?.id ?? thread?.buyer?._id ?? "";
       const sellerId = thread?.seller?.id ?? thread?.seller?._id ?? "";
       const receiverId = buyerId !== userId ? buyerId : sellerId;
-      console.log("receiverId", receiverId);
       if (!receiverId) {
         toast.error("Unable to send message");
         return;
@@ -182,14 +320,15 @@ export default function ChatWindow({ thread, onBack, threadType }: ChatWindowPro
         senderId: userId,
         receiverId,
       };
+      const singleFile = selectedFiles[0] ?? null;
       const messageWithFile = {
         ...messageData,
-        file: selectedFile,
+        file: singleFile,
       };
       const formData = new FormData();
       Object.entries(messageWithFile).forEach(([key, value]) => {
         if (value) {
-          formData.append(key, value);
+          formData.append(key, value instanceof File ? value : String(value));
         }
       });
       try {
@@ -199,10 +338,10 @@ export default function ChatWindow({ thread, onBack, threadType }: ChatWindowPro
           return;
         }
         // socket.emit('sendMessage', selectedFile ? formData : messageData);
-        const res = await sendMessage(selectedFile ? formData : messageData).unwrap();
+        const res = await sendMessage(singleFile ? formData : messageData).unwrap();
         toast.success(res?.message ?? "Operation completed successfully");
         setMessageText("");
-        setSelectedFile(null);
+        setSelectedFiles([]);
         if (fileInputRef.current) {
           fileInputRef.current.value = "";
         }
@@ -222,9 +361,23 @@ export default function ChatWindow({ thread, onBack, threadType }: ChatWindowPro
       }
     } catch {
       toast.error("Unable to send message");
-
     }
-  }
+  }, [
+    messageText,
+    selectedFiles,
+    threadType,
+    isBroadcastReceived,
+    thread,
+    broadcastThreadId,
+    broadcastRequestId,
+    userId,
+    conversationId,
+    sendBroadcastMessage,
+    sendMessage,
+    refetchBroadcastMessages,
+    refetch,
+    scrollToBottom,
+  ]);
   useEffect(() => {
     if (threadType !== "broadcast_messages" || !broadcastRequestId || !broadcastThreadId) return;
     refetchBroadcastMessages();
@@ -251,6 +404,10 @@ export default function ChatWindow({ thread, onBack, threadType }: ChatWindowPro
     const socket = initializeSocket();
     if (!socket) return;
     setPage(1);
+    setSelectedFiles([]);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
     if (threadType === "broadcast_messages") {
       const incomingBroadcastMessages = (broadcastMessages?.data as ChatMessage[] | undefined) ?? [];
       setFilteredMessages(incomingBroadcastMessages);
@@ -282,6 +439,18 @@ export default function ChatWindow({ thread, onBack, threadType }: ChatWindowPro
       }),
     [filteredMessages],
   );
+
+  const emptyConversationCopy = useMemo(
+    () => ({
+      title:
+        placeholders["start_conversation" as keyof typeof placeholders] ??
+        "Start conversation",
+      subtitle:
+        placeholders["say_hi_to_begin_conversation" as keyof typeof placeholders] ??
+        "Say hi to begin a conversation",
+    }),
+    [placeholders],
+  );
   useEffect(() => {
     const el = messagesContainerRef.current;
     if (!el) return;
@@ -298,16 +467,18 @@ export default function ChatWindow({ thread, onBack, threadType }: ChatWindowPro
   useEffect(() => {
     const socket = initializeSocket();
     if (!socket) return;
-    socket.on("receiveMessage", (data) => {
-      console.log(data, "message received");
+    const onReceiveMessage = () => {
       dispatch(baseApi.util.invalidateTags(["Chat"]));
-    });
-
-    socket.on("receiveBroadcastMessage", () => {
+    };
+    const onReceiveBroadcastMessage = () => {
       dispatch(baseApi.util.invalidateTags(["BROADCAST"]));
-    }
-
-    )
+    };
+    socket.on("receiveMessage", onReceiveMessage);
+    socket.on("receiveBroadcastMessage", onReceiveBroadcastMessage);
+    return () => {
+      socket.off("receiveMessage", onReceiveMessage);
+      socket.off("receiveBroadcastMessage", onReceiveBroadcastMessage);
+    };
   }, [dispatch]);
   return (
     <section className="flex h-full min-h-0 flex-1 flex-col">
@@ -344,13 +515,10 @@ export default function ChatWindow({ thread, onBack, threadType }: ChatWindowPro
           <div className="flex flex-col justify-center items-center h-full ">
             <Image src={noMessagesIcon} alt="no-messages-icon" />
             <h1 className="text-black-1 text-[22px] font-medium">
-              {placeholders["start_conversation" as keyof typeof placeholders] ??
-                "Start conversation"}
+              {emptyConversationCopy.title}
             </h1>
             <p className="text-[#4B514F] text-[14px] font-normal">
-              {placeholders[
-                "say_hi_to_begin_conversation" as keyof typeof placeholders
-              ] ?? "Say hi to begin a conversation"}
+              {emptyConversationCopy.subtitle}
             </p>
           </div>
           :
@@ -360,10 +528,14 @@ export default function ChatWindow({ thread, onBack, threadType }: ChatWindowPro
               const currentDateLabel = getDateLabel(message.createdAt);
               const previousDateLabel = getDateLabel(sortedFilteredMessages[index - 1]?.createdAt);
               const showDateSeparator = currentDateLabel && currentDateLabel !== previousDateLabel;
+              const MAX_CHAT_IMAGES = 5;
               const textContent =
                 threadType === "broadcast_messages" ? message?.message : message?.text;
-              const imageUrl = message?.imageUrl as string | undefined;
-              const hasImage = Boolean(imageUrl?.trim());
+              const allImageUrls = getMessageImageUrls(message).slice(0, MAX_CHAT_IMAGES);
+              const imageCount = allImageUrls.length;
+              const hasFiveImages = imageCount === 5;
+              const imageUrls = hasFiveImages ? allImageUrls.slice(0, 4) : allImageUrls;
+              const hasImages = imageUrls.length > 0;
               const showText = Boolean(textContent != null && String(textContent).trim());
               return (
                 <div key={index}>
@@ -372,30 +544,64 @@ export default function ChatWindow({ thread, onBack, threadType }: ChatWindowPro
                   ) : null}
                   <div className={`flex gap-2 items-end ${mine ? "justify-end" : "justify-start"}`}>
                     {!mine && <AvatarUi image={headerAvatar ?? noImageAvtar.src} name={headerName} className="h-8 w-8 rounded-full" />}
-                    <div
-                      className={`w-fit max-w-[85%] overflow-hidden rounded-2xl lg:max-w-[60%] ${mine ? "bg-[#EEF2F3]" : "bg-[#F6F6F6]"}`}
-                    >
-                      {hasImage ? (
-                        <div className="flex justify-center bg-black/[0.03]">
-                          <Image
-                            src={imageUrl}
-                            alt=""
-                            width={100}
-                            height={100}
-                            // sizes="(max-width: 768px) 72vw, 100%"
-                            className="block h-auto w-auto object-contain"
-                            unoptimized
-                          />
-                        </div>
-                      ) : null}
-                      {showText ? (
-                        <div
-                          className={`break-words text-sm leading-relaxed ${mine ? "text-[#030303]" : "text-gray-900"} ${hasImage ? "px-3 pb-2.5 pt-2" : "px-4 py-2.5"} whitespace-pre-wrap`}
-                        >
-                          {textContent}
-                        </div>
-                      ) : null}
-                    </div>
+                    {(hasImages || showText) ? (
+                      <div
+                        className={`w-fit max-w-[85%] overflow-hidden rounded-2xl lg:max-w-[60%] ${mine ? "bg-[#EEF2F3]" : "bg-[#F6F6F6]"}`}
+                      >
+                        {hasImages ? (
+                          <div
+                            className={
+                              imageUrls.length === 1 && !hasFiveImages
+                                ? "flex justify-center bg-black/[0.03] p-1"
+                                : "grid grid-cols-2 gap-1 bg-black/[0.03] p-1.5"
+                            }
+                          >
+                            {imageUrls.map((url, imgIndex) => {
+                              const isSingleLayout = imageUrls.length === 1 && !hasFiveImages;
+                              const showMoreOverlay =
+                                hasFiveImages && imgIndex === imageUrls.length - 1;
+                              return (
+                                <div
+                                  key={`${index}-${imgIndex}`}
+                                  className={
+                                    isSingleLayout
+                                      ? "flex max-w-full justify-center"
+                                      : "relative aspect-square min-h-[100px] min-w-0 overflow-hidden rounded-md sm:min-h-[120px]"
+                                  }
+                                >
+                                  <Image
+                                    src={url}
+                                    alt=""
+                                    width={isSingleLayout ? 320 : 160}
+                                    height={isSingleLayout ? 320 : 160}
+                                    className={
+                                      isSingleLayout
+                                        ? "max-h-[min(50vh,360px)] w-auto max-w-full object-contain"
+                                        : "h-full w-full object-cover"
+                                    }
+                                    unoptimized
+                                  />
+                                  {showMoreOverlay ? (
+                                    <div className="absolute inset-0 flex items-center justify-center bg-black/55">
+                                      <span className="px-2 text-center text-[13px] font-medium text-white">
+                                        {ph("show_more")}
+                                      </span>
+                                    </div>
+                                  ) : null}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        ) : null}
+                        {showText ? (
+                          <div
+                            className={`break-words text-sm leading-relaxed ${mine ? "text-[#030303]" : "text-gray-900"} ${hasImages ? "px-3 pb-2.5 pt-2" : "px-4 py-2.5"} whitespace-pre-wrap`}
+                          >
+                            {textContent}
+                          </div>
+                        ) : null}
+                      </div>
+                    ) : null}
                   </div>
                 </div>
               );
@@ -406,39 +612,56 @@ export default function ChatWindow({ thread, onBack, threadType }: ChatWindowPro
 
 
       <div className="border-t  border-gray-200 bg-[white] px-3 py-2.5 lg:px-7">
-        {selectedFile && <div className="w-[80px] h-[80px] relative">
-          <div className="absolute cursor-pointer h-5 w-5 -top-2 -right-2 rounded-full bg-[red] flex items-center justify-center">
-            <XMarkIcon
-              onClick={() => {
-                setSelectedFile(null);
-                if (fileInputRef.current) {
-                  fileInputRef.current.value = "";
-                }
-              }}
-              className="h-4 w-4 text-white"
-            />
+        {selectedFiles.length > 0 ? (
+          <div className="mb-2 flex flex-wrap gap-2">
+            {selectedFiles.map((file, i) => (
+              <div key={`${file.name}-${file.size}-${i}`} className="relative h-[80px] w-[80px] shrink-0">
+                <button
+                  type="button"
+                  className="absolute -right-2 -top-2 z-10 flex h-5 w-5 cursor-pointer items-center justify-center rounded-full bg-[red]"
+                  onClick={() => removeAttachment(i)}
+                  aria-label="Remove attachment"
+                >
+                  <XMarkIcon className="h-4 w-4 text-white" />
+                </button>
+                <Image
+                  className="h-full w-full rounded-md object-cover"
+                  src={attachmentPreviewUrls[i] ?? ""}
+                  alt={file.name}
+                  width={100}
+                  height={100}
+                  unoptimized
+                />
+              </div>
+            ))}
           </div>
-          {selectedFile && (
-            <Image className="h-full w-full object-cover" src={URL.createObjectURL(selectedFile)} alt="selected-file" width={100} height={100} />
-          )}
-        </div>}
+        ) : null}
+        {threadType === "broadcast_messages" && selectedFiles.length > 0 ? (
+          <p className="mb-2 text-xs text-gray-500">
+            {selectedFiles.length}/{MAX_BROADCAST_ATTACHMENTS}{" "}
+            {ph("images_label" as PlaceholderKey)}
+          </p>
+        ) : null}
         <input
           id="file-input"
           ref={fileInputRef}
-          onChange={(e) => {
-            setSelectedFile(e.target.files?.[0] ?? null);
-            e.currentTarget.value = "";
-          }}
+          onChange={handleFileInputChange}
           type="file"
           accept="image/*"
+          multiple={threadType === "broadcast_messages"}
           className="hidden"
         />
         <div className=" mt-3 flex items-center gap-2">
-          {/* <button type="button" className="rounded-md p-1 text-gray-500 cursor-pointer">
+          <label
+            htmlFor="file-input"
+            className={`rounded-md p-1 text-gray-500 ${threadType === "broadcast_messages" &&
+                selectedFiles.length >= MAX_BROADCAST_ATTACHMENTS
+                ? "pointer-events-none cursor-not-allowed opacity-40"
+                : "cursor-pointer"
+              }`}
+          >
             <Image src={camIcon} alt="cam-icon" />
-          </button> */}
-          <label htmlFor="file-input" className="rounded-md cursor-pointer p-1 text-gray-500">
-            <Image src={camIcon} alt="cam-icon" />          </label>
+          </label>
           <div className="relative w-full">
             <input
               type="text"

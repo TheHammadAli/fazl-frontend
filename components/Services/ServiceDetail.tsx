@@ -9,12 +9,16 @@ import { useGetProductDetailQuery } from "@/store/services/homeService";
 import { useSearchParams } from "next/navigation";
 import noImageAvtar from "@/assets/images/no-image-av.png";
 import { useClickOutside } from "@/custom-hooks/useClickOutside";
-import { useGetShopDetailQuery } from "@/store/services/sellingService";
+import { useDeleteServiceMutation, useGetShopDetailQuery } from "@/store/services/sellingService";
 import threeDots from "@/assets/icons/three-dots.svg";
 import { useRouter } from "next/navigation";
 import Reviews from "../Ui/Reviews";
 import { getUserId } from "@/utils/getUserId";
 import { useGetAvgReviewsQuery } from "@/store/services/reviewService";
+import Modal from "../Ui/Modals/Modal";
+import toast from "react-hot-toast"
+import { BeatLoader } from "react-spinners";
+
 export type ServiceDetailProps = {
   // setStep?: (val: "product" | "cart") => void;
   product: {
@@ -34,6 +38,7 @@ export type ServiceDetailProps = {
 };
 export type ServiceDetailType = {
   id: string;
+  _id: string;
   ownerId: string;
   title: string;
   name: string;
@@ -51,10 +56,12 @@ function ServiceDetail({ serviceData }: { serviceData: ServiceDetailType }) {
     typeof window !== "undefined"
       ? JSON.parse(localStorage.getItem("user") || "{}")
       : null;
+  const serviceId = serviceData?.id ?? serviceData?._id;
   const userId = getUserId() ?? "";
   const { data: avgReview, isLoading: isLoadingAvgReview } = useGetAvgReviewsQuery(
-    { type: "service", id: serviceData?.id ?? "" },
-    { skip: !serviceData?.id }
+    { type: "service", id: serviceId },
+    { skip: !serviceId }
+
   );
   const reviewCount = avgReview?.data?.count ?? 0;
   const { pages, placeholders, info_messages, error_messages } =
@@ -66,7 +73,9 @@ function ServiceDetail({ serviceData }: { serviceData: ServiceDetailType }) {
   const [typeIndex, setTypeIndex] = useState(0);
   const [videoVersion, setVideoVersion] = useState(0);
   const allowedToBuy = userId !== serviceData?.ownerId;
-
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [deleteService, { isLoading: isDeleteLoading }] = useDeleteServiceMutation();
+  const deleteModalRef = React.useRef<HTMLDivElement>(null);
   useClickOutside(ref, () => {
     setToggle(-1);
   });
@@ -78,9 +87,54 @@ function ServiceDetail({ serviceData }: { serviceData: ServiceDetailType }) {
       setVideoVersion((v) => v + 1);
     }
   }, [serviceData?.video]);
-
+  const handleDeleteService = () => {
+    if (!serviceId) return;
+    deleteService(serviceId)
+      .unwrap()
+      .then((res) => {
+        toast.success(res?.message || placeholders.delete_service);
+        setIsDeleteModalOpen(false);
+        setIsEdit(false);
+        router.push("/services");
+      })
+      .catch((err) => {
+        toast.error(err?.data?.message || error_messages.something_went_wrong);
+      });
+  };
   return (
     <div>
+      <Modal
+        editModalRef={deleteModalRef}
+        open={isDeleteModalOpen}
+        setOpen={setIsDeleteModalOpen}
+        centered={true}
+      >
+        <div className="bg-white rounded-[12px] w-[92vw] max-w-[390px] p-5 shadow-xl hide-scrollbar">
+          <h2 className="text-[16px] font-semibold text-black-1">
+            {placeholders.delete_service}
+          </h2>
+          <p className="text-[14px] text-gray-8 mt-2">
+            {placeholders[
+              "are_you_sure_you_want_to_delete_this_product" as keyof typeof placeholders
+            ] ?? "Are you sure you want to delete this product?"}
+          </p>
+          <div className="mt-5 flex gap-3">
+            <button
+              onClick={() => setIsDeleteModalOpen(false)}
+              className="h-[40px] flex-1 cursor-pointer rounded-[8px] border border-green-1 text-green-1 text-[14px] font-medium"
+            >
+              {placeholders.cancel}
+            </button>
+            <button
+              disabled={isDeleteLoading}
+              onClick={handleDeleteService}
+              className="h-[40px] cursor-pointer flex-1 rounded-[8px] border border-[#E92440] bg-[#E92440] text-white text-[14px] font-medium disabled:opacity-60"
+            >
+              {isDeleteLoading ? <BeatLoader color="white" size={8} /> : placeholders.confirm}
+            </button>
+          </div>
+        </div>
+      </Modal>
       <div className="h-full min-h-screen flex flex-col items-center">
         <div className="px-5 sm:px-10 min-h-[61px] border-b-[1px] border-gray-9 bg-white w-full  flex justify-center">
           <div className="w-full   flex flex-wrap items-center gap-[6px] font-normal text-[14px] mt-5">
@@ -202,12 +256,16 @@ function ServiceDetail({ serviceData }: { serviceData: ServiceDetailType }) {
                         >
                           {placeholders.edit_service}
                         </div>
-                        <div
-                          onClick={() => setIsEdit(false)}
-                          className="p-[8px] text-[12px] leading-none hover:bg-green-3"
+                        <button
+
+                          onClick={() => {
+                            setIsEdit(false);
+                            setIsDeleteModalOpen(true);
+                          }}
+                          className="p-[8px] w-full text-start text-[12px] leading-none hover:bg-green-3"
                         >
                           {placeholders.delete_service}
-                        </div>
+                        </button>
                       </div>
                     )}
                   </div>
