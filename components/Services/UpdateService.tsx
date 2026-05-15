@@ -31,7 +31,7 @@ function UpdateService() {
     useUpdateServiceMutation();
   const params = useParams();
   const { serviceId } = params;
-
+  const { currentLanguage } = useDictionary();
   const [
     deleteServiceMedia,
     { isLoading: isDeleting, error: deleteError, data: deleteData },
@@ -48,10 +48,8 @@ function UpdateService() {
   const [status, setStatus] = useState("form");
   const tabs = ["photos_tab", "video_tab"];
   const [activeTab, setActiveTab] = useState<string>(tabs[0]);
-
   const [images, setImages] = useState<(File | string)[]>([]);
   const [video, setVideo] = useState<File | null | string>(null);
-
   const tabsComponents: { [key: string]: React.ReactNode } = {
     photos_tab: (
       <ChooseImagesTab
@@ -63,7 +61,6 @@ function UpdateService() {
     ),
     video_tab: <ChooseVideoTab video={video} setVideo={setVideo} />,
   };
-
   const [title, setTitle] = useState(productData?.title || "");
   const [titleError, setTitleError] = useState("");
   const [description, setDescription] = useState(
@@ -75,7 +72,7 @@ function UpdateService() {
   const [isPriceOpen, setIsPriceOpen] = useState(false);
   const [priceError, setPriceError] = useState("");
   const [selectedCategory, setSelectedCategory] =
-    useState<categroyTypes | null>(null);
+    useState<any | null>(null);
   const [categoryError, setCategoryError] = useState("");
   const [selectedPrice, setSelectedPrice] = useState<priceTypes>({
     paymentType: "fixed",
@@ -204,9 +201,7 @@ function UpdateService() {
             setIsPriceOpen={setIsPriceOpen}
             type="service"
 
-          // setIsCatOpen={setIsCatOpen}
-          // selectedCategory={selectedCategory}
-          // setSelectedCategory={setSelectedCategory}
+
           />
         </div>
       </Modal>
@@ -312,7 +307,7 @@ function UpdateService() {
                     onClick={() => setIsCatOpen(true)}
                   >
                     <h4 className="text-[15px] font-normal text-gray-8 leading-none">
-                      {selectedCategory?.name || placeholders.choose_category}
+                      {selectedCategory?.name?.[currentLanguage] || placeholders.choose_category}
                     </h4>
                     <Image
                       src={chevron}

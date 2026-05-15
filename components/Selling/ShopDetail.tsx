@@ -128,14 +128,14 @@ export default function ShopDetail() {
                     <p className="text-[14px] text-gray-8  font-normal">
                       {placeholders.total_orders}
                     </p>
-                    <p className="font-medium text-[20px] text-black-1">21</p>
+                    <p className="font-medium text-[20px] text-black-1">{shop?.data?.ordersCount ?? 0}</p>
                   </div>
 
                   <div className="bg-gray-12 h-[73px]  px-4 xl:px-6 w-[168px]  rounded-[14px] flex flex-col justify-center">
                     <p className="text-[14px] text-gray-8  font-normal">
                       {placeholders.products_sold}
                     </p>
-                    <p className="font-medium text-[20px] text-black-1">21</p>
+                    <p className="font-medium text-[20px] text-black-1">{shop?.data?.productsCount ?? 0}</p>
                   </div>
                 </div>
 

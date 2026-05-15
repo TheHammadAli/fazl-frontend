@@ -28,7 +28,7 @@ import { useRouter } from "next/navigation";
 function ListProduct() {
   const router = useRouter();
   const categoryRef = useRef<HTMLDivElement | null>(null);
-  const { pages, placeholders, info_messages, error_messages } =
+  const { pages, placeholders, info_messages, error_messages, currentLanguage } =
     useDictionary();
   const [updateProduct, { data, isLoading, isError, isSuccess, error }] =
     useUpdateProductMutation();
@@ -176,7 +176,7 @@ function ListProduct() {
     if (isError && "data" in error) {
       toast.error(
         (error?.data as { message?: string })?.message ||
-          "something went wrong!"
+        "something went wrong!"
       );
     }
   }, [isSuccess, isError, data, error]);
@@ -222,9 +222,9 @@ function ListProduct() {
             setSelectedPrice={setSelectedPrice}
             setIsPriceOpen={setIsPriceOpen}
 
-            // setIsCatOpen={setIsCatOpen}
-            // selectedCategory={selectedCategory}
-            // setSelectedCategory={setSelectedCategory}
+          // setIsCatOpen={setIsCatOpen}
+          // selectedCategory={selectedCategory}
+          // setSelectedCategory={setSelectedCategory}
           />
         </div>
       </Modal>
@@ -319,9 +319,8 @@ function ListProduct() {
                 {/*  title */}
                 <div className="space-y-1 mt-5 w-full">
                   <p
-                    className={`text-[14px] font-normal  ${
-                      titleError ? "text-red-1" : "text-gray-8"
-                    }`}
+                    className={`text-[14px] font-normal  ${titleError ? "text-red-1" : "text-gray-8"
+                      }`}
                   >
                     {placeholders.title}
                   </p>
@@ -342,9 +341,8 @@ function ListProduct() {
                 {/* descripton */}
                 <div className="space-y-1 mt-5 w-full">
                   <p
-                    className={`text-[14px] font-normal  ${
-                      descriptionError ? "text-red-1" : "text-gray-8"
-                    }`}
+                    className={`text-[14px] font-normal  ${descriptionError ? "text-red-1" : "text-gray-8"
+                      }`}
                   >
                     {info_messages?.describe_product}
                   </p>
@@ -397,7 +395,7 @@ function ListProduct() {
                     onClick={() => setIsCatOpen(true)}
                   >
                     <h4 className="text-[15px] font-normal text-gray-8 leading-none">
-                      {selectedCategory?.name || placeholders.choose_category}
+                      {selectedCategory?.name?.[currentLanguage] || placeholders.choose_category}
                     </h4>
                     <Image
                       src={chevron}

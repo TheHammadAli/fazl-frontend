@@ -202,20 +202,20 @@ function Reviews({ type, id, allowAddReview }: ReviewsProps) {
             >
                 <AddReviewModal setOpen={setReviewModalOpen} onSubmit={handleWriteReview} loading={isLoading} />
             </Modal>
-            <div className="mt-10 w-full md:max-w-[496px]">
-                <div className=" flex items-center justify-between">
-                    <div className="flex gap-[22px] items-center">
-                        <h1 className="text-[19px]   font-medium">Reviews</h1>
-                        <div className="flex gap-1 items-center">
-                            <div className="pt-1">
+            <div className="mt-8 w-full sm:mt-10 md:max-w-[496px]">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+                    <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center sm:gap-[22px]">
+                        <h1 className="text-[17px] font-medium sm:text-[19px]">{ph("reviews")}</h1>
+                        <div className="flex flex-wrap items-center gap-1">
+                            <div className="pt-0.5 sm:pt-1">
                                 <AvgRatingStars
                                     rating={avgRating}
                                     isLoading={isLoadingAvgReview}
-                                    size={28}
+                                    size={24}
                                 />
                             </div>
 
-                            <span className="text-[14px] font-medium tabular-nums">
+                            <span className="text-[13px] font-medium tabular-nums sm:text-[14px]">
                                 {isLoadingAvgReview ? (
                                     "…"
                                 ) : (
@@ -229,18 +229,20 @@ function Reviews({ type, id, allowAddReview }: ReviewsProps) {
                             </span>
                         </div>
                     </div>
-                    {allowAddReview && <button
-                        type="button"
-                        className="flex gap-2 items-center"
-                        onClick={() => setReviewModalOpen(true)}
-                    >
-                        <Image src={penUnderline} alt="" />
-                        <span className="text-[16px] font-normal cursor-pointer hover:underline text-green-1">
-                            {ph("write_a_review")}
-                        </span>
-                    </button>}
+                    {allowAddReview && (
+                        <button
+                            type="button"
+                            className="flex shrink-0 items-center gap-2 self-start sm:self-center"
+                            onClick={() => setReviewModalOpen(true)}
+                        >
+                            <Image src={penUnderline} alt="" className="h-4 w-4 sm:h-auto sm:w-auto" />
+                            <span className="text-[14px] font-normal text-green-1 hover:underline sm:text-[16px]">
+                                {ph("write_a_review")}
+                            </span>
+                        </button>
+                    )}
                 </div>
-                <div className=" grid sm:grid-cols-2 mt-8 gap-6">
+                <div className="mt-6 grid grid-cols-1 gap-5 sm:mt-8 sm:grid-cols-2 sm:gap-6">
                     {isReviewsLoading ? (
                         Array.from({ length: REVIEWS_PAGE_SIZE }).map((_, index) => (
                             <div key={`skeleton-${index}`} className="flex justify-between gap-2 animate-pulse">
@@ -257,37 +259,51 @@ function Reviews({ type, id, allowAddReview }: ReviewsProps) {
                             </div>
                         ))
                     ) : visibleReviews.length ? (
-                        visibleReviews.map((review: any, index: number) => (
-                            <div key={index} className=" flex justify-between gap-2 ">
-                                <div className="flex gap-2">
-                                    <div className="h-[34px] w-[34px] ">
+                        visibleReviews.map((review: ReviewItem, index: number) => (
+                            <div
+                                key={review._id ?? index}
+                                className="flex items-start justify-between gap-2 border-b border-[#E5E7EB] pb-5 last:border-b-0 last:pb-0 sm:border-b-0 sm:pb-0"
+                            >
+                                <div className="flex min-w-0 flex-1 gap-2">
+                                    <div className="h-[34px] w-[34px] shrink-0">
                                         <AvatarUi
-                                            image={review?.userId?.image ?? noImageAvtar}
+                                            image={review?.userId?.image ?? noImageAvtar.src}
                                             name={review?.userId?.name ?? ""}
                                             className="h-[34px] first-letter:capitalize bg-green-1/50 min-w-[34px] w-[34px] rounded-full object-cover"
                                         />
                                     </div>
-                                    <div className="space-y-1">
-                                        <h1 className="text-[12px] first-letter:capitalize text-[#030303] font-medium">
-                                            {review?.userId?.name ?? ""}
-                                        </h1>
-                                        <AvgRatingStars rating={review?.rating} isLoading={isLoadingReviewsList} size={20} />
-                                        <p className="text-[13px] font-light text-[#4B514F] line-clamp-3">
+                                    <div className="min-w-0 flex-1 space-y-1">
+                                        <div className="flex items-start justify-between gap-2">
+                                            <h2 className="min-w-0 truncate text-[12px] font-medium capitalize text-[#030303]">
+                                                {review?.userId?.name ?? ""}
+                                            </h2>
+                                            <span className="shrink-0 text-[12px] font-light text-[#4B514F] sm:hidden">
+                                                {formatFromNowShort(
+                                                    review?.createdAt,
+                                                    currentLanguage === "ur" ? "ur" : "en",
+                                                )}
+                                            </span>
+                                        </div>
+                                        <AvgRatingStars
+                                            rating={review?.rating}
+                                            isLoading={isLoadingReviewsList}
+                                            size={18}
+                                        />
+                                        <p className="break-words text-[13px] font-light leading-relaxed text-[#4B514F] sm:line-clamp-3">
                                             {review?.comment}
                                         </p>
                                     </div>
                                 </div>
-
-                                <div className="text-[13px] font-light text-[#4B514F]">
+                                <div className="hidden shrink-0 text-[13px] font-light text-[#4B514F] sm:block">
                                     {formatFromNowShort(
                                         review?.createdAt,
-                                        currentLanguage === "ur" ? "ur" : "en"
+                                        currentLanguage === "ur" ? "ur" : "en",
                                     )}
                                 </div>
                             </div>
                         ))
                     ) : (
-                        <div className="col-span-full flex h-[150px] items-center justify-center  text-[14px] text-[#4B514F]">
+                        <div className="col-span-full flex h-[120px] items-center justify-center px-2 text-center text-[14px] text-[#4B514F] sm:h-[150px]">
                             {ph("no_review_available")}
                         </div>
                     )}
@@ -296,7 +312,7 @@ function Reviews({ type, id, allowAddReview }: ReviewsProps) {
                     <button
                         type="button"
                         onClick={handlePaginationClick}
-                        className="flex w-full cursor-pointer rounded-[8px] h-[46px] mt-6 text-[14px] font-medium bg-[#F6F6F6] items-center justify-center"
+                        className="mt-5 flex h-[44px] w-full cursor-pointer items-center justify-center rounded-[8px] bg-[#F6F6F6] text-[14px] font-medium sm:mt-6 sm:h-[46px]"
                     >
                         {canReadMore ? ph("read_more_reviews") : ph("see_less")}
                     </button>

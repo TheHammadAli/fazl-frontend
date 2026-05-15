@@ -2,7 +2,7 @@ import { baseApi } from "../baseApi";
 export const homeService = baseApi.injectEndpoints({
   endpoints: (build) => ({
     searchProducts: build.query({
-      query: (params) => {
+      query: (params: any) => {
         return {
           url: `/search/all-products?${new URLSearchParams(params)}`,
           method: "GET",
@@ -10,7 +10,7 @@ export const homeService = baseApi.injectEndpoints({
       },
     }),
     searchServices: build.query({
-      query: (params) => {
+      query: (params: any) => {
         return {
           url: `/search/all-services?${new URLSearchParams(params)}`,
           method: "GET",

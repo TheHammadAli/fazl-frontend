@@ -6,12 +6,14 @@ import { useGetAllCategoriesQuery } from "@/store/services/sellingService";
 import { toast } from "react-hot-toast";
 import { useBroadcastMessageMutation } from "@/store/services/chatService";
 import { useDictionary } from "@/dictionaries/DictionaryProvider";
+import ChooseImagesTab from "@/components/Services/ChooseImagesTab";
 
 type CategoryItem = {
     _id: string;
     name: string;
 };
 type BroadcastType = "product" | "service";
+
 function BroadCastModal({ setOpenBroadcast }: { setOpenBroadcast: (open: boolean) => void }) {
     const SUCCESS_TOAST_DURATION = 1500;
     const { placeholders, error_messages } = useDictionary();
@@ -27,9 +29,10 @@ function BroadCastModal({ setOpenBroadcast }: { setOpenBroadcast: (open: boolean
     const [selectedCategory, setSelectedCategory] = useState<CategoryItem | null>(null);
     const { data: categories, isLoading: isCategoriesLoading, isFetching: isCategoriesFetching } = useGetAllCategoriesQuery("");
     const [message, setMessage] = useState("");
+    const [images, setImages] = useState<(File | string)[]>([]);
     const [broadcastMessage, { isLoading: isBroadcastLoading }] = useBroadcastMessageMutation();
-    const handleSendMessage = async () => {
 
+    const handleSendMessage = async () => {
         if (selectedRadius === null) {
             toast.error(eh("radius_required"));
             return;
@@ -47,22 +50,37 @@ function BroadCastModal({ setOpenBroadcast }: { setOpenBroadcast: (open: boolean
             toast.error(eh("message_required"));
             return;
         }
-        const body = {
-            type: selectedType,
-            message: message,
-            radius: selectedRadius,
-            categoryId: selectedCategory._id,
-        };
+
+        const imageFiles = images.filter((img): img is File => img instanceof File);
+
+        const payload =
+            imageFiles.length > 0
+                ? (() => {
+                    const fd = new FormData();
+                    fd.append("type", selectedType);
+                    fd.append("message", message.trim());
+                    fd.append("radius", String(selectedRadius));
+                    fd.append("categoryId", selectedCategory._id);
+                    imageFiles.forEach((file) => fd.append("files", file));
+                    return fd;
+                })()
+                : {
+                    type: selectedType,
+                    message: message.trim(),
+                    radius: selectedRadius,
+                    categoryId: selectedCategory._id,
+                };
+
         try {
-            const res = await broadcastMessage(body).unwrap();
+            const res = await broadcastMessage(payload).unwrap();
             toast.success(res.message, { duration: SUCCESS_TOAST_DURATION });
+            setImages([]);
             setTimeout(() => {
                 setOpenBroadcast(false);
             }, SUCCESS_TOAST_DURATION);
         } catch (error) {
             toast.error((error as { data?: { message?: string } })?.data?.message || eh("something_went_wrong"));
         }
-
     };
     return (
         <div className="w-full max-w-[514px] overflow-hidden rounded-[12px] bg-white">
@@ -78,7 +96,7 @@ function BroadCastModal({ setOpenBroadcast }: { setOpenBroadcast: (open: boolean
                 </button>
             </div>
 
-            <div className={`space-y-8 px-5 py-6 ${isBroadcastLoading ? "pointer-events-none opacity-70" : ""}`}>
+            <div className={`space-y-2 px-5 py-3 ${isBroadcastLoading ? "pointer-events-none opacity-70" : ""}`}>
                 <div className="relative border-b border-gray-9 pb-2">
                     <p className="mb-1 text-[14px] font-normal text-gray-8">{ph("set_radius")}</p>
                     <button
@@ -206,7 +224,21 @@ function BroadCastModal({ setOpenBroadcast }: { setOpenBroadcast: (open: boolean
                     />
                 </div>
 
-                <div className="flex items-center justify-end gap-3 pt-2">
+                <div className="border-b border-gray-9 pb-4">
+                    <p className="mb-2 text-[14px] font-normal text-gray-8">
+                        {ph("broadcast_photos_optional" as PlaceholderKey)}
+                    </p>
+                    <div className="-mt-2 ">
+                        <ChooseImagesTab
+                            images={images}
+                            setImages={setImages}
+                            inputId="broadcast-modal-photo-upload"
+                        />
+                    </div>
+
+                </div>
+
+                <div className="flex items-center pb-1 justify-end gap-3 pt-2">
                     <button
                         onClick={() => setOpenBroadcast(false)}
                         disabled={isBroadcastLoading}
@@ -232,8 +264,10 @@ function BroadCastModal({ setOpenBroadcast }: { setOpenBroadcast: (open: boolean
                         )}
                     </button>
                 </div>
-            </div >
-        </div >
+
+            </div>
+
+        </div>
     );
 }
 

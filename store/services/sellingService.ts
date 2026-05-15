@@ -188,9 +188,19 @@ export const profileService = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["SERVICES"],
     }),
+    getBookedServices: build.query({
+      query: ({ customerId, page, limit }) => {
+        return {
+          url: `/services/customer/${customerId}?page=${page}&limit=${limit}`,
+          method: "GET",
+        };
+      },
+      providesTags: ["SERVICES"],
+    }),
   }),
 });
 export const {
+  useGetBookedServicesQuery,
   useDeleteProductMutation,
   useStartJobMutation,
   useUpdateServiceRequestMutation,

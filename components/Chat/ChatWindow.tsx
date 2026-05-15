@@ -19,6 +19,8 @@ import { XMarkIcon } from "@heroicons/react/24/outline";
 import noImageAvtar from "@/assets/images/profile-placehonder.png";
 import noMessagesIcon from "@/assets/icons/no-message.svg";
 import AvatarUi from "../Ui/AvatarUi";
+import Lightbox from "yet-another-react-lightbox";
+import "yet-another-react-lightbox/styles.css";
 
 type ChatWindowProps = {
   thread: any;
@@ -41,8 +43,6 @@ function getMessageImageUrls(message: {
   if (typeof raw === "string" && raw.trim()) return [raw.trim()];
   return [];
 }
-
-const MAX_BROADCAST_ATTACHMENTS = 5;
 
 export default function ChatWindow({ thread, onBack, threadType }: ChatWindowProps) {
   const { placeholders } = useDictionary();
@@ -100,9 +100,11 @@ export default function ChatWindow({ thread, onBack, threadType }: ChatWindowPro
   }, [thread, userId]);
   const [messageText, setMessageText] = useState("");
   const [filteredMessages, setFilteredMessages] = useState<ChatMessage[]>([]);
-  /** Direct chat: 0–1 image. Broadcast thread: 0–5 images. */
-  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [imageLightboxOpen, setImageLightboxOpen] = useState(false);
+  const [imageLightboxIndex, setImageLightboxIndex] = useState(0);
+  const [imageLightboxSlides, setImageLightboxSlides] = useState<{ src: string }[]>([]);
   const [markMessagesAsRead] = useMarkMessagesAsReadMutation();
   const [sendMessage, { isLoading: isSendingMessage }] = useSendMessageMutation();
   const [sendBroadcastMessage, { isLoading: isSendingBroadcastMessage }] = useSendBroadcastMessageMutation();
@@ -182,61 +184,38 @@ export default function ChatWindow({ thread, onBack, threadType }: ChatWindowPro
     [threadType, userId, isFetching, canLoadMore],
   );
 
-  const maxChatImagesError = useMemo(
-    () =>
-      String(
-        placeholders["max_chat_images" as keyof typeof placeholders] ??
-        `Maximum ${MAX_BROADCAST_ATTACHMENTS} images`,
-      ),
-    [placeholders],
-  );
-
-  const handleFileInputChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const list = e.target.files;
-      if (!list?.length) {
-        e.currentTarget.value = "";
-        return;
-      }
-      const picked = Array.from(list).filter((f) => f.type.startsWith("image/"));
-      if (picked.length === 0) {
-        e.currentTarget.value = "";
-        return;
-      }
-      if (threadType === "broadcast_messages") {
-        setSelectedFiles((prev) => {
-          const merged = [...prev, ...picked];
-          if (merged.length > MAX_BROADCAST_ATTACHMENTS) {
-            toast.error(maxChatImagesError);
-            return merged.slice(0, MAX_BROADCAST_ATTACHMENTS);
-          }
-          return merged;
-        });
-      } else {
-        setSelectedFiles(picked.slice(0, 1));
-      }
+  const handleFileInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const list = e.target.files;
+    if (!list?.length) {
       e.currentTarget.value = "";
-    },
-    [threadType, maxChatImagesError],
-  );
-
-  const removeAttachment = useCallback((index: number) => {
-    setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
+      return;
+    }
+    const first = Array.from(list).find((f) => f.type.startsWith("image/"));
+    setSelectedFile(first ?? null);
+    e.currentTarget.value = "";
   }, []);
 
-  const attachmentPreviewUrls = useMemo(
-    () => selectedFiles.map((f) => URL.createObjectURL(f)),
-    [selectedFiles],
+  const attachmentPreviewUrl = useMemo(
+    () => (selectedFile ? URL.createObjectURL(selectedFile) : null),
+    [selectedFile],
   );
 
   useEffect(() => {
+    if (!attachmentPreviewUrl) return;
     return () => {
-      attachmentPreviewUrls.forEach((u) => URL.revokeObjectURL(u));
+      URL.revokeObjectURL(attachmentPreviewUrl);
     };
-  }, [attachmentPreviewUrls]);
+  }, [attachmentPreviewUrl]);
+
+  const openMessageImageLightbox = useCallback((urls: string[], startIndex: number) => {
+    if (!urls.length) return;
+    setImageLightboxSlides(urls.map((src) => ({ src })));
+    setImageLightboxIndex(Math.min(Math.max(0, startIndex), urls.length - 1));
+    setImageLightboxOpen(true);
+  }, []);
 
   const handleSendMessage = useCallback(async () => {
-    if (messageText.trim() === "" && selectedFiles.length === 0) {
+    if (messageText.trim() === "" && !selectedFile) {
       return;
     }
     try {
@@ -262,7 +241,7 @@ export default function ChatWindow({ thread, onBack, threadType }: ChatWindowPro
           message: messageText.trim(),
         };
         const body =
-          selectedFiles.length > 0
+          selectedFile
             ? (() => {
               const formData = new FormData();
               Object.entries(messageData).forEach(([key, value]) => {
@@ -270,9 +249,7 @@ export default function ChatWindow({ thread, onBack, threadType }: ChatWindowPro
                   formData.append(key, String(value));
                 }
               });
-              selectedFiles.forEach((file) => {
-                formData.append("files", file);
-              });
+              formData.append("file", selectedFile);
               return formData;
             })()
             : messageData;
@@ -285,7 +262,7 @@ export default function ChatWindow({ thread, onBack, threadType }: ChatWindowPro
           .then((res) => {
             toast.success(res?.message ?? "Operation completed successfully");
             setMessageText("");
-            setSelectedFiles([]);
+            setSelectedFile(null);
             if (fileInputRef.current) {
               fileInputRef.current.value = "";
             }
@@ -320,7 +297,7 @@ export default function ChatWindow({ thread, onBack, threadType }: ChatWindowPro
         senderId: userId,
         receiverId,
       };
-      const singleFile = selectedFiles[0] ?? null;
+      const singleFile = selectedFile;
       const messageWithFile = {
         ...messageData,
         file: singleFile,
@@ -341,7 +318,7 @@ export default function ChatWindow({ thread, onBack, threadType }: ChatWindowPro
         const res = await sendMessage(singleFile ? formData : messageData).unwrap();
         toast.success(res?.message ?? "Operation completed successfully");
         setMessageText("");
-        setSelectedFiles([]);
+        setSelectedFile(null);
         if (fileInputRef.current) {
           fileInputRef.current.value = "";
         }
@@ -364,7 +341,7 @@ export default function ChatWindow({ thread, onBack, threadType }: ChatWindowPro
     }
   }, [
     messageText,
-    selectedFiles,
+    selectedFile,
     threadType,
     isBroadcastReceived,
     thread,
@@ -404,7 +381,7 @@ export default function ChatWindow({ thread, onBack, threadType }: ChatWindowPro
     const socket = initializeSocket();
     if (!socket) return;
     setPage(1);
-    setSelectedFiles([]);
+    setSelectedFile(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -546,14 +523,14 @@ export default function ChatWindow({ thread, onBack, threadType }: ChatWindowPro
                     {!mine && <AvatarUi image={headerAvatar ?? noImageAvtar.src} name={headerName} className="h-8 w-8 rounded-full" />}
                     {(hasImages || showText) ? (
                       <div
-                        className={`w-fit max-w-[85%] overflow-hidden rounded-2xl lg:max-w-[60%] ${mine ? "bg-[#EEF2F3]" : "bg-[#F6F6F6]"}`}
+                        className={`w-fit max-w-[85%] overflow-hidden rounded-xl lg:max-w-[60%] ${mine ? "bg-[#EEF2F3]" : "bg-[#F6F6F6]"}`}
                       >
                         {hasImages ? (
                           <div
                             className={
                               imageUrls.length === 1 && !hasFiveImages
                                 ? "flex justify-center bg-black/[0.03] p-1"
-                                : "grid grid-cols-2 gap-1 bg-black/[0.03] p-1.5"
+                                : "grid grid-cols-2 gap-1 bg-black/[0.03] p-1"
                             }
                           >
                             {imageUrls.map((url, imgIndex) => {
@@ -561,13 +538,18 @@ export default function ChatWindow({ thread, onBack, threadType }: ChatWindowPro
                               const showMoreOverlay =
                                 hasFiveImages && imgIndex === imageUrls.length - 1;
                               return (
-                                <div
+                                <button
+                                  type="button"
                                   key={`${index}-${imgIndex}`}
                                   className={
                                     isSingleLayout
-                                      ? "flex max-w-full justify-center"
-                                      : "relative aspect-square min-h-[100px] min-w-0 overflow-hidden rounded-md sm:min-h-[120px]"
+                                      ? "flex max-w-full justify-center border-0 bg-transparent p-0 text-left cursor-pointer "
+                                      : "relative aspect-square min-h-[100px] min-w-0 overflow-hidden rounded-lg border-0 bg-transparent p-0 text-left cursor-pointer sm:min-h-[120px]"
                                   }
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    openMessageImageLightbox(allImageUrls, imgIndex);
+                                  }}
                                 >
                                   <Image
                                     src={url}
@@ -576,19 +558,19 @@ export default function ChatWindow({ thread, onBack, threadType }: ChatWindowPro
                                     height={isSingleLayout ? 320 : 160}
                                     className={
                                       isSingleLayout
-                                        ? "max-h-[min(50vh,360px)] w-auto max-w-full object-contain"
+                                        ? "max-h-[min(50vh,360px)] w-auto max-w-full object-contain rounded-lg"
                                         : "h-full w-full object-cover"
                                     }
                                     unoptimized
                                   />
                                   {showMoreOverlay ? (
-                                    <div className="absolute inset-0 flex items-center justify-center bg-black/55">
-                                      <span className="px-2 text-center text-[13px] font-medium text-white">
-                                        {ph("show_more")}
+                                    <div className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-lg bg-black/55">
+                                      <span className="px-2 text-center text-[24px] font-medium text-white">
+                                        +1
                                       </span>
                                     </div>
                                   ) : null}
-                                </div>
+                                </button>
                               );
                             })}
                           </div>
@@ -612,35 +594,30 @@ export default function ChatWindow({ thread, onBack, threadType }: ChatWindowPro
 
 
       <div className="border-t  border-gray-200 bg-[white] px-3 py-2.5 lg:px-7">
-        {selectedFiles.length > 0 ? (
-          <div className="mb-2 flex flex-wrap gap-2">
-            {selectedFiles.map((file, i) => (
-              <div key={`${file.name}-${file.size}-${i}`} className="relative h-[80px] w-[80px] shrink-0">
-                <button
-                  type="button"
-                  className="absolute -right-2 -top-2 z-10 flex h-5 w-5 cursor-pointer items-center justify-center rounded-full bg-[red]"
-                  onClick={() => removeAttachment(i)}
-                  aria-label="Remove attachment"
-                >
-                  <XMarkIcon className="h-4 w-4 text-white" />
-                </button>
-                <Image
-                  className="h-full w-full rounded-md object-cover"
-                  src={attachmentPreviewUrls[i] ?? ""}
-                  alt={file.name}
-                  width={100}
-                  height={100}
-                  unoptimized
-                />
-              </div>
-            ))}
+        {selectedFile && attachmentPreviewUrl ? (
+          <div className="relative mb-2 h-[80px] w-[80px]">
+            <button
+              type="button"
+              className="absolute -right-2 -top-2 z-10 flex h-5 w-5 cursor-pointer items-center justify-center rounded-full bg-[red]"
+              onClick={() => {
+                setSelectedFile(null);
+                if (fileInputRef.current) {
+                  fileInputRef.current.value = "";
+                }
+              }}
+              aria-label="Remove attachment"
+            >
+              <XMarkIcon className="h-4 w-4 text-white" />
+            </button>
+            <Image
+              className="h-full w-full rounded-md object-cover"
+              src={attachmentPreviewUrl}
+              alt={selectedFile.name}
+              width={100}
+              height={100}
+              unoptimized
+            />
           </div>
-        ) : null}
-        {threadType === "broadcast_messages" && selectedFiles.length > 0 ? (
-          <p className="mb-2 text-xs text-gray-500">
-            {selectedFiles.length}/{MAX_BROADCAST_ATTACHMENTS}{" "}
-            {ph("images_label" as PlaceholderKey)}
-          </p>
         ) : null}
         <input
           id="file-input"
@@ -648,18 +625,10 @@ export default function ChatWindow({ thread, onBack, threadType }: ChatWindowPro
           onChange={handleFileInputChange}
           type="file"
           accept="image/*"
-          multiple={threadType === "broadcast_messages"}
           className="hidden"
         />
         <div className=" mt-3 flex items-center gap-2">
-          <label
-            htmlFor="file-input"
-            className={`rounded-md p-1 text-gray-500 ${threadType === "broadcast_messages" &&
-                selectedFiles.length >= MAX_BROADCAST_ATTACHMENTS
-                ? "pointer-events-none cursor-not-allowed opacity-40"
-                : "cursor-pointer"
-              }`}
-          >
+          <label htmlFor="file-input" className="cursor-pointer rounded-md p-1 text-gray-500">
             <Image src={camIcon} alt="cam-icon" />
           </label>
           <div className="relative w-full">
@@ -693,6 +662,21 @@ export default function ChatWindow({ thread, onBack, threadType }: ChatWindowPro
           </div>
         </div>
       </div>
+
+      {imageLightboxSlides.length > 0 ? (
+        <Lightbox
+          open={imageLightboxOpen}
+          close={() => {
+            setImageLightboxOpen(false);
+            setImageLightboxSlides([]);
+          }}
+          index={imageLightboxIndex}
+          slides={imageLightboxSlides}
+          on={{
+            view: ({ index: nextIndex }) => setImageLightboxIndex(nextIndex),
+          }}
+        />
+      ) : null}
     </section>
   );
 }

@@ -46,6 +46,7 @@ export default function ChatPage() {
     setChatId((prev) => (prev === nextId ? prev : nextId ?? ""));
     setMobileShowConversation(true);
   }, []);
+
   useEffect(() => {
     const chatId = params.get("chatId");
     if (chatId) {
@@ -55,6 +56,7 @@ export default function ChatPage() {
       setThreadType("broadcast_messages");
     }
   }, [params]);
+
   useEffect(() => {
     if (threadType === "broadcast_messages") {
       setChatId("");
@@ -70,10 +72,11 @@ export default function ChatPage() {
     }
   }, [threadType, params]);
 
-
   return (
     <div className="h-[calc(100dvh-80px)] overflow-hidden bg-white lg:h-screen">
+
       <div className="flex h-full">
+
         <div className={`${mobileShowConversation ? "hidden lg:block" : "block"} h-full w-full lg:w-auto`}>
           <ChatSidebar
             threadType={threadType}
@@ -99,7 +102,9 @@ export default function ChatPage() {
               </p>
             </div></div>}
         </div>
+
       </div>
+
     </div>
   );
 }

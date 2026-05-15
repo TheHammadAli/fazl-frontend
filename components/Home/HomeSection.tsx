@@ -16,6 +16,7 @@ import { useDebounce } from "use-debounce";
 import BroadCastModal from "../Ui/BroadCastModal";
 import Modal from "../Ui/Modals/Modal";
 import CategoryModal from "../Services/CategoryModal";
+import AllProductsAndServices from "./AllProductsAndServices";
 
 function HomeSection() {
   const [openBroadcast, setOpenBroadcast] = useState(false);
@@ -141,19 +142,24 @@ function HomeSection() {
           </div>
         )}
       </div>
-      <div className="rounded-[12px] bg-green-1 py-[18px] px-4 flex justify-between items-center mt-6">
-        <div>
-          <h3 className="text-[18px] font-semibold text-white">
+      <div className="mt-6 flex flex-col gap-3 rounded-[12px] bg-green-1 p-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:py-[18px] sm:px-4">
+        <div className="min-w-0">
+          <h3 className="text-[16px] font-semibold leading-snug text-white sm:text-[18px]">
             {info_messages.broadcast_request}
           </h3>
-          <p className="text-white font-light text-[14px]">
+          <p className="mt-1 text-[13px] font-light leading-relaxed text-white sm:text-[14px]">
             {info_messages.tell_sellers}
           </p>
         </div>
-        <div onClick={() => setOpenBroadcast(true)} className="bg-white cursor-pointer rounded-[12px] px-4 py-3 text-green-2 font-medium" >
+        <button
+          type="button"
+          onClick={() => setOpenBroadcast(true)}
+          className="w-full shrink-0 cursor-pointer rounded-[12px] bg-white px-4 py-3 text-center text-[14px] font-medium text-green-2 sm:w-auto sm:text-[16px]"
+        >
           {info_messages.broadcast_request}
-        </div>
+        </button>
       </div>
+      <AllProductsAndServices tab={activeTab} />
       <Modal
         editModalRef={broadcastRef}
         open={openBroadcast}

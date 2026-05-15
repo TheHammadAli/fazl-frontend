@@ -7,6 +7,8 @@ interface Props {
   setImages: React.Dispatch<React.SetStateAction<(File | string)[]>>;
   deleteMedia?: string[];
   setDeleteMedia?: React.Dispatch<React.SetStateAction<string[]>>;
+  /** Unique id for the file input (avoid duplicate ids when multiple pickers on page). */
+  inputId?: string;
 }
 
 const MAX_IMAGES = 5;
@@ -14,8 +16,8 @@ const MAX_IMAGES = 5;
 function ChooseImagesTab({
   images,
   setImages,
-  deleteMedia,
   setDeleteMedia,
+  inputId = "photo-upload",
 }: Props) {
   const { placeholders } = useDictionary();
   const [isDragging, setIsDragging] = useState(false);
@@ -41,11 +43,13 @@ function ChooseImagesTab({
   };
   return (
     <div>
-      <div className="mt-5 flex gap-2 flex-wrap">
+      <div
+        className={`mt-5 flex gap-2 ${inputId === "broadcast-modal-photo-upload" ? "flex-nowrap overflow-auto hide-scrollbar" : "flex-wrap"}`}
+      >
         {images?.map((file, index) => (
           <div
             key={index}
-            className="relative h-[126px] w-[126px] rounded-[12px] overflow-hidden"
+            className="relative  h-[126px] min-w-[126px] w-[126px] rounded-[12px] overflow-hidden"
           >
             <Image
               src={typeof file === "string" ? file : URL.createObjectURL(file)}
@@ -103,7 +107,7 @@ function ChooseImagesTab({
             }}
           >
             <label
-              htmlFor="photo-upload"
+              htmlFor={inputId}
               className="h-[46px] border-green-1 border-[1px] px-3 rounded-[12px] flex items-center justify-center gap-1 cursor-pointer"
             >
               <svg
@@ -127,7 +131,7 @@ function ChooseImagesTab({
                 </h1>
               )}
               <input
-                id="photo-upload"
+                id={inputId}
                 type="file"
                 multiple
                 accept="image/*"

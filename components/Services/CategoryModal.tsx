@@ -24,17 +24,20 @@ function CategoryModal({
   setSelectedCategory,
 }: CategoryModalRef) {
   const { placeholders, error_messages } = useDictionary();
+  console.log(selectedCategory)
   const {
     data: categories,
     isLoading: isCategoriesLoading,
     isFetching: isCategoriesFetching,
   } = useGetAllCategoriesQuery("");
+  console.log(selectedCategory)
+  const { currentLanguage } = useDictionary();
   return (
     <div className="  w-[456px] bg-[white] h-[470px] overflow-scroll hide-scrollbar rounded-[10px]">
       <div className="sticky bg-white top-0  z-50 px-[15px] py-[16px] flex justify-between items-center border-b-[1px] border-gray-9">
         <h1 className="leading-none text-black-3 text-[16px] font-medium">
           {selectedCategory
-            ? selectedCategory.name
+            ? selectedCategory.name?.[currentLanguage]
             : placeholders.choose_category}
         </h1>
         <Image
