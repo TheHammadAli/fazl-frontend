@@ -120,7 +120,7 @@ function DirectMessages({
                                 <AvatarUi
                                     image={thread_user?.image ?? noImageAvtar.src}
                                     name={thread_user?.name ?? ""}
-                                    className="h-11 w-11 rounded-full "
+                                    className={`h-11 w-11 rounded-full bg-[#e7f4f5] !text-green-1 ${isActive ? "border-[1px] border-green-1" : ""}`}
                                 />
                                 <div className="min-w-0 flex-1">
                                     <div className="flex items-center justify-between gap-2">

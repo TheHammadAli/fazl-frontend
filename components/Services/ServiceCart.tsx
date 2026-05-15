@@ -165,7 +165,7 @@ function ServiceCart({
                 )}
                 <div>
                   <p className="text-sm text-[#4B514F]  font-normal">
-                    {service?.data?.category?.name}
+                    {service?.data?.category?.name?.[currentLanguage]}
                   </p>
                   <p className=" text-[#030303] text-[16px] font-medium">
                     {service?.data?.title}

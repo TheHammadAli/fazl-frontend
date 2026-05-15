@@ -466,9 +466,9 @@ export default function ChatWindow({ thread, onBack, threadType }: ChatWindowPro
           </button>
         ) : null}
         <AvatarUi
-          image={headerAvatar ?? noImageAvtar.src}
+          image={headerAvatar || noImageAvtar.src}
           name={headerName}
-          className="h-11 w-11 rounded-full"
+          className="h-11 w-11 rounded-full bg-[#e7f4f5] !text-green-1"
         />
         <div className="min-w-0">
           <p className="truncate text-[15px] font-semibold text-gray-900 first-letter:uppercase">{headerName}</p>
@@ -520,7 +520,7 @@ export default function ChatWindow({ thread, onBack, threadType }: ChatWindowPro
                     <p className="mb-2 text-center text-xs text-gray-400">{currentDateLabel}</p>
                   ) : null}
                   <div className={`flex gap-2 items-end ${mine ? "justify-end" : "justify-start"}`}>
-                    {!mine && <AvatarUi image={headerAvatar ?? noImageAvtar.src} name={headerName} className="h-8 w-8 rounded-full" />}
+                    {!mine && <AvatarUi image={headerAvatar ?? noImageAvtar.src} name={headerName} className="h-8 w-8 rounded-full bg-[#e7f4f5] !text-green-1" />}
                     {(hasImages || showText) ? (
                       <div
                         className={`w-fit max-w-[85%] overflow-hidden rounded-xl lg:max-w-[60%] ${mine ? "bg-[#EEF2F3]" : "bg-[#F6F6F6]"}`}

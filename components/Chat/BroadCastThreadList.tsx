@@ -12,6 +12,7 @@ import { ChatSidebarProps } from './ChatSidebar';
 import moment from 'moment';
 import noMessagesIcon from "@/assets/icons/no-message.svg";
 import noImageAvtar from "@/assets/images/profile-placehonder.png";
+import AvatarUi from '../Ui/AvatarUi';
 
 function BroadCastThreadList({
     chatId,
@@ -134,13 +135,12 @@ function BroadCastThreadList({
                                 }}
                                 className={`flex w-full cursor-pointer items-start gap-3 px-4 py-4 text-left ${isActive ? "bg-[#E7F4F5]" : "hover:bg-gray-50"}`}
                             >
-                                <Image
-                                    src={thread_user?.image ?? noImageAvtar}
-                                    alt={thread_user?.name ?? ""}
-                                    width={44}
-                                    height={44}
-                                    className="h-11 w-11 rounded-full object-cover"
-                                    unoptimized
+                                <AvatarUi
+                                    image={thread_user?.image ?? noImageAvtar.src}
+                                    name={thread_user?.name ?? ""}
+
+                                    className="h-11 w-11 rounded-full object-cover bg-[#e7f4f5] !text-green-1"
+
                                 />
                                 <div className="min-w-0 flex-1">
                                     <div className="flex items-center justify-between gap-2">

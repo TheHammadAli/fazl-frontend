@@ -7,7 +7,7 @@ const AvatarUi = ({
     className,
 }: {
     name: string | null;
-    image?: string | undefined | null;
+    image?: any;
     className?: string;
 }) => {
     const firstLetter = name ? name?.charAt(0)?.toUpperCase() : "-";
