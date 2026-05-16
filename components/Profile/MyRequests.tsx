@@ -76,15 +76,15 @@ function MyRequests() {
   return (
     <div className="h-full ">
       <div>
-        <div className="border-b border-gray-9 flex items-center justify-center">
+        <div className="border-b px-4 border-gray-9 flex items-center justify-center">
           <div className="h-[72px]   w-[522px]  flex items-center gap-2 text-[14px]">
             <span className="text-gray-11">{ph("profile")}</span>
             <Image src={chevronIcon} alt="chevron" className="ltr:rotate-180" />
             <span className="text-green-2">{ph("my_requests")}</span>
           </div>
         </div>
-        <div className="flex justify-center">
-          <div className="w-[522px] pt-5">
+        <div className="flex justify-center px-4">
+          <div className="w-[522px] pt-5 ">
             <div className="flex items-center gap-2 overflow-x-auto hide-scrollbar">
               {REQUEST_FILTER_KEYS.map((filter) => (
                 <button

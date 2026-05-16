@@ -41,13 +41,12 @@ function Cart({ product, shopData, selectedVariants, ownerDetail }: ProductDetai
 
   const totalAmount =
     product?.data?.price + (deliveryMethod === "delivery" ? 250 : 0) + 90;
-
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const body = {
       buyer: user?.id,
-      owner: shopData?.id,
-      ownerModel: "Shop",
+      owner: shopData ? shopData?.id : ownerData?.id,
+      ownerModel: shopData ? "Shop" : "User",
       product: product?.data?.id,
       deliveryOption: deliveryMethod,
       status: "pending",
@@ -271,10 +270,10 @@ function Cart({ product, shopData, selectedVariants, ownerDetail }: ProductDetai
             <button
               type="submit"
               disabled={isLoading || paymentMethod === ""}
-              className="disabled:opacity-50 disabled:cursor-not-allowed  cursor-pointer hidden md:block w-full border-green-1 hover:border-[1px] bg-green-1 hover:bg-white hover:text-green-1  text-white font-medium py-3 rounded-lg transition"
+              className="disabled:opacity-50 disabled:cursor-not-allowed  disabled:pointer-none cursor-pointer hidden md:block w-full border-green-1  bg-green-1  text-white font-medium py-3 rounded-lg transition"
             >
               {isLoading ? (
-                <BeatLoader color="white" size={8} />
+                <BeatLoader color="#ffffff" size={8} />
               ) : (
                 placeholders.pay_now
               )}

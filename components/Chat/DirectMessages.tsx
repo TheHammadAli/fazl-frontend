@@ -20,14 +20,17 @@ function DirectMessages({
     chatId,
     onSelectChat,
 }: ChatSidebarProps) {
+
     const { currentLanguage } = useDictionary();
     const dispatch = useDispatch();
     const PAGE_LIMIT = 15;
     const [page, setPage] = useState(1);
+
     const [isMounted, setIsMounted] = useState(false);
     const { placeholders } = useDictionary();
     type PlaceholderKey = keyof typeof placeholders;
     const ph = (key: PlaceholderKey) => placeholders[key];
+
     const [filteredThreads, setFilteredThreads] = useState<ChatThread[]>([]);
     const userId = getUserId() ?? "";
     const { data: conversations, isFetching, isLoading } = useGetAllConversationsForUserQuery({
@@ -39,6 +42,7 @@ function DirectMessages({
             skip: !userId,
         },
     );
+
     const totalPages = parsePositiveInt(conversations?.data?.totalPages);
     const lastBatch =
         (conversations?.data?.conversations as ChatThread[] | undefined) ?? [];
@@ -52,9 +56,11 @@ function DirectMessages({
         if (!nearBottom) return;
         setPage((p) => p + 1);
     }
+
     useEffect(() => {
         setIsMounted(true);
     }, []);
+
     useEffect(() => {
         const socket = initializeSocket();
         if (!socket) return;
@@ -62,6 +68,7 @@ function DirectMessages({
             dispatch(baseApi.util.invalidateTags(["Chat"]));
         });
     }, [dispatch]);
+
     useEffect(() => {
         const firstConversation = conversations?.data?.[0] as ChatThread | undefined;
         const matchedConversation = conversations?.data?.find((conversation: ChatThread) => conversation?._id === chatId);
@@ -77,6 +84,7 @@ function DirectMessages({
             setFilteredThreads((prev) => [...prev, ...conversations?.data]);
         }
     }, [chatId, conversations?.data, onSelectChat, page]);
+
     return (
         <ul onScroll={handleScrollNearBottom} className="h-[calc(100%-104px)] overflow-y-auto">
             {isMounted && isLoading && page === 1

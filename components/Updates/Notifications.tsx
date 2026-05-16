@@ -10,6 +10,7 @@ import moment from "moment";
 import { NEW_NOTIFICATION_WINDOW_EVENT } from "@/utils/notificationRealtime";
 import { useEffect, useLayoutEffect, useRef, useState, type Dispatch, type SetStateAction } from "react";
 import noNotificationIcon from "@/assets/icons/no-notification.svg";
+import { useRouter } from "next/navigation";
 
 /** Must match what the notifications API expects (see `data.limit` in the response). */
 const PAGE_LIMIT = 15;
@@ -40,19 +41,50 @@ type NotificationsProps = {
     setReadCount?: Dispatch<SetStateAction<number>>;
 };
 
+type NotificationPayload = {
+    serviceId?: string;
+    productId?: string;
+    id?: string;
+    _id?: string;
+};
+
 type NotificationApiItem = {
     _id?: string;
     id?: string;
+    type?: string;
+    payload?: NotificationPayload | string;
     message?: string;
     createdAt?: string;
     read?: boolean;
     image?: string;
 };
 
+function getNotificationPayload(item: NotificationApiItem): NotificationPayload | null {
+    const raw = item.payload;
+    if (raw == null) return null;
+    if (typeof raw === "string") {
+        try {
+            const parsed = JSON.parse(raw) as unknown;
+            return typeof parsed === "object" && parsed !== null
+                ? (parsed as NotificationPayload)
+                : null;
+        } catch {
+            return null;
+        }
+    }
+    return raw;
+}
+
+function getPayloadTargetId(payload: NotificationPayload | null): string | undefined {
+    if (!payload) return undefined;
+    return payload.serviceId ?? payload.productId ?? payload.id ?? payload._id;
+}
+
 function Notifications({ setOpenSidebar, unreadCount = 0, setReadCount }: NotificationsProps) {
     const { placeholders, currentLanguage } = useDictionary();
     type PlaceholderKey = keyof typeof placeholders;
     const ph = (key: PlaceholderKey) => placeholders[key];
+    const router = useRouter();
 
     const [hasMounted, setHasMounted] = useState(false);
     useEffect(() => {
@@ -79,22 +111,43 @@ function Notifications({ setOpenSidebar, unreadCount = 0, setReadCount }: Notifi
                 refetchOnMountOrArgChange: true,
             },
         );
-    // Badge: −1 right away. If the request fails, restore the number we had before the click.
-    async function handleMarkAsRead(item: NotificationApiItem) {
-        const id = item._id ?? item.id;
-        if (!id || item.read || !setReadCount) return;
+    function handleNavigation(item: NotificationApiItem) {
+        console.log(item, "item");
+        setOpenSidebar?.(false);
+        const targetId = getPayloadTargetId(getNotificationPayload(item));
+        if (!targetId) return;
 
-        const countBeforeClick = unreadCount;
-        setReadCount((c) => Math.max(0, c - 1));
-
-        try {
-            await markAsRead({ id: id }).unwrap();
-            setNotificationItems((prev) =>
-                prev.map((n) => ((n._id ?? n.id) === id ? { ...n, read: true } : n)),
-            );
-        } catch {
-            setReadCount(countBeforeClick);
+        switch (item.type) {
+            case "SERVICE_REQUEST":
+                router.push(`/book-service?id=${targetId}`);
+                break;
+            case "ORDER":
+                router.push(`/book-product?id=${targetId}`);
+                break;
+            default:
+                break;
         }
+    }
+
+    async function handleNotificationClick(item: NotificationApiItem) {
+        const id = item._id ?? item.id;
+        if (!id) return;
+
+        if (!item.read && setReadCount) {
+            const countBeforeClick = unreadCount;
+            setReadCount((c) => Math.max(0, c - 1));
+
+            try {
+                await markAsRead({ id }).unwrap();
+                setNotificationItems((prev) =>
+                    prev.map((n) => ((n._id ?? n.id) === id ? { ...n, read: true } : n)),
+                );
+            } catch {
+                setReadCount(countBeforeClick);
+                return;
+            }
+        }
+        handleNavigation(item);
     }
 
     const totalPages = parsePositiveInt(data?.data?.totalPages);
@@ -224,8 +277,10 @@ function Notifications({ setOpenSidebar, unreadCount = 0, setReadCount }: Notifi
                     >
                         {notificationItems.map((item, index) => (
                             <li
-                                key={index}
-                                onClick={() => void handleMarkAsRead(item)}
+                                key={item._id ?? item.id ?? index}
+                                onClick={() => {
+                                    void handleNotificationClick(item);
+                                }}
                                 className="flex px-5 items-center gap-3 py-2 first:pt-2 hover:bg-green-4 cursor-pointer"
                             >
                                 <div className="relative h-[42px] w-[42px] shrink-0 overflow-hidden rounded-[10px] bg-gray-5">
@@ -267,9 +322,10 @@ function Notifications({ setOpenSidebar, unreadCount = 0, setReadCount }: Notifi
                             </li>
                         )}
                     </ul>
-                )}
-            </div>
-        </div>
+                )
+                }
+            </div >
+        </div >
     );
 }
 

@@ -91,7 +91,7 @@ function BuyProductDetail({
   }, [type, videoSrc]);
 
   return (
-    <div>
+    <div className="">
       <div className="h-full min-h-screen flex flex-col items-center">
         <div className="px-5 sm:px-10 h-[61px] border-b-[1px] border-gray-9 bg-white w-full  flex justify-center">
           <div className="w-full   flex items-center gap-[6px] font-normal text-[14px] mt-5">

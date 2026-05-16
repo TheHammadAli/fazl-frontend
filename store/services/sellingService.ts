@@ -123,10 +123,19 @@ export const profileService = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["SHOP_DETAIL"],
     }),
-    getShopOrders: build.query({
-      query: (id) => {
+
+    getCustomerOrders: build.query({
+      query: ({
+        id,
+        page = 1,
+        limit = 50,
+      }: {
+        id: string;
+        page?: number;
+        limit?: number;
+      }) => {
         return {
-          url: `/orders/owner/${id}?ownerModel=Shop&page=1&limit=50`,
+          url: `/orders/owner/${id}?ownerModel=User&page=${page}&limit=${limit}`,
           method: "GET",
         };
       },
@@ -197,9 +206,27 @@ export const profileService = baseApi.injectEndpoints({
       },
       providesTags: ["SERVICES"],
     }),
+    getOrdersByOwner: build.query({
+      query: ({ ownerId, ...params }: any) => {
+        return {
+          url: `/orders/owner/${ownerId}?${new URLSearchParams(params)}`,
+          method: "GET",
+        };
+      },
+    }),
+    getOrdersByBuyer: build.query({
+      query: ({ buyerId, ...params }: any) => {
+        return {
+          url: `/orders/buyer/${buyerId}?${new URLSearchParams(params)}`,
+          method: "GET",
+        };
+      },
+    }),
   }),
 });
 export const {
+  useGetOrdersByOwnerQuery,
+  useGetOrdersByBuyerQuery,
   useGetBookedServicesQuery,
   useDeleteProductMutation,
   useStartJobMutation,
@@ -208,7 +235,7 @@ export const {
   useDeleteServiceMediaMutation,
   useGetServiceDetailQuery,
   useGetUserServiceQuery,
-  useGetShopOrdersQuery,
+  useGetCustomerOrdersQuery,
   useUpdateShopMutation,
   useDeleteProductMediaMutation,
   useUpdateProductMutation,

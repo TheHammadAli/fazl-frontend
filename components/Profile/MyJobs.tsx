@@ -197,8 +197,8 @@ function MyJobs() {
         onConfirm={handleConfirmAction}
       />
       <div>
-        <div className="border-b border-gray-9 flex items-center justify-center">
-          <div className="h-[72px]   w-[522px]  flex items-center gap-2 text-[14px]">
+        <div className="border-b px-4  h-[72px] border-gray-9 flex items-center justify-center">
+          <div className="h-full    w-[522px]  flex items-center gap-2 text-[14px]">
             <span className="text-gray-11">{ph("profile")}</span>
             <Image src={chevronIcon} alt="chevron" className="ltr:rotate-180" />
             <span className="text-green-2">{ph("my_jobs")}</span>
@@ -215,7 +215,7 @@ function MyJobs() {
             <div
               ref={jobsContainerRef}
               onScroll={handleScrollNearBottom}
-              className="mt-4 max-w-[760px] bg-white overflow-y-auto h-[calc(100dvh-10rem)]"
+              className="mt-4 px-4 max-w-[760px] bg-white overflow-y-auto h-[calc(100dvh-10rem)]"
             >
               {isInitialLoading ? (
                 Array.from({ length: 5 }).map((_, index) => (
