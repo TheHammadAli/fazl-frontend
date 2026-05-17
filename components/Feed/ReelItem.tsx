@@ -11,6 +11,7 @@ import SharePostModal from "../Ui/SharePostModal";
 import { useLikedVideoByUserQuery, useLikeVideoMutation, useUnlikeVideoMutation } from "@/store/services/feedService";
 import { getUserId } from "@/utils/getUserId";
 import shareSimpleIcon from "@/assets/icons/share-simple.svg";
+import { useRequireSignIn } from "@/custom-hooks/useRequireSignIn";
 export default function ReelItem({
     type,
     item,
@@ -26,6 +27,7 @@ export default function ReelItem({
     activeReel: any;
     onVisible: (reel: any) => void;
 }) {
+    const { requireSignIn } = useRequireSignIn();
     const sharePostRef = useRef<HTMLDivElement>(null)
     const [shareModal, setShareModal] = useState(false)
     const userId = getUserId() ?? "";
@@ -299,7 +301,7 @@ export default function ReelItem({
             <div className="absolute bottom-22 ltr:right-4 rtl:left-4 z-50 flex flex-col items-center gap-4">
                 <button
                     type="button"
-                    onClick={onLikeClick}
+                    onClick={(e) => requireSignIn(() => onLikeClick(e))}
                     className={`flex h-12 w-12 cursor-pointer items-center justify-center rounded-full  text-white ${isLiked ? "bg-black" : "bg-[#f2f2f2]/50"}`}
                     aria-label="Like"
                 >
@@ -315,7 +317,7 @@ export default function ReelItem({
                 </button>
                 <button
                     type="button"
-                    onClick={onShareClick}
+                    onClick={(e) => requireSignIn(() => onShareClick(e))}
                     className="mt-1 cursor-pointer flex h-12 w-12 items-center justify-center rounded-full bg-[#f2f2f2]/50 text-white"
                     aria-label="Share"
                 >

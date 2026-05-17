@@ -46,29 +46,24 @@ export type ServiceDetailProps = {
 function BuyServiceDetail({
   service,
   setOpenPciker,
-}: ServiceDetailProps) {
+}: any) {
   const userId = getUserId() ?? "";
   const { requireSignIn } = useRequireSignIn();
   const { pages, placeholders, currentLanguage } = useDictionary();
   const [type, setType] = useState("image");
   const [typeIndex, setTypeIndex] = useState(0);
-  const isOwner = Boolean(userId) && userId === service?.data?.ownerId;
+  const ownerData = service?.data?.ownerId;
+  const isOwner = Boolean(userId) && userId === ownerData?.id;
   const allowedToBuy = !isOwner;
   const allowMessageAndReview = !isOwner;
   const [mounted, setMounted] = useState(false);
-  const { data: ownerDetail } = useGetProductOwnerDetailQuery(
-    service?.data?.ownerId,
-    {
-      skip: !service?.data?.ownerId,
-    }
-  );
+
   const { data: avgReview } = useGetAvgReviewsQuery(
     { type: "service", id: service?.data?.id ?? "" },
     { skip: !service?.data?.id }
   );
   const reviewCount = avgReview?.data?.count ?? 0;
   const { onInitiateChat, isLoading } = useInitiateChat();
-  const ownerData = ownerDetail?.data;
 
   useEffect(() => {
     setMounted(true);
@@ -178,7 +173,7 @@ function BuyServiceDetail({
                       </h4>
                     </div>
                   </div>
-                  {allowMessageAndReview && <button disabled={isLoading} onClick={() => requireSignIn(() => onInitiateChat(userId, service?.data?.ownerId ?? ""))} className=" cursor-pointer border-[1px] w-[163px] whitespace-nowrap border-green-1 text-green-1 flex items-center justify-center rounded-lg h-[33px] px-2 text-[13px] font-light">
+                  {allowMessageAndReview && <button disabled={isLoading} onClick={() => requireSignIn(() => onInitiateChat(userId, ownerData?.id ?? ""))} className=" cursor-pointer border-[1px] w-[163px] whitespace-nowrap border-green-1 text-green-1 flex items-center justify-center rounded-lg h-[33px] px-2 text-[13px] font-light">
                     {isLoading ? <div className="flex  justify-center py-3" aria-hidden>
                       <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-gray-4 border-t-green-1" />
                     </div> : placeholders.message_provider}

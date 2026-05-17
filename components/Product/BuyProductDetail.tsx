@@ -14,49 +14,13 @@ import { useAppDispatch } from "@/store/store";
 import { addToCart } from "@/store/reducers/cartReducer";
 import toast from "react-hot-toast";
 import { useRequireSignIn } from "@/custom-hooks/useRequireSignIn";
-export type ProductDetailProps = {
-  setStep?: (val: "product" | "cart") => void;
-  product: {
-    data: {
-      video: string;
-      id: string;
-      title: string;
-      ownerId?: string;
-      name: string;
-      price: number;
-      shopId: string;
-      images: string[];
-      description: string;
-      parameters: { name: string; variants: string[] }[];
-      category: { name: { en: string; ur: string } };
-    };
-    isLoading: boolean;
-    isFetching: boolean;
-  };
-  shopData?: {
-    id?: string;
-    address?: string;
-    title?: string;
-    image?: string;
-    ownerId?: {
-      id?: string;
-      email?: string;
-    };
-  };
-  selectedVariants: Record<string, unknown>;
-  setSelectedVariants?: React.Dispatch<
-    React.SetStateAction<Record<string, unknown>>
-  >;
-  ownerDetail?: any;
-};
+
 function BuyProductDetail({
   setStep,
   product,
   selectedVariants,
-  shopData,
   setSelectedVariants,
-  ownerDetail,
-}: ProductDetailProps) {
+}: any) {
   const userId = getUserId() ?? "";
   const { requireSignIn } = useRequireSignIn();
   const { onInitiateChat, isLoading } = useInitiateChat();
@@ -73,15 +37,16 @@ function BuyProductDetail({
     { type: "product", id: product?.data?.id ?? "" },
     { skip: !product?.data?.id },
   );
+  const shopData = product?.data?.shopId;
+  const ownerData = product?.data?.ownerId;
   const reviewCount = avgReview?.data?.count ?? 0;
   const isOwner = product?.data?.shopId
-    ? Boolean(userId) && userId === shopData?.ownerId?.id
-    : Boolean(userId) && userId === product?.data?.ownerId;
+    ? Boolean(userId) && userId === shopData?.ownerId
+    : Boolean(userId) && userId === ownerData?.id;
   const allowedToBuy = !isOwner;
   const allowMessageAndReview = !isOwner;
 
   const [mounted, setMounted] = useState(false);
-  const ownerData = ownerDetail?.data;
 
   const videoSrc =
     typeof product?.data?.video === "string" && product.data.video.trim() !== ""
@@ -102,32 +67,32 @@ function BuyProductDetail({
     if (!product?.data?.id) return;
 
     requireSignIn(() => {
-    const sellerLabel = product.data.shopId
-      ? (shopData?.title ?? "")
-      : product.data.ownerId
-        ? (ownerData?.name ?? "")
-        : "";
-    const sellerImage =
-      product.data.shopId && shopData?.image
-        ? shopData.image
-        : product.data.ownerId && ownerData?.image
-          ? ownerData.image
+      const sellerLabel = product.data.shopId
+        ? (shopData?.title ?? "")
+        : product.data.ownerId
+          ? (ownerData?.name ?? "")
           : "";
+      const sellerImage =
+        product.data.shopId && shopData?.image
+          ? shopData.image
+          : product.data.ownerId && ownerData?.image
+            ? ownerData.image
+            : "";
 
-    dispatch(
-      addToCart({
-        productId: product.data.id,
-        title: product.data.title,
-        price: product.data.price,
-        image: product.data.images?.[0] ?? "",
-        shopId: product.data.shopId,
-        ownerId: product.data.ownerId,
-        selectedVariants: selectedVariants as Record<string, string>,
-        sellerLabel,
-        sellerImage,
-      }),
-    );
-    toast.success(info_messages.added_to_cart);
+      dispatch(
+        addToCart({
+          productId: product.data.id,
+          title: product.data.title,
+          price: product.data.price,
+          image: product.data.images?.[0] ?? "",
+          shopId: product.data.shopId,
+          ownerId: product.data.ownerId,
+          selectedVariants: selectedVariants as Record<string, string>,
+          sellerLabel,
+          sellerImage,
+        }),
+      );
+      toast.success(info_messages.added_to_cart);
     });
   };
 
@@ -213,7 +178,8 @@ function BuyProductDetail({
               </div>
               <div className="w-full sm:max-w-[364px] ">
                 <div className="space-y-2 sm:space-y-2 sm:flex sm:flex-wrap sm:justify-between items-center">
-                  <div className="flex gap-2">
+
+                  <div className="flex items-center gap-2">
                     <Image
                       className="h-[44px] w-[44px] rounded-full object-cover "
                       src={
@@ -245,14 +211,15 @@ function BuyProductDetail({
                       </h4>
                     </div>
                   </div>
+
                   {allowMessageAndReview && (
                     <button
                       disabled={isLoading}
                       onClick={() => {
                         requireSignIn(() => {
                           const sellerId = product?.data?.shopId
-                            ? shopData?.ownerId?.id
-                            : product?.data?.ownerId;
+                            ? shopData?.ownerId
+                            : ownerData?.id;
                           onInitiateChat(userId, sellerId ?? "");
                         });
                       }}
