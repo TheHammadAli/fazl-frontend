@@ -12,6 +12,7 @@ import addIcon from "@/assets/icons/add.svg";
 import noImageAvtar from "@/assets/images/no-image-av.png";
 import moment from "moment";
 import "moment/locale/ur";
+import { useRequireSignIn } from "@/custom-hooks/useRequireSignIn";
 
 function ServiceCart({
   service,
@@ -31,6 +32,7 @@ function ServiceCart({
 }) {
   const { pages, placeholders, currentLanguage } = useDictionary();
   const router = useRouter();
+  const { isGuest, requireSignIn } = useRequireSignIn();
   const { data: avgReview, isLoading: isLoadingAvgReview } = useGetAvgReviewsQuery(
     { type: "service", id: service?.data?.id ?? "" },
     { skip: !service?.data?.id || !service?.data?.id }
@@ -47,8 +49,15 @@ function ServiceCart({
 
   const totalAmount = service?.data?.price + 90;
 
+  useEffect(() => {
+    if (isGuest) {
+      router.push("/signin");
+    }
+  }, [isGuest, router]);
+
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    requireSignIn(() => {
     const body = {
       serviceId: service?.data?.id,
       customerId: user?.id,
@@ -56,6 +65,7 @@ function ServiceCart({
       // message: "string",
     };
     serviceBookRequest(body);
+    });
   };
 
   useEffect(() => {

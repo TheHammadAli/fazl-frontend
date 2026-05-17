@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { i18n } from "@/i18n.config";
+import {
+  isGuestAllowedPathname,
+  isGuestRestrictedPathname,
+} from "@/utils/guestAccess";
 
 export function middleware(request: NextRequest) {
   const {
@@ -9,6 +13,7 @@ export function middleware(request: NextRequest) {
   const urlSearchParams = new URLSearchParams(search);
   const params = Object.fromEntries(urlSearchParams.entries());
   const token = request.cookies.get("token")?.value || "";
+  const isGuest = request.cookies.get("isGuest")?.value === "true";
   const completeProfile =
     request.cookies.get("profileCompleted")?.value === "true";
   const urlParams = "?" + new URLSearchParams(params);
@@ -62,7 +67,23 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  if (token && (pathname === "/" || pathname === `/${locale}`)) {
+  if (
+    (token || isGuest) &&
+    (pathname === "/" || pathname === `/${locale}`)
+  ) {
+    return NextResponse.redirect(new URL(`/${locale}/home`, request.url));
+  }
+
+  if (isGuest && !token && pathname.startsWith(`/${locale}/complete-info`)) {
+    return NextResponse.redirect(new URL(`/${locale}/home`, request.url));
+  }
+
+  if (
+    isGuest &&
+    !token &&
+    isGuestRestrictedPathname(pathname) &&
+    !isGuestAllowedPathname(pathname)
+  ) {
     return NextResponse.redirect(new URL(`/${locale}/home`, request.url));
   }
 
@@ -82,7 +103,12 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL(`/${locale}/home`, request.url));
   }
 
-  if (!token && !checkPathStartsWith(pathname) && !isPublicInfoRoute(pathname)) {
+  if (
+    !token &&
+    !isGuest &&
+    !checkPathStartsWith(pathname) &&
+    !isPublicInfoRoute(pathname)
+  ) {
     return NextResponse.redirect(new URL(`/${locale}/signin`, request.url));
   }
 

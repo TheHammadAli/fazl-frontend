@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import Sidebar from "./Sidebar";
 import MobileHeader from "./MobileHeader";
+import GuestBanner from "./GuestBanner";
 import { useGetUnreadNotificationsCountQuery } from "@/store/services/notificationService";
 import { getUserId } from "@/utils/getUserId";
 import { useAppDispatch } from "@/store/store";
@@ -47,7 +48,10 @@ function Layout({ children }: { children: React.ReactNode }) {
     <div className="lg:flex">
       <MobileHeader unreadMessages={unreadMessages} unreadCount={readCount} openSidebar={openSidebar} setOpenSidebar={setOpenSidebar} />
       <Sidebar unreadMessages={unreadMessages} unreadCount={readCount} setUnreadMessages={setUnreadMessages} setReadCount={setReadCount} openSidebar={openSidebar} setOpenSidebar={setOpenSidebar} />
-      <div className="lg:h-screen w-full lg:overflow-y-scroll">{children}</div>
+      <div className="flex min-h-0 w-full flex-col lg:h-screen lg:overflow-y-auto">
+        <GuestBanner />
+        <div className="min-h-0 flex-1">{children}</div>
+      </div>
     </div>
   );
 }

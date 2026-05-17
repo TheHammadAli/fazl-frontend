@@ -16,8 +16,13 @@ import { useRouter } from "next/navigation";
 import { BeatLoader } from "react-spinners";
 import addIcon from "@/assets/icons/add.svg";
 import { useGetAvgReviewsQuery } from "@/store/services/reviewService";
+import { useAppDispatch } from "@/store/store";
+import { getCartLineId, removeFromCart } from "@/store/reducers/cartReducer";
+import { useRequireSignIn } from "@/custom-hooks/useRequireSignIn";
 
 function Cart({ product, shopData, selectedVariants, ownerDetail }: ProductDetailProps) {
+  const dispatch = useAppDispatch();
+  const { isGuest, requireSignIn } = useRequireSignIn();
   const { pages, placeholders, info_messages, error_messages } =
     useDictionary();
   const router = useRouter();
@@ -41,8 +46,15 @@ function Cart({ product, shopData, selectedVariants, ownerDetail }: ProductDetai
 
   const totalAmount =
     product?.data?.price + (deliveryMethod === "delivery" ? 250 : 0) + 90;
+  useEffect(() => {
+    if (isGuest) {
+      router.push("/signin");
+    }
+  }, [isGuest, router]);
+
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    requireSignIn(() => {
     const body = {
       buyer: user?.id,
       owner: shopData ? shopData?.id : ownerData?.id,
@@ -56,10 +68,21 @@ function Cart({ product, shopData, selectedVariants, ownerDetail }: ProductDetai
       quantity: 1,
     };
     orderProduct(body);
+    });
   };
 
   useEffect(() => {
     if (isSuccess) {
+      if (product?.data?.id) {
+        dispatch(
+          removeFromCart(
+            getCartLineId(
+              product.data.id,
+              selectedVariants as Record<string, string>,
+            ),
+          ),
+        );
+      }
       toast.success(data?.message);
       const timer = setTimeout(() => {
         router.push("/home");
@@ -75,7 +98,7 @@ function Cart({ product, shopData, selectedVariants, ownerDetail }: ProductDetai
       const timer = setTimeout(() => { }, 500);
       return () => clearTimeout(timer);
     }
-  }, [isSuccess, isError, data, error]);
+  }, [isSuccess, isError, data, error, dispatch, product?.data?.id, selectedVariants, router]);
 
   return (
     <div className=" ">

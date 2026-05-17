@@ -17,8 +17,11 @@ import BroadCastModal from "../Ui/BroadCastModal";
 import Modal from "../Ui/Modals/Modal";
 import CategoryModal from "../Services/CategoryModal";
 import AllProductsAndServices from "./AllProductsAndServices";
+import { useIsGuest } from "@/custom-hooks/useIsGuest";
+import { getCatalogItemsFromSearchResponse } from "@/utils/catalogSearch";
 
 function HomeSection() {
+  const isGuest = useIsGuest();
   const [openBroadcast, setOpenBroadcast] = useState(false);
   const broadcastRef = useRef<HTMLDivElement>(null);
   const tabsComponents: { [key: string]: React.ReactNode } = {
@@ -109,14 +112,13 @@ function HomeSection() {
                   </div>
                 ))}
               </div>
-            ) : (activeTab === "products"
-              ? productsData?.data?.items?.length > 0
-              : servicesData?.data?.length > 0
-            ) ? <div className=" overflow-scroll  hide-scrollbar">
-              {(activeTab === "products"
-                ? productsData?.data?.items
-                : servicesData?.data
-              )?.map((item: { title: string }, index: number) => (
+            ) : getCatalogItemsFromSearchResponse(
+              activeTab === "products" ? productsData : servicesData,
+            ).length > 0 ? (
+              <div className=" overflow-scroll  hide-scrollbar">
+              {getCatalogItemsFromSearchResponse(
+                activeTab === "products" ? productsData : servicesData,
+              ).map((item: { title: string }, index: number) => (
                 <div
                   key={index}
                   onClick={() => {
@@ -130,11 +132,14 @@ function HomeSection() {
                   <Image src={linkIcon} alt="link" className="rtl:rotate-90" />
                 </div>
               ))}
-            </div> : debounceSearch && <div className="h-[410px] w-full flex items-center justify-center">
+            </div>
+            ) : debounceSearch ? (
+              <div className="h-[410px] w-full flex items-center justify-center">
               <h1 className="text-black-3 text-[16px] font-medium">
                 {activeTab === "products" ? error_messages.no_product_data : error_messages.no_service_data}
               </h1>
-            </div>}
+            </div>
+            ) : null}
             {/* <CategoriesList
               categoryId={categoryId}
               setCategoryId={setCategoryId}
@@ -142,34 +147,40 @@ function HomeSection() {
           </div>
         )}
       </div>
-      <div className="mt-6 flex flex-col gap-3 rounded-[12px] bg-green-1 p-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:py-[18px] sm:px-4">
-        <div className="min-w-0">
-          <h3 className="text-[16px] font-semibold leading-snug text-white sm:text-[18px]">
-            {info_messages.broadcast_request}
-          </h3>
-          <p className="mt-1 text-[13px] font-light leading-relaxed text-white sm:text-[14px]">
-            {info_messages.tell_sellers}
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={() => setOpenBroadcast(true)}
-          className="w-full shrink-0 cursor-pointer rounded-[12px] bg-white px-4 py-3 text-center text-[14px] font-medium text-green-2 sm:w-auto sm:text-[16px]"
-        >
-          {info_messages.broadcast_request}
-        </button>
-      </div>
+      {!isGuest && (
+        <>
+
+          <div className="mt-6 flex flex-col gap-3 rounded-[12px] bg-green-1 p-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:py-[18px] sm:px-4">
+            <div className="min-w-0">
+              <h3 className="text-[16px] font-semibold leading-snug text-white sm:text-[18px]">
+                {info_messages.broadcast_request}
+              </h3>
+              <p className="mt-1 text-[13px] font-light leading-relaxed text-white sm:text-[14px]">
+                {info_messages.tell_sellers}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setOpenBroadcast(true)}
+              className="w-full shrink-0 cursor-pointer rounded-[12px] bg-white px-4 py-3 text-center text-[14px] font-medium text-green-2 sm:w-auto sm:text-[16px]"
+            >
+              {info_messages.broadcast_request}
+            </button>
+          </div>
+
+          <Modal
+            editModalRef={broadcastRef}
+            open={openBroadcast}
+            setOpen={setOpenBroadcast}
+            centered={false}
+          >
+            <div className=" h-full w-full flex justify-center  pt-20 ">
+              <BroadCastModal setOpenBroadcast={setOpenBroadcast} />
+            </div>
+          </Modal>
+        </>
+      )}
       <AllProductsAndServices tab={activeTab} />
-      <Modal
-        editModalRef={broadcastRef}
-        open={openBroadcast}
-        setOpen={setOpenBroadcast}
-        centered={false}
-      >
-        <div className=" h-full w-full flex justify-center  pt-20 ">
-          <BroadCastModal setOpenBroadcast={setOpenBroadcast} />
-        </div>
-      </Modal>
     </div>
   );
 }

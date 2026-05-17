@@ -10,6 +10,7 @@ import { BASE_URL } from "@/assets/content/constants";
 import { getRefreshToken, getToken } from "@/utils/getToken";
 import { logout, setToken } from "./reducers/authReducer";
 import { getCookie } from "cookies-next";
+import { isGuestSession } from "@/utils/guestAccess";
 import { i18n } from "@/i18n.config";
 
 const resolveLanguage = () => {
@@ -53,6 +54,10 @@ export const baseQueryWithReauth: BaseQueryFn<
   let result = await rawBaseQuery(args, api, extraOptions);
 
   if (result.error && result.error.status === 401) {
+    // Guests have no token; do not clear guest session on public API 401s.
+    if (isGuestSession()) {
+      return result;
+    }
     const refreshToken = getRefreshToken();
     if (!refreshToken || refreshToken === "" || refreshToken === "undefined") {
       api.dispatch(logout());

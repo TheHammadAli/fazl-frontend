@@ -13,6 +13,7 @@ import { AvgRatingStars } from "../Ui/Reviews";
 import { useDictionary } from "@/dictionaries/DictionaryProvider";
 import { useInView } from "react-intersection-observer";
 import { parsePositiveInt } from "../Updates/Notifications";
+import { getCatalogItemsFromSearchResponse } from "@/utils/catalogSearch";
 
 const PRODUCTS_LIMIT = 12;
 const SERVICES_LIMIT = 12;
@@ -112,7 +113,9 @@ function AllProductsAndServices({ tab }: { tab: string }) {
 
     useEffect(() => {
         if (tab !== "products" || productsData == null) return;
-        const incoming = (productsData?.data?.items as CatalogItem[] | undefined) ?? [];
+        const incoming = getCatalogItemsFromSearchResponse(
+            productsData,
+        ) as CatalogItem[];
         setProductItems((prev) => mergeCatalogItems(prev, incoming, productPage));
         const totalPages = parsePositiveInt(productsData?.meta?.totalPages);
         setHasMoreProducts(
@@ -124,7 +127,9 @@ function AllProductsAndServices({ tab }: { tab: string }) {
 
     useEffect(() => {
         if (tab !== "services" || servicesData == null) return;
-        const incoming = (servicesData?.data as CatalogItem[] | undefined) ?? [];
+        const incoming = getCatalogItemsFromSearchResponse(
+            servicesData,
+        ) as CatalogItem[];
         setServiceItems((prev) => mergeCatalogItems(prev, incoming, servicePage));
         const totalPages = parsePositiveInt(servicesData?.meta?.totalPages);
         setHasMoreServices(
@@ -151,10 +156,11 @@ function AllProductsAndServices({ tab }: { tab: string }) {
                                     key={itemId}
                                     className="cursor-pointer"
                                     onClick={() => {
-                                        if (tab === "products") {
-                                            router.push(`/buy-product?id=${itemId}`);
-                                        } else {
+                                        if (!itemId) return;
+                                        if (tab === "services") {
                                             router.push(`/book-service?id=${itemId}`);
+                                        } else {
+                                            router.push(`/buy-product?id=${itemId}`);
                                         }
                                     }}
                                 >

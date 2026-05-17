@@ -13,6 +13,7 @@ import moment from "moment";
 import noImageAvtar from "@/assets/images/no-image-av.png";
 import AvatarUi from "./AvatarUi";
 import formatFromNowShort from "@/utils/formatFromNowShort";
+import { useRequireSignIn } from "@/custom-hooks/useRequireSignIn";
 
 const STAR_EMPTY = "#7878804D";
 const STAR_FILLED = "#FFB03A";
@@ -102,6 +103,7 @@ type ReviewItem = {
 };
 
 function Reviews({ type, id, allowAddReview }: ReviewsProps) {
+    const { requireSignIn } = useRequireSignIn();
     const { placeholders, currentLanguage } = useDictionary();
     type PlaceholderKey = keyof typeof placeholders;
     const ph = (key: PlaceholderKey) => placeholders[key];
@@ -233,7 +235,7 @@ function Reviews({ type, id, allowAddReview }: ReviewsProps) {
                         <button
                             type="button"
                             className="flex shrink-0 items-center gap-2 self-start sm:self-center"
-                            onClick={() => setReviewModalOpen(true)}
+                            onClick={() => requireSignIn(() => setReviewModalOpen(true))}
                         >
                             <Image src={penUnderline} alt="" className="h-4 w-4 sm:h-auto sm:w-auto" />
                             <span className="text-[14px] font-normal text-green-1 hover:underline sm:text-[16px]">

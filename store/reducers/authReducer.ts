@@ -21,6 +21,7 @@ let token: string = "";
 let userId: string = "";
 let refToken: string = "";
 let profileCompleted: boolean = false;
+let isGuest: boolean = false;
 
 if (typeof window !== "undefined") {
   const otpData = localStorage.getItem("otpInfo");
@@ -29,6 +30,7 @@ if (typeof window !== "undefined") {
   const refreshToken = getCookie("refreshToken");
   const id = getCookie("userId");
   const completeProfile = getCookie("profileCompleted");
+  const guestCookie = getCookie("isGuest");
   token = typeof cookieToken === "string" ? cookieToken : "";
   userId = typeof id === "string" ? id : "";
   refToken = typeof refreshToken === "string" ? refreshToken : "";
@@ -45,6 +47,7 @@ if (typeof window !== "undefined") {
   } else {
     profileCompleted = false;
   }
+  isGuest = guestCookie === "true";
 }
 const authSlice = createSlice({
   name: "authSlice",
@@ -55,6 +58,7 @@ const authSlice = createSlice({
     refreshToken: refToken,
     userId: userId,
     profileCompleted: profileCompleted,
+    isGuest: isGuest,
   },
   reducers: {
     setOtpInfo: (state, action) => {
@@ -69,8 +73,20 @@ const authSlice = createSlice({
     setToken: (state, action) => {
       state.token = action.payload.accessToken;
       state.refreshToken = action.payload.refreshToken;
+      state.isGuest = false;
       setCookie("token", action.payload.accessToken);
       setCookie("refreshToken", action.payload.refreshToken);
+      deleteCookie("isGuest");
+    },
+
+    setGuest: (state, action) => {
+      state.isGuest = action.payload;
+      if (action.payload) {
+        setCookie("isGuest", "true", { path: "/" });
+        localStorage.removeItem("user");
+      } else {
+        deleteCookie("isGuest", { path: "/" });
+      }
     },
 
     setUserId: (state, action) => {
@@ -86,16 +102,19 @@ const authSlice = createSlice({
       state.refreshToken = "";
       state.userId = "";
       state.profileCompleted = false;
+      state.isGuest = false;
       state.otpInfo = { type: "", phone: "", email: "", password: "" };
       state.confirmedPwd = false;
 
       localStorage.removeItem("otpInfo");
       localStorage.removeItem("confirmedPwd");
+      localStorage.removeItem("user");
 
       deleteCookie("token");
       deleteCookie("refreshToken");
       deleteCookie("userId");
       deleteCookie("profileCompleted");
+      deleteCookie("isGuest", { path: "/" });
     },
   },
 });
@@ -107,6 +126,7 @@ export const {
   setUserId,
   logout,
   setProfileCompleted,
+  setGuest,
 } = authSlice.actions;
 
 export default authSlice.reducer;

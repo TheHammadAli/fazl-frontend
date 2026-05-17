@@ -10,6 +10,10 @@ import { getUserId } from "@/utils/getUserId";
 import Reviews from "../Ui/Reviews";
 import { useGetAvgReviewsQuery } from "@/store/services/reviewService";
 import { getFeedCategoryLabel } from "@/utils/getFeedCategoryLabel";
+import { useAppDispatch } from "@/store/store";
+import { addToCart } from "@/store/reducers/cartReducer";
+import toast from "react-hot-toast";
+import { useRequireSignIn } from "@/custom-hooks/useRequireSignIn";
 export type ProductDetailProps = {
   setStep?: (val: "product" | "cart") => void;
   product: {
@@ -54,8 +58,10 @@ function BuyProductDetail({
   ownerDetail,
 }: ProductDetailProps) {
   const userId = getUserId() ?? "";
+  const { requireSignIn } = useRequireSignIn();
   const { onInitiateChat, isLoading } = useInitiateChat();
-  const { pages, placeholders, currentLanguage } = useDictionary();
+  const dispatch = useAppDispatch();
+  const { pages, placeholders, currentLanguage, info_messages } = useDictionary();
   const ref = React.useRef<HTMLDivElement>(null);
   const [toggle, setToggle] = useState(-1);
   const [type, setType] = useState("image");
@@ -68,9 +74,11 @@ function BuyProductDetail({
     { skip: !product?.data?.id },
   );
   const reviewCount = avgReview?.data?.count ?? 0;
-  const allowedToBuy = product?.data?.shopId
-    ? userId !== shopData?.ownerId?.id
-    : userId !== product?.data?.ownerId;
+  const isOwner = product?.data?.shopId
+    ? Boolean(userId) && userId === shopData?.ownerId?.id
+    : Boolean(userId) && userId === product?.data?.ownerId;
+  const allowedToBuy = !isOwner;
+  const allowMessageAndReview = !isOwner;
 
   const [mounted, setMounted] = useState(false);
   const ownerData = ownerDetail?.data;
@@ -89,6 +97,39 @@ function BuyProductDetail({
       setType("image");
     }
   }, [type, videoSrc]);
+
+  const handleAddToCart = () => {
+    if (!product?.data?.id) return;
+
+    requireSignIn(() => {
+    const sellerLabel = product.data.shopId
+      ? (shopData?.title ?? "")
+      : product.data.ownerId
+        ? (ownerData?.name ?? "")
+        : "";
+    const sellerImage =
+      product.data.shopId && shopData?.image
+        ? shopData.image
+        : product.data.ownerId && ownerData?.image
+          ? ownerData.image
+          : "";
+
+    dispatch(
+      addToCart({
+        productId: product.data.id,
+        title: product.data.title,
+        price: product.data.price,
+        image: product.data.images?.[0] ?? "",
+        shopId: product.data.shopId,
+        ownerId: product.data.ownerId,
+        selectedVariants: selectedVariants as Record<string, string>,
+        sellerLabel,
+        sellerImage,
+      }),
+    );
+    toast.success(info_messages.added_to_cart);
+    });
+  };
 
   return (
     <div className="">
@@ -204,14 +245,16 @@ function BuyProductDetail({
                       </h4>
                     </div>
                   </div>
-                  {allowedToBuy && (
+                  {allowMessageAndReview && (
                     <button
                       disabled={isLoading}
                       onClick={() => {
-                        const sellerId = product?.data?.shopId
-                          ? shopData?.ownerId?.id
-                          : product?.data?.ownerId;
-                        onInitiateChat(userId, sellerId ?? "");
+                        requireSignIn(() => {
+                          const sellerId = product?.data?.shopId
+                            ? shopData?.ownerId?.id
+                            : product?.data?.ownerId;
+                          onInitiateChat(userId, sellerId ?? "");
+                        });
                       }}
                       className=" cursor-pointer border-[1px] border-green-1 text-green-1 flex items-center justify-center rounded-lg h-[33px] w-[111px] text-[13px] font-light"
                     >
@@ -315,10 +358,12 @@ function BuyProductDetail({
                   )}
                 {mounted && allowedToBuy && (
                   <button
+                    type="button"
                     disabled={
                       Object.keys(selectedVariants).length !==
                       product?.data?.parameters?.length
                     }
+                    onClick={handleAddToCart}
                     className=" mt-8 h-[46px]  disabled:opacity-50 disabled:pointer-events-none border-green-1 border-[1px] w-full rounded-xl flex items-center justify-center font-medium text-[16px] text-green-1 hover:text-white hover:bg-green-1 cursor-pointer"
                   >
                     {placeholders.add_cart}
@@ -330,7 +375,7 @@ function BuyProductDetail({
                       Object.keys(selectedVariants).length !==
                       product?.data?.parameters?.length
                     }
-                    onClick={() => setStep?.("cart")}
+                    onClick={() => requireSignIn(() => setStep?.("cart"))}
                     className="h-[46px] disabled:opacity-50 disabled:pointer-events-none mt-4 border-green-1 bg-green-1 border-[1px] w-full rounded-xl flex items-center justify-center font-medium text-[16px] text-white hover:text-green-1 hover:bg-white cursor-pointer"
                   >
                     {placeholders.buy_now}
@@ -339,7 +384,7 @@ function BuyProductDetail({
               </div>
             </div>
 
-            <Reviews type="product" id={product?.data?.id} allowAddReview={allowedToBuy} />
+            <Reviews type="product" id={product?.data?.id} allowAddReview={allowMessageAndReview} />
           </div>
         </div>
       </div>

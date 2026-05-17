@@ -13,8 +13,13 @@ import copyRight from "@/assets/icons/copyright.svg";
 import LangSwitcher from "../Ui/LangSwitcher";
 import { useGetUserDetailQuery } from "@/store/services/profileService";
 import { useAppSelector } from "@/store/store";
+import { getLinksForGuest } from "@/utils/guestAccess";
+import { useIsGuest } from "@/custom-hooks/useIsGuest";
+import GuestAuthNav from "./GuestAuthNav";
 export default function MobileHeader({ unreadMessages, unreadCount, openSidebar, setOpenSidebar }: { unreadMessages: number, unreadCount: number, openSidebar: boolean, setOpenSidebar: (open: boolean) => void }) {
   const { userId } = useAppSelector((state) => state.authReducer);
+  const isGuest = useIsGuest();
+  const navLinks = isGuest ? getLinksForGuest(links) : links;
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const router = useRouter();
@@ -26,7 +31,7 @@ export default function MobileHeader({ unreadMessages, unreadCount, openSidebar,
     isFetching: profileFetching,
     isError: profileError,
     refetch,
-  } = useGetUserDetailQuery(userId, { skip: userId === "" });
+  } = useGetUserDetailQuery(userId, { skip: userId === "" || isGuest });
   return (
     <header className="bg-white  h-[80px] flex items-center  lg:hidden border-b-[1px] border-gray-9 ">
       <div className="px-5 w-full max-w-7xl mx-auto  ">
@@ -72,7 +77,7 @@ export default function MobileHeader({ unreadMessages, unreadCount, openSidebar,
             <div className="mt-6 flow-root">
               <div className="-my-6 divide-y divide-gray-500/10">
                 <div>
-                  {links.map((link, index) => {
+                  {navLinks.map((link, index) => {
                     const active: boolean = path.includes(link?.href);
                     const isUpdatesLink = link.href === "/updates";
                     const isLinkActive = isUpdatesLink ? openSidebar || active : active;
@@ -110,38 +115,44 @@ export default function MobileHeader({ unreadMessages, unreadCount, openSidebar,
                       </div>
                     );
                   })}
-                  <div
-                    onClick={() => {
-                      setMobileMenuOpen(false);
-                      router.push("/profile");
-                    }}
-                    className=" flex items-center gap-3 py-3 hover:bg-green-3 cursor-pointer"
-                  >
-                    <Image
-                      src={
-                        profileData?.data?.image &&
-                          !profileData?.data?.image.includes("default-avatar")
-                          ? `${profileData?.data?.image
-                          }?t=${new Date().getTime()}`
-                          : dummyProfile
-                      }
-                      height={100}
-                      width={100}
-                      alt="icon"
-                      unoptimized
-                      className={`h-[26px] w-[26px] rounded-full object-cover ${path.includes("/profile") &&
-                        "border-[2px] border-green-1"
-                        }`}
+                  {isGuest ? (
+                    <GuestAuthNav
+                      onNavigate={() => setMobileMenuOpen(false)}
                     />
-                    <h2
-                      className={`font-normal text-[14px] ${path.includes("/profile")
-                        ? "text-green-1"
-                        : "text-gray-8"
-                        } leading-none`}
+                  ) : (
+                    <div
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        router.push("/profile");
+                      }}
+                      className=" flex items-center gap-3 py-3 hover:bg-green-3 cursor-pointer"
                     >
-                      {pages.profile}
-                    </h2>
-                  </div>
+                      <Image
+                        src={
+                          profileData?.data?.image &&
+                            !profileData?.data?.image.includes("default-avatar")
+                            ? `${profileData?.data?.image
+                            }?t=${new Date().getTime()}`
+                            : dummyProfile
+                        }
+                        height={100}
+                        width={100}
+                        alt="icon"
+                        unoptimized
+                        className={`h-[26px] w-[26px] rounded-full object-cover ${path.includes("/profile") &&
+                          "border-[2px] border-green-1"
+                          }`}
+                      />
+                      <h2
+                        className={`font-normal text-[14px] ${path.includes("/profile")
+                          ? "text-green-1"
+                          : "text-gray-8"
+                          } leading-none`}
+                      >
+                        {pages.profile}
+                      </h2>
+                    </div>
+                  )}
                   <div className=" flex flex-col items-center mt-20">
                     <div className="flex items-center gap-[6px] text-[12px] font-normal">
                       <span className="text-green-1 underline cursor-pointer">

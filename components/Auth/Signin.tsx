@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { useSigninMutation } from "@/store/services/authService";
 import toast from "react-hot-toast";
 import {
+  setGuest,
   setProfileCompleted,
   setToken,
   setUserId,
@@ -15,6 +16,7 @@ import {
 import { BASE_URL } from "@/assets/content/constants";
 import GoogleIcon from "@/assets/icons/google-icon.svg";
 import Footer from "./Footer";
+import { useDictionary } from "@/dictionaries/DictionaryProvider";
 
 export type Body = {
   email?: string;
@@ -24,6 +26,7 @@ export type Body = {
 function Signin() {
   const router = useRouter();
   const dispatch = useAppDispatch();
+  const { placeholders } = useDictionary();
 
   const [emailError, setEmailError] = useState("");
   const [email, setEmail] = useState("");
@@ -91,6 +94,11 @@ function Signin() {
         duration: 4000,
       });
     }
+  };
+
+  const handleContinueAsGuest = () => {
+    dispatch(setGuest(true));
+    router.replace("/home");
   };
 
   return (
@@ -178,7 +186,7 @@ function Signin() {
 
           <button
             type="submit"
-            className="mt-6 h-[52px] w-full rounded-[12px] bg-green-1 text-white"
+            className="mt-6 h-[52px] w-full cursor-pointer rounded-[12px] bg-green-1 text-white"
             disabled={isLoading}
           >
             {isLoading ? <BeatLoader color="white" size={8} /> : "Continue"}
@@ -187,12 +195,11 @@ function Signin() {
           <button
             type="button"
             onClick={() => router.push(`${BASE_URL}/auth/google`)}
-            className="mt-6 h-[52px] w-full rounded-[12px] bg-blue-1 text-white flex items-center justify-center gap-2"
+            className="mt-6 h-[52px] cursor-pointer w-full rounded-[12px] bg-blue-1 text-white flex items-center justify-center gap-2"
           >
             <Image src={GoogleIcon} alt="google_icon" />
             Continue with Google
           </button>
-
           <div className="text-center text-[12px] text-gray-8 mt-5">
             Don&apos;t have an account?{" "}
             <span
@@ -202,6 +209,15 @@ function Signin() {
               Sign up
             </span>
           </div>
+          <button
+            type="button"
+            onClick={handleContinueAsGuest}
+            className="mt-4 h-[52px] w-full rounded-[12px] cursor-pointer    bg-gray-9 text-[16px] font-medium text-gray-8"
+          >
+            {placeholders.continue_as_guest}
+          </button>
+
+
         </div>
         <div className="lg:mb-10 mt-14 lg:mt-0">
           <Footer />

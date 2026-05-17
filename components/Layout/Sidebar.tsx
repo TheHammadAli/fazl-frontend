@@ -10,6 +10,9 @@ import copyRight from "@/assets/icons/copyright.svg";
 import LangSwitcher from "../Ui/LangSwitcher";
 import { useAppSelector } from "@/store/store";
 import { useGetUserDetailQuery } from "@/store/services/profileService";
+import { getLinksForGuest } from "@/utils/guestAccess";
+import { useIsGuest } from "@/custom-hooks/useIsGuest";
+import GuestAuthNav from "./GuestAuthNav";
 import { Dialog, DialogPanel } from "@headlessui/react";
 import logo from "@/assets/icons/fazal-logo.svg";
 import Link from "next/link";
@@ -34,10 +37,12 @@ function Sidebar({
   setOpenSidebar: (open: boolean) => void;
 }) {
   const { userId } = useAppSelector((state) => state.authReducer);
+  const isGuest = useIsGuest();
 
   const { placeholders, pages } = useDictionary();
+  const navLinks = isGuest ? getLinksForGuest(links) : links;
   const { data: profileData } = useGetUserDetailQuery(userId, {
-    skip: userId === "",
+    skip: userId === "" || isGuest,
   });
   const path = usePathname();
   const router = useRouter();
@@ -64,7 +69,7 @@ function Sidebar({
           <Image src={logo} alt="logo" />
         </Link>
         <div>
-          {links.map((link, index) => {
+          {navLinks.map((link, index) => {
             const active: boolean = path.includes(link?.href);
             const isUpdatesLink = link.href === "/updates";
             const isChatLink = link.href === "/chat";
@@ -103,32 +108,38 @@ function Sidebar({
               </div>
             );
           })}
-          <div
-            onClick={() => router.push("/profile")}
-            className="px-[14px] flex items-center gap-3 py-3 hover:bg-green-3 cursor-pointer"
-          >
-            <Image
-              src={
-                profileData?.data?.image &&
-                  !profileData?.data?.image.includes("default-avatar")
-                  ? `${profileData?.data?.image}?t=${new Date().getTime()}`
-                  : dummyProfile
-              }
-              height={100}
-              width={100}
-              alt="icon"
-              unoptimized
-              loading="lazy"
-              className={`h-[26px] w-[26px] rounded-full object-cover ${path.includes("/profile") && "border-[2px] border-green-1"
-                }`}
-            />
-            <h2
-              className={`font-normal text-[14px] ${path.includes("/profile") ? "text-green-1" : "text-gray-8"
-                } leading-none`}
+          {isGuest ? (
+            <div className="px-[14px]">
+              <GuestAuthNav />
+            </div>
+          ) : (
+            <div
+              onClick={() => router.push("/profile")}
+              className="px-[14px] flex items-center gap-3 py-3 hover:bg-green-3 cursor-pointer"
             >
-              {pages.profile}
-            </h2>
-          </div>
+              <Image
+                src={
+                  profileData?.data?.image &&
+                    !profileData?.data?.image.includes("default-avatar")
+                    ? `${profileData?.data?.image}?t=${new Date().getTime()}`
+                    : dummyProfile
+                }
+                height={100}
+                width={100}
+                alt="icon"
+                unoptimized
+                loading="lazy"
+                className={`h-[26px] w-[26px] rounded-full object-cover ${path.includes("/profile") && "border-[2px] border-green-1"
+                  }`}
+              />
+              <h2
+                className={`font-normal text-[14px] ${path.includes("/profile") ? "text-green-1" : "text-gray-8"
+                  } leading-none`}
+              >
+                {pages.profile}
+              </h2>
+            </div>
+          )}
         </div>
       </div>
 
