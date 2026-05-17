@@ -13,6 +13,7 @@ import { useAppDispatch, useAppSelector } from "@/store/store";
 import {
   clearCart,
   removeFromCart,
+  updateCartQuantity,
   type CartItem,
 } from "@/store/reducers/cartReducer";
 import { useGetAvgReviewsQuery } from "@/store/services/reviewService";
@@ -50,9 +51,11 @@ function StarRating({
 function CartLineItem({
   item,
   onRemove,
+  onUpdateQuantity,
 }: {
   item: CartItem;
   onRemove: (id: string) => void;
+  onUpdateQuantity: (id: string, quantity: number) => void;
 }) {
   const { placeholders } = useDictionary();
   const { data: avgReview } = useGetAvgReviewsQuery(
@@ -62,8 +65,10 @@ function CartLineItem({
 
   const reviewCount = avgReview?.data?.count ?? 0;
   const avgRating = avgReview?.data?.avgRating ?? 0;
+  const lineTotal = item.price * item.quantity;
+
   return (
-    <div className="flex items-center gap-4 py-5">
+    <div className="flex items-start gap-4 py-5">
       <Image
         src={item.image || noImageAvtar}
         alt={item.title}
@@ -73,24 +78,50 @@ function CartLineItem({
         className="h-[76px] w-[76px] shrink-0 rounded-xl object-cover"
       />
 
-      <div className="min-w-0 flex-1 items-center ">
+      <div className="min-w-0 flex-1">
         <h3 className="text-[16px] font-medium leading-snug text-[#030303]">
           {item.title}
         </h3>
         <StarRating rating={avgRating} reviewCount={reviewCount} />
         <p className="mt-1 text-[15px] font-medium text-green-1">
-          {placeholders.Rs} {item.price.toLocaleString()}
+          {placeholders.Rs} {lineTotal.toLocaleString()}
         </p>
+
+
+
       </div>
 
-      <button
-        type="button"
-        aria-label={placeholders.remove_from_cart}
-        onClick={() => onRemove(item.id)}
-        className="mt-1 flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-full hover:bg-gray-9"
-      >
-        <Image src={crossIcon} alt="" width={12} height={12} />
-      </button>
+      <div className="flex flex-col items-end gap-1">
+        <button
+          type="button"
+          aria-label={placeholders.remove_from_cart}
+          onClick={() => onRemove(item.id)}
+          className="mt-1 flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-full hover:bg-gray-9"
+        >
+          <Image src={crossIcon} alt="" width={12} height={12} />
+        </button>
+        <div className=" flex w-fit items-center gap-2 rounded-lg border border-[#E5E5E5] px-2 py-1">
+          <button
+            type="button"
+            aria-label="Decrease quantity"
+            onClick={() => onUpdateQuantity(item.id, item.quantity - 1)}
+            className="flex h-7 w-7 cursor-pointer items-center justify-center text-[18px] text-[#030303] hover:bg-gray-9 rounded"
+          >
+            −
+          </button>
+          <span className="min-w-[20px] text-center text-[14px] font-medium text-[#030303]">
+            {item.quantity}
+          </span>
+          <button
+            type="button"
+            aria-label="Increase quantity"
+            onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
+            className="flex h-7 w-7 cursor-pointer items-center justify-center text-[18px] text-[#030303] hover:bg-gray-9 rounded"
+          >
+            +
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
@@ -171,7 +202,7 @@ function MyCart() {
       </div>
 
       <div className="flex min-h-0 flex-1 justify-center overflow-y-auto px-4 pb-8 sm:px-0">
-        <div className="w-full max-w-[522px] py-6">
+        <div className="w-full max-w-[522px] py-6 lg:px-4">
           <div className="flex items-start justify-between gap-4">
             <div>
               <h1 className="text-[20px] font-medium text-[#030303]">
@@ -197,6 +228,9 @@ function MyCart() {
                 key={item.id}
                 item={item}
                 onRemove={(id) => dispatch(removeFromCart(id))}
+                onUpdateQuantity={(id, quantity) =>
+                  dispatch(updateCartQuantity({ id, quantity }))
+                }
               />
             ))}
           </div>

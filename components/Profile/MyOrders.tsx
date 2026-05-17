@@ -160,7 +160,7 @@ function MyOrders() {
   const showEmpty = !isInitialLoading && count === 0;
 
   return (
-    <div className="flex h-full min-h-0 flex-col space-y-2">
+    <div className=" h-full min-h-0 flex-col space-y-2">
       <div className="shrink-0 border-b border-gray-9 flex items-center justify-center">
         <div className="h-[72px] w-full max-w-[522px] flex items-center gap-2 px-4 text-[14px] sm:px-0">
           <span className="text-gray-11">{ph("profile")}</span>
