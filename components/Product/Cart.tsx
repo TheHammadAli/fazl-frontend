@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import chevron from "@/assets/icons/chev-down-icon.svg";
 import { useDictionary } from "@/dictionaries/DictionaryProvider";
-import { ProductDetailProps } from "./BuyProductDetail";
 import { RadioGroup } from "@headlessui/react";
 import { Clock } from "lucide-react";
 import { Star } from "lucide-react";
@@ -20,7 +19,7 @@ import { useAppDispatch } from "@/store/store";
 import { getCartLineId, removeFromCart } from "@/store/reducers/cartReducer";
 import { useRequireSignIn } from "@/custom-hooks/useRequireSignIn";
 
-function Cart({ product, shopData, selectedVariants, ownerDetail }: ProductDetailProps) {
+function Cart({ product, shopData, selectedVariants, ownerDetail }: any) {
   const dispatch = useAppDispatch();
   const { isGuest, requireSignIn } = useRequireSignIn();
   const { pages, placeholders, info_messages, error_messages } =
@@ -55,19 +54,19 @@ function Cart({ product, shopData, selectedVariants, ownerDetail }: ProductDetai
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     requireSignIn(() => {
-    const body = {
-      buyer: user?.id,
-      owner: shopData ? shopData?.id : ownerData?.id,
-      ownerModel: shopData ? "Shop" : "User",
-      product: product?.data?.id,
-      deliveryOption: deliveryMethod,
-      status: "pending",
-      paymentType: "cashonDelivery",
-      amount: totalAmount,
-      variant: selectedVariants,
-      quantity: 1,
-    };
-    orderProduct(body);
+      const body = {
+        buyer: user?.id,
+        owner: shopData ? shopData?.id : ownerData?.id,
+        ownerModel: shopData ? "Shop" : "User",
+        product: product?.data?.id,
+        deliveryOption: deliveryMethod,
+        status: "pending",
+        paymentType: "cashonDelivery",
+        amount: totalAmount,
+        variant: selectedVariants,
+        quantity: 1,
+      };
+      orderProduct(body);
     });
   };
 
