@@ -8,9 +8,11 @@ import Modal from "../Ui/Modals/Modal";
 import DateTimePickerModal from "./DateTimePickerModal";
 import ServiceDetailSkeleton from "../Ui/ServiceDetailPageSkelton";
 import { useRequireSignIn } from "@/custom-hooks/useRequireSignIn";
+import { useDictionary } from "@/dictionaries/DictionaryProvider";
 
 function BookService() {
   const router = useRouter();
+  const { error_messages } = useDictionary();
   const { isGuest, requireSignIn } = useRequireSignIn();
   const [step, setStep] = useState<"service" | "request">("service");
   const id = useSearchParams().get("id");
@@ -22,9 +24,20 @@ function BookService() {
     data: service,
     isLoading,
     isFetching,
+    isError,
+    error,
   } = useGetServiceDetailQuery(id, {
     skip: !id,
   });
+
+  const loading = isLoading || isFetching;
+  const isServiceNotFound =
+    !id ||
+    (isError &&
+      error &&
+      "status" in error &&
+      (error.status === 404 ||
+        (error.data as { message?: string })?.message === "Service not found"));
 
   const [selectedVariants, setSelectedVariants] = useState({});
 
@@ -51,6 +64,14 @@ function BookService() {
     }
   };
 
+  if (isServiceNotFound) {
+    return (
+      <div className="h-[80vh] flex items-center justify-center w-full text-black-1">
+        {error_messages.service_not_found}
+      </div>
+    );
+  }
+
   return (
     <div>
       <Modal
@@ -67,7 +88,7 @@ function BookService() {
         />
       </Modal>
       {step === "service" &&
-        (isLoading || isFetching ? (
+        (loading ? (
           <ServiceDetailSkeleton />
         ) : (
           <BuyServiceDetail

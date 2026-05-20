@@ -83,12 +83,12 @@ function PrivateListings() {
                       <span>
                         {placeholders.Rs} {product?.price}
                       </span>
-                      <span className="line-through font-light text-[#4B514F] text-[14px]">
-                        {placeholders.Rs} 2000
-                      </span>
-                      <span className="font-light text-[#4B514F] text-[14px]">
+                      {/* <span className="line-through font-light text-[#4B514F] text-[14px]">
+                        {placeholders.Rs} 
+                      </span> */}
+                      {/* <span className="font-light text-[#4B514F] text-[14px]">
                         (30% off)
-                      </span>
+                      </span> */}
                     </h3>
                     <h4 className="font-light text-[#4B514F] text-[14px]">
                       {5 + " " + placeholders.reviews}

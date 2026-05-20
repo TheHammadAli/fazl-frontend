@@ -200,7 +200,7 @@ export const profileService = baseApi.injectEndpoints({
     getBookedServices: build.query({
       query: ({ customerId, ...params }: any) => {
         return {
-          url: `/services/requests/${customerId}?${new URLSearchParams(params)}`,
+          url: `/services/customer/${customerId}?${new URLSearchParams(params)}`,
           method: "GET",
         };
       },
@@ -213,6 +213,15 @@ export const profileService = baseApi.injectEndpoints({
           method: "GET",
         };
       },
+      providesTags: ["ORDERS"],
+    }),
+    updateOrderStatus: build.mutation({
+      query: ({ orderId, status, amount, paymentType }: any) => ({
+        url: `/orders/${orderId}`,
+        method: "PATCH",
+        body: { status, amount, paymentType },
+      }),
+      invalidatesTags: ["ORDERS"],
     }),
     getOrdersByBuyer: build.query({
       query: ({ buyerId, ...params }: any) => {
@@ -226,6 +235,7 @@ export const profileService = baseApi.injectEndpoints({
 });
 export const {
   useGetOrdersByOwnerQuery,
+  useUpdateOrderStatusMutation,
   useGetOrdersByBuyerQuery,
   useGetBookedServicesQuery,
   useDeleteProductMutation,

@@ -19,7 +19,7 @@ import { useAppDispatch } from "@/store/store";
 import { getCartLineId, removeFromCart } from "@/store/reducers/cartReducer";
 import { useRequireSignIn } from "@/custom-hooks/useRequireSignIn";
 
-function Cart({ product, shopData, selectedVariants, ownerDetail }: any) {
+function Cart({ product, shopData, selectedVariants, ownerData }: any) {
   const dispatch = useAppDispatch();
   const { isGuest, requireSignIn } = useRequireSignIn();
   const { pages, placeholders, info_messages, error_messages } =
@@ -36,7 +36,7 @@ function Cart({ product, shopData, selectedVariants, ownerDetail }: any) {
   );
   const reviewCount = avgReview?.data?.count ?? 0;
   const avgRating = avgReview?.data?.avgRating ?? 0;
-  const ownerData = ownerDetail?.data;
+
 
   const { user } =
     typeof window !== "undefined"
@@ -50,13 +50,16 @@ function Cart({ product, shopData, selectedVariants, ownerDetail }: any) {
       router.push("/signin");
     }
   }, [isGuest, router]);
-
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    console.log(shopData, "shopData")
+    console.log(ownerData, "ownerData")
+    console.log(product
+      , "product id")
     requireSignIn(() => {
       const body = {
         buyer: user?.id,
-        owner: shopData ? shopData?.id : ownerData?.id,
+        owner: shopData ? shopData?.ownerId : ownerData?._id,
         ownerModel: shopData ? "Shop" : "User",
         product: product?.data?.id,
         deliveryOption: deliveryMethod,

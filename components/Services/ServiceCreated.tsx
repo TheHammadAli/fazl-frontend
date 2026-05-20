@@ -26,9 +26,9 @@ function ServiceCreated({ id }: Props) {
         {/* <button className="mt-6  h-[55px] w-full rounded-[12px] text-white font-medium text-[16px]  bg-green-1 cursor-pointer">
           {info_messages.sell_product}
         </button> */}
-        <button className="mt-6 border-[1px] border-green-1   h-[55px] w-full rounded-[12px] hover:text-green-1 text-white font-medium text-[16px] bg-green-1 hover:bg-white cursor-pointer">
+        {/* <button className="mt-6 border-[1px] border-green-1   h-[55px] w-full rounded-[12px] hover:text-green-1 text-white font-medium text-[16px] bg-green-1 hover:bg-white cursor-pointer">
           {placeholders.boost_service}
-        </button>
+        </button> */}
         <div className="text-center flex justify-center w-full text-green-1 font-medium text-[16px] mt-6 ">
           <p
             className="w-max cursor-pointer hover:underline"
@@ -37,7 +37,7 @@ function ServiceCreated({ id }: Props) {
             }}
           >
             {" "}
-            {placeholders.later}
+            {placeholders.list_another_service}
           </p>
         </div>
       </div>

@@ -29,7 +29,9 @@ function ServiceListing() {
                 </button>
             </div>
 
-            {tabsComponents[activeTab]}
+            <div className="flex flex-1 min-h-0 flex-col w-full min-w-0">
+                {tabsComponents[activeTab]}
+            </div>
 
         </div >
     );

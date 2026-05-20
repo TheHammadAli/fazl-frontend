@@ -12,7 +12,7 @@ import Modal from "../Ui/Modals/Modal";
 import CategoryModal, { categroyTypes } from "../Services/CategoryModal";
 import PriceModal, { priceTypes } from "../Services/PriceModal";
 import {
-  useAddServiceMutation,
+  useGetShopDetailQuery,
   useListProductMutation,
 } from "@/store/services/sellingService";
 import toast from "react-hot-toast";
@@ -67,6 +67,15 @@ function ListProduct() {
   const id = useSearchParams().get("id") || "";
   const productType = useSearchParams().get("type") || "";
   const userId = typeof window !== "undefined" ? getCookie("userId") : "";
+  const isShopListing = productType !== "personal";
+
+  const { data: shop } = useGetShopDetailQuery(id, {
+    skip: !id || !isShopListing,
+  });
+
+  const listingContextLabel = isShopListing
+    ? shop?.data?.title || placeholders.shop
+    : placeholders.private_listing;
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -253,7 +262,7 @@ function ListProduct() {
               alt="chevron"
               className="-rotate-90 rtl:rotate-90"
             />
-            <span className="text-gray-8">{placeholders.private_listing}</span>
+            <span className="text-gray-8">{listingContextLabel}</span>
             <Image
               src={chevron}
               alt="chevron"

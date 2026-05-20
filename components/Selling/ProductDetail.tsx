@@ -62,27 +62,18 @@ function ProductDetail() {
   } = useGetProductDetailQuery(id, {
     skip: !id,
   });
-  const { data: shopDetail } = useGetShopDetailQuery(product?.data?.shopId, {
-    skip: !isSuccess || !product?.data?.shopId,
-  });
-  const { data: ownerDetail } = useGetProductOwnerDetailQuery(
-    product?.data?.ownerId,
-    {
-      skip: !isSuccess || !product?.data?.ownerId,
-    }
-  );
+
 
   const { data: avgReview, isLoading: isLoadingAvgReview } = useGetAvgReviewsQuery(
     { type: "product", id: product?.data?.id ?? "" },
     { skip: !product?.data?.id || !product?.data?.id }
   );
   const reviewCount = avgReview?.data?.count ?? 0;
-  const shopData = shopDetail?.data;
-  const ownerData = ownerDetail?.data;
+  const shopData = product?.data?.shopId;
+  const ownerData = product?.data?.ownerId;
   const { pages, placeholders, info_messages, error_messages } =
     useDictionary();
   const ref = React.useRef<HTMLDivElement>(null);
-  const [toggle, setToggle] = useState(-1);
   const [isEdit, setIsEdit] = useState(false);
   const [type, setType] = useState("image");
   const [typeIndex, setTypeIndex] = useState(0);
@@ -91,13 +82,10 @@ function ProductDetail() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deleteProduct, { isLoading: isDeleteLoading }] = useDeleteProductMutation();
   const deleteModalRef = React.useRef<HTMLDivElement>(null);
-
   const allowedToBuy = product?.data?.shopId
-    ? userId !== shopData?.ownerId?.id
-    : userId !== product?.data?.ownerId;
-  useClickOutside(ref, () => {
-    setToggle(-1);
-  });
+    ? userId !== shopData?.ownerId
+    : userId !== ownerData?.id;
+
   useClickOutside(ref, () => {
     setIsEdit(false);
   });
@@ -248,8 +236,8 @@ function ProductDetail() {
                 </div>
               </div>
               <div className="w-full sm:max-w-[364px] ">
-                <div className="space-y-2 sm:space-y-0 flex justify-between ">
-                  <div className="flex gap-2">
+                <div className="space-y-2 sm:space-y-0 items-center flex justify-between ">
+                  <div className="flex gap-2 items-center">
                     <Image
                       className="h-[44px] w-[44px] rounded-full object-cover bg-gray-12"
                       src={
@@ -329,97 +317,10 @@ function ProductDetail() {
                 <div className="text-[15px] text-[#030303] font-light">
                   {product?.data?.description ?? ""}
                 </div>
-                {/* <div className="border-[#E5E5E5]  py-4 px-1.5 border-t-[0.5px] mt-4 flex justify-between">
-                  <span className="text-[15px] font-medium">
-                    {placeholders.category}
-                  </span>
-                  <span className="font-light text-[15px] leading-none">
-                    {product?.data?.category?.name ?? ""}
-                  </span>
-                </div> */}
-                {/* {product?.data?.parameters?.map(
-                  (
-                    parameter: { name: string; variants: string[] },
-                    index: number
-                  ) => (
-                    <div
-                      key={index}
-                      className="border-[#E5E5E5]  py-4 px-1.5 border-t-[0.5px] flex justify-between"
-                    >
-                      <span className="text-[15px] font-medium leading-none">
-                        {parameter?.name}
-                      </span>
-                      <div className="relative">
-                        <div
-                          className="flex gap-2 cursor-pointer "
-                          onClick={() => setToggle(index)}
-                        >
-                          <span className="font-light text-[15px] leading-none">
-                            {String(
-                              selectedVariants[
-                                parameter?.name as keyof typeof selectedVariants
-                              ] ?? "Choose"
-                            )}
-                            Choose
-                          </span>
-                          <Image
-                            src={chevron}
-                            alt="chevron"
-                            className="h-4 w-3"
-                          />
-                        </div>
-                        {toggle === index && (
-                          <div
-                            ref={ref}
-                            className=" z-50 right-0 w-[130px] bg-white shadow-xl rounded-lg border-[1px] border-gray-4 mt-2 absolute"
-                          >
-                            {parameter?.variants?.map(
-                              (variant: string, index: number) => (
-                                <div
-                                  key={index}
-                                  onClick={() => {
-                                    if (setSelectedVariants) {
-                                      setSelectedVariants((prev) => ({
-                                        ...prev,
-                                        [parameter?.name]: variant,
-                                      }));
-                                    }
-                                    setToggle(-1);
-                                  }}
-                                  className="hover:bg-green-4 cursor-pointer px-2 py-1 border-b-[1px] border-gray-4"
-                                >
-                                  {variant}
-                                </div>
-                              )
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )
-                )} */}
-                {/* <button
-                  //   disabled={
-                  //     Object.keys(selectedVariants).length !==
-                  //     product?.data?.parameters?.length
-                  //   }
-                  className=" mt-8 h-[46px]  disabled:opacity-50 disabled:pointer-events-none border-green-1 border-[1px] w-full rounded-xl flex items-center justify-center font-medium text-[16px] text-green-1 hover:text-white hover:bg-green-1 cursor-pointer"
-                >
-                  Add to cart
-                </button> */}
-                {/* <button
-                  //   disabled={
-                  //     Object.keys(selectedVariants).length !==
-                  //     product?.data?.parameters?.length
-                  //   }
-                  //   onClick={() => setStep && setStep("cart")}
-                  className="h-[46px] disabled:opacity-50 disabled:pointer-events-none mt-4 border-green-1 bg-green-1 border-[1px] w-full rounded-xl flex items-center justify-center font-medium text-[16px] text-white hover:text-green-1 hover:bg-white cursor-pointer"
-                >
-                  {placeholders.promote_product}
-                </button> */}
+
               </div>
             </div>
-            <Reviews type="product" id={product?.data?.id} allowAddReview={allowedToBuy} />
+            <Reviews type="product" id={product?.data?.id || product?.data?._id} allowAddReview={allowedToBuy} />
           </div>
         </div>
       </div>

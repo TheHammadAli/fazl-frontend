@@ -365,7 +365,7 @@ function ServiceDetail({ serviceData }: { serviceData: ServiceDetailType }) {
                 >
                   Add to cart
                 </button> */}
-                <button
+                {/* <button
                   //   disabled={
                   //     Object.keys(selectedVariants).length !==
                   //     product?.data?.parameters?.length
@@ -374,7 +374,7 @@ function ServiceDetail({ serviceData }: { serviceData: ServiceDetailType }) {
                   className="h-[46px] disabled:opacity-50 disabled:pointer-events-none mt-4 border-green-1 bg-green-1 border-[1px] w-full rounded-xl flex items-center justify-center font-medium text-[16px] text-white hover:text-green-1 hover:bg-white cursor-pointer"
                 >
                   {placeholders.promote_service}
-                </button>
+                </button> */}
               </div>
             </div>
             <Reviews type="service" id={serviceData?.id} allowAddReview={allowedToBuy} />

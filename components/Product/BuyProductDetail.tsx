@@ -18,6 +18,8 @@ import { useRequireSignIn } from "@/custom-hooks/useRequireSignIn";
 function BuyProductDetail({
   setStep,
   product,
+  shopData,
+  ownerData,
   selectedVariants,
   setSelectedVariants,
 }: any) {
@@ -37,8 +39,7 @@ function BuyProductDetail({
     { type: "product", id: product?.data?.id ?? "" },
     { skip: !product?.data?.id },
   );
-  const shopData = product?.data?.shopId;
-  const ownerData = product?.data?.ownerId;
+
   const reviewCount = avgReview?.data?.count ?? 0;
   const isOwner = product?.data?.shopId
     ? Boolean(userId) && userId === shopData?.ownerId
@@ -65,7 +66,6 @@ function BuyProductDetail({
 
   const handleAddToCart = () => {
     if (!product?.data?.id) return;
-
     requireSignIn(() => {
       const sellerLabel = product.data.shopId
         ? (shopData?.title ?? "")

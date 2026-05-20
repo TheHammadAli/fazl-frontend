@@ -28,10 +28,9 @@ function BuyProduct() {
   } = useGetProductDetailQuery(id, {
     skip: !id,
   });
+  const shopData = product?.data?.shopId;
+  const ownerData = product?.data?.ownerId;
 
-  const { data: shopDetail } = useGetShopDetailQuery(product?.data?.shopId, {
-    skip: !isSuccess,
-  });
   const [selectedVariants, setSelectedVariants] = useState<
     Record<string, string>
   >({});
@@ -51,12 +50,6 @@ function BuyProduct() {
     }
   }, [isGuest, step, router]);
 
-  const { data: ownerDetail } = useGetProductOwnerDetailQuery(
-    product?.data?.ownerId,
-    {
-      skip: !product?.data?.ownerId,
-    },
-  );
   return (
     <div>
       {step === "product" && (
@@ -71,17 +64,16 @@ function BuyProduct() {
           selectedVariants={selectedVariants}
           setSelectedVariants={setSelectedVariants}
           product={product}
-          shopData={shopDetail?.data}
-          ownerDetail={ownerDetail}
+          shopData={shopData}
+          ownerData={ownerData}
         />
       )}
       {step === "cart" && (
         <Cart
-          ownerDetail={ownerDetail}
-
+          ownerData={ownerData}
           product={product}
           selectedVariants={selectedVariants}
-          shopData={shopDetail?.data}
+          shopData={shopData}
         />
       )}
     </div>

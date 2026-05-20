@@ -1,14 +1,21 @@
 "use client";
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import chevron from "@/assets/icons/chev-down-icon.svg";
+import chevronRight from "@/assets/icons/chevron-right-icon.svg";
 import { useDictionary } from "@/dictionaries/DictionaryProvider";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import noImageAvtar from "@/assets/images/no-image-av.png";
-import { useGetOrdersByOwnerQuery } from "@/store/services/sellingService";
+import {
+  useGetOrdersByOwnerQuery,
+  useUpdateOrderStatusMutation,
+} from "@/store/services/sellingService";
 import { parsePositiveInt } from "../Updates/Notifications";
-import { useRouter } from "next/navigation";
+import { useClickOutside } from "@/custom-hooks/useClickOutside";
+import { toast } from "react-hot-toast";
+import { BeatLoader } from "react-spinners";
+
 const PAGE_LIMIT = 15;
 
 const ORDER_STATUS_KEYS = [
@@ -17,21 +24,48 @@ const ORDER_STATUS_KEYS = [
   "confirmed",
   "shipped",
   "delivered",
-  "cancelled",
+  // "cancelled",
+] as const;
+
+const MANAGE_STATUS_KEYS = [
+  "pending",
+  "confirmed",
+  "shipped",
+  "delivered",
+  // "cancelled",
 ] as const;
 
 type OrderStatusKey = (typeof ORDER_STATUS_KEYS)[number];
+type ManageStatusKey = (typeof MANAGE_STATUS_KEYS)[number];
 
 type ShopOrder = {
   _id?: string;
   id?: string;
-  status: string;
+  amount?: number;
+  paymentType?: string;
+  status?: string;
   product: {
+    id?: string;
+    _id?: string;
     title: string;
     price: number | string;
     images: string[];
   } | null;
 };
+
+function getProductId(order: ShopOrder): string | undefined {
+  return order.product?.id ?? order.product?._id;
+}
+
+function getOrderId(order: ShopOrder, index: number): string {
+  return String(order._id ?? order.id ?? index);
+}
+
+function getOrderStatusColorClass(status?: string): string {
+  return status === "pending" || status === "cancelled"
+    ? "text-[#E92440]"
+    : "text-[#030303]";
+}
 
 function mergeOrders(
   prev: ShopOrder[],
@@ -51,6 +85,82 @@ function mergeOrders(
   return next;
 }
 
+type OrderStatusDropdownProps = {
+  orderId: string;
+  currentStatus: string;
+  selectedStatus: ManageStatusKey | "";
+  isOpen: boolean;
+  onToggle: () => void;
+  onSelect: (status: ManageStatusKey) => void;
+  onClose: () => void;
+  chooseLabel: string;
+  statusLabel: (key: ManageStatusKey) => string;
+};
+
+function OrderStatusDropdown({
+  orderId,
+  currentStatus,
+  selectedStatus,
+  isOpen,
+  onToggle,
+  onSelect,
+  onClose,
+  chooseLabel,
+  statusLabel,
+}: OrderStatusDropdownProps) {
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  useClickOutside(dropdownRef, onClose);
+
+  const displayLabel = selectedStatus
+    ? statusLabel(selectedStatus)
+    : chooseLabel;
+
+  return (
+    <div ref={dropdownRef} className="relative mt-2">
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          onToggle();
+        }}
+        className="flex h-[42px] w-full cursor-pointer items-center justify-between rounded-[6px] border border-[#D3D3D3] bg-white px-3 text-[14px] font-normal text-[#030303]"
+      >
+        <span className={selectedStatus ? "text-[#030303]" : "text-[#4B514F]"}>
+          {displayLabel}
+        </span>
+        <Image
+          src={chevron}
+          alt=""
+          className={`h-3.5 w-3.5 shrink-0 transition-transform ${isOpen ? "rotate-180" : ""}`}
+        />
+      </button>
+      {isOpen ? (
+        <div className="mt-1 w-full overflow-hidden rounded-[6px] border border-[#D3D3D3] bg-white shadow-md">
+          {MANAGE_STATUS_KEYS.map((statusKey) => {
+            const isSelected =
+              selectedStatus === statusKey ||
+              (!selectedStatus && currentStatus === statusKey);
+            return (
+              <button
+                key={`${orderId}-${statusKey}`}
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onSelect(statusKey);
+                }}
+                className={`w-full cursor-pointer px-3 py-3 text-left text-[14px] font-normal leading-none hover:bg-[#E6FBFB] ${isSelected ? "bg-[#E6FBFB] text-green-1" : "text-[#030303]"
+                  }`}
+              >
+                {statusLabel(statusKey)}
+              </button>
+            );
+          })}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 function ShopOrders() {
   const router = useRouter();
   const shopId = useSearchParams().get("id") ?? "";
@@ -63,6 +173,12 @@ function ShopOrders() {
   const [page, setPage] = useState(1);
   const [orderItems, setOrderItems] = useState<ShopOrder[]>([]);
   const [hasMore, setHasMore] = useState(true);
+  const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
+  const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
+  const [selectedStatusByOrder, setSelectedStatusByOrder] = useState<
+    Record<string, ManageStatusKey | "">
+  >({});
+  const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null);
 
   const {
     data: orders,
@@ -79,16 +195,38 @@ function ShopOrders() {
     },
     { skip: !shopId, refetchOnMountOrArgChange: true },
   );
+  const [updateOrderStatus, { isLoading: isUpdatingStatus }] =
+    useUpdateOrderStatusMutation();
+
   const count = orders?.meta?.total ?? 0;
+
+  const statusLabel = (key: ManageStatusKey) =>
+    tabs?.[key as keyof typeof tabs] ??
+    placeholders[key as keyof typeof placeholders] ??
+    key;
 
   useEffect(() => {
     setPage(1);
     setOrderItems([]);
     setHasMore(true);
     setActiveStatus("all");
+    setExpandedOrderId(null);
+    setOpenDropdownId(null);
+    setSelectedStatusByOrder({});
     lastMergedKeyRef.current = "";
     isLoadingNextPageRef.current = false;
   }, [shopId]);
+
+  useEffect(() => {
+    setPage(1);
+    setOrderItems([]);
+    setHasMore(true);
+    setExpandedOrderId(null);
+    setOpenDropdownId(null);
+    setSelectedStatusByOrder({});
+    lastMergedKeyRef.current = "";
+    isLoadingNextPageRef.current = false;
+  }, [activeStatus]);
 
   useEffect(() => {
     if (orders == null || isFetching) return;
@@ -110,8 +248,6 @@ function ShopOrders() {
     }
   }, [isFetching]);
 
-
-
   function handleScrollNearBottom(e: React.UIEvent<HTMLDivElement>) {
     if (!shopId || isFetching || !hasMore || orderItems.length === 0) return;
     if (isLoadingNextPageRef.current) return;
@@ -123,6 +259,57 @@ function ShopOrders() {
 
     isLoadingNextPageRef.current = true;
     setPage((p) => p + 1);
+  }
+
+  function openManageOrder(orderId: string) {
+    setExpandedOrderId((prev) => {
+      if (prev === orderId) {
+        setOpenDropdownId(null);
+        return null;
+      }
+      setOpenDropdownId(orderId);
+      return orderId;
+    });
+  }
+
+  function goToProductDetail(order: ShopOrder) {
+    const productId = getProductId(order);
+    if (!productId) return;
+    router.push(`/selling/product-detail?id=${productId}`);
+  }
+
+  async function handleUpdateStatus(order: ShopOrder, orderId: string) {
+    const nextStatus = selectedStatusByOrder[orderId];
+    if (!nextStatus || nextStatus === order.status) return;
+
+    setUpdatingOrderId(orderId);
+    try {
+      const res = await updateOrderStatus({
+        orderId,
+        status: nextStatus,
+        amount: order.amount,
+        paymentType: order.paymentType,
+      }).unwrap();
+      toast.success(
+        (res as { message?: string })?.message ?? placeholders.update,
+      );
+      setSelectedStatusByOrder((prev) => ({ ...prev, [orderId]: "" }));
+      setOpenDropdownId(null);
+      setOrderItems((prev) =>
+        prev.map((item, i) =>
+          getOrderId(item, i) === orderId
+            ? { ...item, status: nextStatus }
+            : item,
+        ),
+      );
+    } catch (err) {
+      const errorData = err as { data?: { message?: string } };
+      toast.error(
+        errorData?.data?.message ?? error_messages.something_went_wrong,
+      );
+    } finally {
+      setUpdatingOrderId(null);
+    }
   }
 
   const isInitialLoading = count === 0 && (isLoading || isFetching);
@@ -153,7 +340,7 @@ function ShopOrders() {
       <div
         ref={listRef}
         onScroll={handleScrollNearBottom}
-        className="mt-6 min-h-0 max-h-[calc(100dvh-16rem)] overflow-y-auto pb-6"
+        className="mt-6 min-h-0 max-h-[calc(100dvh-16rem)] overflow-y-auto hide-scrollbar overflow-x-hidden pb-6"
       >
         {isInitialLoading ? (
           <div className="space-y-7">
@@ -176,51 +363,132 @@ function ShopOrders() {
           </div>
         ) : count > 0 ? (
           <>
-            <div className="space-y-7">
-              {orderItems.map((order: any, index) => {
-                const orderId = order._id ?? order.id ?? index;
+            <div className="space-y-4">
+              {orderItems.map((order, index) => {
+                const orderId = getOrderId(order, index);
+                const isExpanded = expandedOrderId === orderId;
+                const selectedStatus = selectedStatusByOrder[orderId] ?? "";
+                const isUpdatingThis =
+                  isUpdatingStatus && updatingOrderId === orderId;
+                const canUpdate =
+                  !!selectedStatus && selectedStatus !== order.status;
+                const productId = getProductId(order);
+
                 return (
                   <div
                     key={orderId}
-                    onClick={() => {
-                      router.push(`/selling/product-detail?id=${order?.product?.id}`);
-                    }}
-                    className="flex cursor-pointer items-center justify-between rounded-lg p-2 hover:bg-[#E6FBFB]"
+                    className="rounded-lg border border-transparent"
                   >
-                    <div className="flex min-w-0 flex-1 gap-3">
-                      <Image
-                        src={
-                          (order?.product?.images?.length ?? 0) > 0
-                            ? order.product!.images[0]
-                            : noImageAvtar
-                        }
-                        height={100}
-                        width={100}
-                        unoptimized
-                        alt="product"
-                        className="h-[66px] w-[66px] shrink-0 rounded-xl object-cover"
-                      />
-                      <div className="min-w-0">
-                        <h3 className="truncate text-[16px] font-medium text-[#030303]">
-                          {order?.product?.title ?? ""}
-                        </h3>
-                        <p className="text-[14px] font-medium text-green-1">
-                          {placeholders.Rs} {order?.product?.price ?? ""}
-                        </p>
-                        <p className="text-[14px] font-normal text-[#E92440]">
-                          {
-                            placeholders?.[
-                            order?.status as keyof typeof placeholders
-                            ]
-                          }
-                        </p>
-                      </div>
+                    <div className="flex items-stretch gap-2">
+                      <button
+                        type="button"
+                        onClick={() => goToProductDetail(order)}
+                        disabled={!productId}
+                        className="flex min-w-0 flex-1 cursor-pointer items-center justify-between rounded-lg p-2 text-left hover:bg-[#E6FBFB] disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        <div className="flex min-w-0 flex-1 gap-3">
+                          <Image
+                            src={
+                              (order?.product?.images?.length ?? 0) > 0
+                                ? order.product!.images[0]
+                                : noImageAvtar
+                            }
+                            height={100}
+                            width={100}
+                            unoptimized
+                            alt="product"
+                            className="h-[66px] w-[66px] shrink-0 rounded-xl object-cover"
+                          />
+                          <div className="min-w-0">
+                            <h3 className="truncate text-[16px] font-medium text-[#030303]">
+                              {order?.product?.title ?? ""}
+                            </h3>
+                            <p className="text-[14px] font-medium text-green-1">
+                              {placeholders.Rs} {order?.product?.price ?? ""}
+                            </p>
+                            <p
+                              className={`text-[14px] font-normal ${getOrderStatusColorClass(order?.status)}`}
+                            >
+                              {
+                                placeholders?.[
+                                order?.status as keyof typeof placeholders
+                                ]
+                              }
+                            </p>
+                          </div>
+                        </div>
+                        <div
+                          role="button"
+                          tabIndex={0}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openManageOrder(orderId);
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              openManageOrder(orderId);
+                            }
+                          }}
+                          className={`flex shrink-0 cursor-pointer items-center gap-2 text-[13px] font-medium whitespace-nowrap ${isExpanded
+                            ? "text-green-1"
+                            : "text-[#030303] hover:text-green-1"
+                            }`}
+                        >
+                          <span>{placeholders.manage_order}</span>
+                          <Image
+                            src={chevronRight}
+                            alt=""
+                            className={`h-[12px] w-[12px] shrink-0 transition-transform ${isExpanded ? "rotate-90" : "rtl:rotate-180"}`}
+                          />
+                        </div>
+                      </button>
                     </div>
-                    <Image
-                      src={chevron}
-                      alt=""
-                      className="w-3.5 shrink-0 ltr:-rotate-90 rtl:rotate-90"
-                    />
+
+                    {isExpanded ? (
+                      <div className="mt-4 border-t border-[#E6E6E6] pt-4">
+                        <h4 className="text-[15px] font-medium text-[#030303]">
+                          {placeholders.manage_order}
+                        </h4>
+                        <OrderStatusDropdown
+                          orderId={orderId}
+                          currentStatus={order.status}
+                          selectedStatus={selectedStatus}
+                          isOpen={openDropdownId === orderId}
+                          onToggle={() =>
+                            setOpenDropdownId((prev) =>
+                              prev === orderId ? null : orderId,
+                            )
+                          }
+                          onClose={() => setOpenDropdownId(null)}
+                          onSelect={(statusKey) => {
+                            setSelectedStatusByOrder((prev) => ({
+                              ...prev,
+                              [orderId]: statusKey,
+                            }));
+                            setOpenDropdownId(null);
+                          }}
+                          chooseLabel={placeholders.choose}
+                          statusLabel={statusLabel}
+                        />
+                        <button
+                          type="button"
+                          disabled={!canUpdate || isUpdatingThis}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            void handleUpdateStatus(order, orderId);
+                          }}
+                          className="mt-3 flex h-[42px] w-full cursor-pointer items-center justify-center rounded-[6px] bg-green-1 text-[14px] font-normal text-white disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          {isUpdatingThis ? (
+                            <BeatLoader color="white" size={8} />
+                          ) : (
+                            placeholders.update
+                          )}
+                        </button>
+                      </div>
+                    ) : null}
                   </div>
                 );
               })}
