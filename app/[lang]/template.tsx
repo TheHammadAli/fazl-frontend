@@ -10,6 +10,10 @@ export default function Template({ children }: { children: React.ReactNode }) {
       <Toaster
         toastOptions={{
           className: "first-letter:uppercase text-start",
+          duration: 4000,
+          error: {
+            duration: 6000,
+          },
         }}
       />
       {children}

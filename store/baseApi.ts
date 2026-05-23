@@ -13,6 +13,17 @@ import { getCookie } from "cookies-next";
 import { isGuestSession } from "@/utils/guestAccess";
 import { i18n } from "@/i18n.config";
 
+/** Login/signup failures must not trigger refresh/logout redirects. */
+const PUBLIC_AUTH_ENDPOINTS = new Set([
+  "sendOtp",
+  "verifyOtp",
+  "verifyEmail",
+  "signup",
+  "signin",
+  "forgotPassword",
+  "resetPassword",
+]);
+
 const resolveLanguage = () => {
   if (typeof window !== "undefined") {
     const firstSegment = window.location.pathname.split("/")[1];
@@ -30,12 +41,7 @@ const rawBaseQuery = fetchBaseQuery({
     headers.set("accept-language", lang);
     const token = getToken();
     const excludeToken = [
-      "sendOtp",
-      "verifyOtp",
-      "verifyEmail",
-      "signup",
-      "forgotPassword",
-      "resetPassword",
+      ...PUBLIC_AUTH_ENDPOINTS,
       "getLocations",
     ];
 
@@ -54,6 +60,10 @@ export const baseQueryWithReauth: BaseQueryFn<
   let result = await rawBaseQuery(args, api, extraOptions);
 
   if (result.error && result.error.status === 401) {
+    // Wrong password / public auth errors: return to the form, do not redirect.
+    if (PUBLIC_AUTH_ENDPOINTS.has(api.endpoint)) {
+      return result;
+    }
     // Guests have no token; do not clear guest session on public API 401s.
     if (isGuestSession()) {
       return result;

@@ -23,10 +23,33 @@ export type Body = {
   password?: string;
 };
 
+const SIGNIN_ERROR_TOAST_ID = "signin-error";
+const SIGNIN_ERROR_TOAST_DURATION_MS = 1000;
+
+function getSigninErrorMessage(
+  err: unknown,
+  fallback: string,
+): string {
+  if (!err || typeof err !== "object") return fallback;
+
+  if ("data" in err && err.data && typeof err.data === "object") {
+    const data = err.data as { message?: string };
+    if (typeof data.message === "string" && data.message.trim()) {
+      return data.message;
+    }
+  }
+
+  if ("message" in err && typeof err.message === "string" && err.message.trim()) {
+    return err.message;
+  }
+
+  return fallback;
+}
+
 function Signin() {
   const router = useRouter();
   const dispatch = useAppDispatch();
-  const { placeholders } = useDictionary();
+  const { placeholders, error_messages } = useDictionary();
 
   const [emailError, setEmailError] = useState("");
   const [email, setEmail] = useState("");
@@ -58,12 +81,12 @@ function Signin() {
     if (!isValid) return;
 
     try {
+      toast.dismiss(SIGNIN_ERROR_TOAST_ID);
       const body: Body = { email, password };
 
-      // 🔥 PRO TIP — unwrap
       const res = await signin(body).unwrap();
 
-      toast.success(res.message);
+
 
       // ✅ Store tokens
       dispatch(
@@ -88,10 +111,14 @@ function Signin() {
         router.replace("/welcome");
       }
     } catch (err) {
-      const errorData = err as { data?: { message?: string } };
+      const message = getSigninErrorMessage(
+        err,
+        error_messages.something_went_wrong,
+      );
 
-      toast.error(errorData?.data?.message || "Something went wrong!", {
-        duration: 4000,
+      toast.error(message, {
+        id: SIGNIN_ERROR_TOAST_ID,
+        duration: SIGNIN_ERROR_TOAST_DURATION_MS,
       });
     }
   };
