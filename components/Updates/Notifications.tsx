@@ -11,6 +11,7 @@ import { NEW_NOTIFICATION_WINDOW_EVENT } from "@/utils/notificationRealtime";
 import { useEffect, useLayoutEffect, useRef, useState, type Dispatch, type SetStateAction } from "react";
 import noNotificationIcon from "@/assets/icons/no-notification.svg";
 import { useRouter } from "next/navigation";
+import { formatRequestedDateTime } from "@/utils/formatRequestedDateTime";
 
 /** Must match what the notifications API expects (see `data.limit` in the response). */
 const PAGE_LIMIT = 15;
@@ -42,17 +43,21 @@ type NotificationsProps = {
 };
 
 type NotificationPayload = {
+    action?: string;
     serviceId?: string;
     productId?: string;
     id?: string;
     _id?: string;
+    request?: {
+        service?: string;
+    };
 };
 
 type NotificationApiItem = {
     _id?: string;
     id?: string;
     type?: string;
-    payload?: NotificationPayload | string;
+    payload?: NotificationPayload | any;
     message?: string;
     createdAt?: string;
     read?: boolean;
@@ -77,7 +82,7 @@ function getNotificationPayload(item: NotificationApiItem): NotificationPayload 
 
 function getPayloadTargetId(payload: NotificationPayload | null): string | undefined {
     if (!payload) return undefined;
-    return payload.serviceId ?? payload.productId ?? payload.id ?? payload._id;
+    return payload.serviceId ?? payload.productId ?? payload.id ?? payload._id ?? payload?.request?.service;
 }
 
 function Notifications({ setOpenSidebar, unreadCount = 0, setReadCount }: NotificationsProps) {
@@ -111,8 +116,7 @@ function Notifications({ setOpenSidebar, unreadCount = 0, setReadCount }: Notifi
                 refetchOnMountOrArgChange: true,
             },
         );
-    function handleNavigation(item: NotificationApiItem) {
-        console.log(item, "item");
+    function handleNavigation(item: any) {
         setOpenSidebar?.(false);
         const targetId = getPayloadTargetId(getNotificationPayload(item));
         if (!targetId) return;
@@ -122,7 +126,7 @@ function Notifications({ setOpenSidebar, unreadCount = 0, setReadCount }: Notifi
                 router.push(`/book-service?id=${targetId}`);
                 break;
             case "ORDER":
-                router.push(`/book-product?id=${targetId}`);
+                router.push(`/selling/product-detail?id=${targetId}${item.payload.ownerModel === "User" && "&type=personal"}`);
                 break;
             default:
                 break;
@@ -169,7 +173,7 @@ function Notifications({ setOpenSidebar, unreadCount = 0, setReadCount }: Notifi
         if (!userId || data == null || isFetching) return;
         const rows =
             (data?.data?.notifications as NotificationApiItem[] | undefined) ?? [];
-        const mergeKey = `${page}-${fulfilledTimeStamp ?? 0}`;
+        const mergeKey = `${page} -${fulfilledTimeStamp ?? 0} `;
         if (lastMergedKeyRef.current === mergeKey) return;
         lastMergedKeyRef.current = mergeKey;
 
@@ -296,7 +300,12 @@ function Notifications({ setOpenSidebar, unreadCount = 0, setReadCount }: Notifi
 
                                 <div className="min-w-0 flex-1">
                                     <p className="text-[13px] font-normal leading-snug text-[#727272]">
-                                        {item.message ?? ""}
+                                        {item?.payload?.action === "propose" ? item.message + " " +
+                                            formatRequestedDateTime(
+                                                item?.payload?.proposedDateTime,
+                                                currentLanguage,
+                                            )
+                                            : item.message ?? ""}
                                     </p>
                                     <p
                                         className="mt-1 text-[12px] font-normal text-[#414E51]"

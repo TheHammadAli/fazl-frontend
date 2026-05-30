@@ -71,8 +71,7 @@ function ChangePassword() {
 
   return (
     <PasswordEntryForm
-      title={placeholders.change_password}
-      subtitle={placeholders.enter_new_password}
+      variant="change"
       isLoading={isLoading}
       onSubmit={handleSubmit}
     />

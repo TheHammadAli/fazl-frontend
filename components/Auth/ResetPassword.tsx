@@ -42,8 +42,7 @@ function ResetPassword() {
 
   return (
     <PasswordEntryForm
-      title="Reset password"
-      subtitle="Enter your new password"
+      variant="reset"
       isLoading={isLoading}
       onSubmit={(password) =>
         resetPassword({ token, newPassword: password })

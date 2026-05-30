@@ -81,9 +81,16 @@ export const authService = baseApi.injectEndpoints({
         };
       },
     }),
+    deleteAccount: build.mutation({
+      query: ({ id }) => ({
+        url: `/users/${id}/deactivate`,
+        method: "DELETE",
+      }),
+    }),
   }),
 });
 export const {
+  useDeleteAccountMutation,
   useGetProductOwnerDetailQuery,
   useGetUserWithProvidedTokenQuery,
   useGetLocationsQuery,

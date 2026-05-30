@@ -6,23 +6,33 @@ import AuthImage from "@/assets/images/auth-image.png";
 import { BeatLoader } from "react-spinners";
 import greenTick from "@/assets/icons/green-tick-icon.svg";
 import redCross from "@/assets/icons/red-cross-icon.svg";
+import { useDictionary } from "@/dictionaries/DictionaryProvider";
 import Footer from "./Footer";
 
+export type PasswordEntryFormVariant = "change" | "reset";
+
 export type PasswordEntryFormProps = {
-  title: string;
-  subtitle: string;
+  variant?: PasswordEntryFormVariant;
   submitLabel?: string;
   isLoading?: boolean;
   onSubmit: (password: string) => void;
 };
 
 function PasswordEntryForm({
-  title,
-  subtitle,
-  submitLabel = "Continue",
+  variant = "change",
+  submitLabel,
   isLoading = false,
   onSubmit,
 }: PasswordEntryFormProps) {
+  const { placeholders, error_messages } = useDictionary();
+
+  const title =
+    variant === "reset"
+      ? placeholders.reset_password
+      : placeholders.change_password;
+  const subtitle = placeholders.enter_new_password;
+  const buttonLabel = submitLabel ?? placeholders.continue;
+
   const [password, setPassword] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -48,22 +58,22 @@ function PasswordEntryForm({
         noSpaces: hasNoSpaces,
       });
       if (!hasLength || !hasSpecialCharacter || !hasNoSpaces) {
-        setPasswordError("Password must meet all requirements.");
+        setPasswordError(error_messages.password_must_meet_requirements);
       } else {
         setPasswordError("");
       }
     } else {
       setPasswordError("");
     }
-  }, [password, confirmPassword]);
+  }, [password, confirmPassword, error_messages]);
 
   useEffect(() => {
     if (confirmPassword !== "" && password !== confirmPassword) {
-      setConfirmPasswordError("Passwords do not match.");
+      setConfirmPasswordError(error_messages.passwords_do_not_match);
     } else {
       setConfirmPasswordError("");
     }
-  }, [password, confirmPassword]);
+  }, [password, confirmPassword, error_messages]);
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -71,15 +81,15 @@ function PasswordEntryForm({
     let valid = true;
 
     if (password === "") {
-      setPasswordError("Password is required*");
+      setPasswordError(error_messages.password_required);
       valid = false;
     }
     if (confirmPassword === "") {
-      setConfirmPasswordError("Confirm password is required*");
+      setConfirmPasswordError(error_messages.confirm_password_required);
       valid = false;
     }
     if (password !== confirmPassword) {
-      setConfirmPasswordError("Passwords do not match.");
+      setConfirmPasswordError(error_messages.passwords_do_not_match);
       valid = false;
     }
 
@@ -88,7 +98,7 @@ function PasswordEntryForm({
       !validationStatus.specialCharacter ||
       !validationStatus.noSpaces
     ) {
-      setPasswordError("Password must meet all requirements.");
+      setPasswordError(error_messages.password_must_meet_requirements);
       valid = false;
     }
 
@@ -124,7 +134,7 @@ function PasswordEntryForm({
             ${passwordError ? "text-red-1" : "text-gray-8"}
               `}
             >
-              Password
+              {placeholders.password}
             </p>
             <div
               className={`flex gap-1 items-center ${
@@ -143,7 +153,7 @@ function PasswordEntryForm({
                 onClick={() => setShowPassword(!showPassword)}
                 className="text-[14px] font-medium text-black-1 cursor-pointer underline"
               >
-                {showPassword ? "Hide" : "Show"}
+                {showPassword ? placeholders.hide : placeholders.show}
               </span>
             </div>
             <p className="text-red-1 text-[14px] font-normal -mt-1">
@@ -163,7 +173,7 @@ function PasswordEntryForm({
                     validationStatus.length ? "text-green-1" : "text-red-500"
                   }`}
                 >
-                  Must be at least 8 characters
+                  {placeholders.password_min_8_chars}
                 </p>
               </div>
               <div className="flex items-center gap-[4px]">
@@ -181,7 +191,7 @@ function PasswordEntryForm({
                       : "text-red-500"
                   }`}
                 >
-                  Must have at least one special character
+                  {placeholders.password_special_char}
                 </p>
               </div>
               <div className="flex items-center gap-[4px]">
@@ -195,7 +205,7 @@ function PasswordEntryForm({
                     validationStatus.noSpaces ? "text-green-1" : "text-red-500"
                   }`}
                 >
-                  Can&apos;t contain spaces
+                  {placeholders.password_no_spaces}
                 </p>
               </div>
             </div>
@@ -207,7 +217,7 @@ function PasswordEntryForm({
             ${confirmPasswordError ? "text-red-1" : "text-gray-8"}
               `}
             >
-              Confirm password
+              {placeholders.confirm_password}
             </p>
             <div
               className={`flex gap-1 items-center ${
@@ -226,7 +236,7 @@ function PasswordEntryForm({
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                 className="text-[14px] font-medium text-black-1 cursor-pointer underline"
               >
-                {showConfirmPassword ? "Hide" : "Show"}
+                {showConfirmPassword ? placeholders.hide : placeholders.show}
               </span>
             </div>
 
@@ -242,7 +252,7 @@ function PasswordEntryForm({
             disabled={isLoading}
             className="mt-6  max-w-[500px] lg:max-w-full h-[52px] w-full rounded-[12px] text-white font-medium text-[16px]  bg-green-1 cursor-pointer"
           >
-            {isLoading ? <BeatLoader color="white" size={8} /> : submitLabel}
+            {isLoading ? <BeatLoader color="white" size={8} /> : buttonLabel}
           </button>
         </div>
         <div className="mt-14 w-full">

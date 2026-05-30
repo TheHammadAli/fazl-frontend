@@ -158,9 +158,9 @@ export const profileService = baseApi.injectEndpoints({
       providesTags: ["SERVICES"],
     }),
     getServicesRequests: build.query({
-      query: ({ id, page, limit }) => {
+      query: ({ id, ...params }: any) => {
         return {
-          url: `/services/requests/${id}?page=${page}&limit=${limit}`,
+          url: `/services/requests/${id}?${new URLSearchParams(params)}`,
           method: "GET",
         };
       },
