@@ -8,6 +8,7 @@ import {
 import { BASE_URL } from "@/assets/content/constants";
 
 import { getRefreshToken, getToken } from "@/utils/getToken";
+import { extractAuthTokens } from "@/utils/authCookies";
 import { logout, setToken } from "./reducers/authReducer";
 import { getCookie } from "cookies-next";
 import { isGuestSession } from "@/utils/guestAccess";
@@ -52,6 +53,20 @@ const rawBaseQuery = fetchBaseQuery({
   },
 });
 
+/** Refresh must not send the expired access token in Authorization. */
+const refreshBaseQuery = fetchBaseQuery({
+  baseUrl: BASE_URL,
+  prepareHeaders: (headers) => {
+    headers.set("accept-language", resolveLanguage());
+    return headers;
+  },
+});
+
+const redirectToSignIn = () => {
+  const locale = resolveLanguage();
+  window.location.href = `/${locale}/signin`;
+};
+
 export const baseQueryWithReauth: BaseQueryFn<
   string | FetchArgs,
   unknown,
@@ -68,13 +83,19 @@ export const baseQueryWithReauth: BaseQueryFn<
     if (isGuestSession()) {
       return result;
     }
+
     const refreshToken = getRefreshToken();
-    if (!refreshToken || refreshToken === "" || refreshToken === "undefined") {
+    if (
+      !refreshToken ||
+      refreshToken === "" ||
+      refreshToken === "undefined"
+    ) {
       api.dispatch(logout());
-      window.location.href = "/";
+      redirectToSignIn();
       return result;
     }
-    const refreshResult = (await rawBaseQuery(
+
+    const refreshResult = await refreshBaseQuery(
       {
         url: "/auth/refreshToken",
         method: "POST",
@@ -84,18 +105,23 @@ export const baseQueryWithReauth: BaseQueryFn<
       },
       api,
       extraOptions,
-    )) as { data: { data: { accessToken: string; refreshToken: string } } };
-    if (refreshResult?.data) {
+    );
+
+    const tokens = refreshResult.data
+      ? extractAuthTokens(refreshResult.data)
+      : null;
+
+    if (tokens) {
       api.dispatch(
         setToken({
-          accessToken: refreshResult?.data?.data?.accessToken,
-          refreshToken: refreshResult?.data?.data?.refreshToken,
+          accessToken: tokens.accessToken,
+          refreshToken: tokens.refreshToken,
         }),
       );
       result = await rawBaseQuery(args, api, extraOptions);
     } else {
       api.dispatch(logout());
-      window.location.href = "/";
+      redirectToSignIn();
     }
   }
   return result;

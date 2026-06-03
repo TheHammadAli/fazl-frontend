@@ -53,7 +53,7 @@ export default function ChatSidebar({
         setOpen={setOpenBroadcast}
         centered={false}
       >
-        <div className=" h-full w-full flex justify-center  pt-20 ">
+        <div className=" h-full w-full flex justify-center  pt-12 ">
           <BroadCastModal setOpenBroadcast={setOpenBroadcast} />
         </div>
       </Modal>

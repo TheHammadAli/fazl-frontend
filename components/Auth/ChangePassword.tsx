@@ -8,6 +8,7 @@ import { useUpdateProfileMutation } from "@/store/services/profileService";
 import { useAppSelector } from "@/store/store";
 import { i18n } from "@/i18n.config";
 import PasswordEntryForm from "./PasswordEntryForm";
+import { getUserId } from "@/utils/getUserId";
 
 const PASSWORD_CHANGED_TOAST_MS = 1000;
 
@@ -15,16 +16,16 @@ function ChangePassword() {
   const router = useRouter();
   const pathname = usePathname();
   const { placeholders } = useDictionary();
-  const { userId } = useAppSelector((state) => state.authReducer);
+  const userId = getUserId();
   const [updateProfile, { isLoading, isSuccess, isError, data, error }] =
     useUpdateProfileMutation();
   const hasHandledSuccess = useRef(false);
 
   const locale =
     pathname?.split("/")[1] &&
-    i18n.locales.includes(
-      pathname.split("/")[1] as (typeof i18n.locales)[number],
-    )
+      i18n.locales.includes(
+        pathname.split("/")[1] as (typeof i18n.locales)[number],
+      )
       ? pathname.split("/")[1]
       : i18n.defaultLocale;
 
@@ -45,7 +46,7 @@ function ChangePassword() {
     if (isError && error && "data" in error) {
       toast.error(
         (error?.data as { message?: string })?.message ||
-          "something went wrong!",
+        "something went wrong!",
       );
     }
   }, [

@@ -109,7 +109,7 @@ function PasswordEntryForm({
 
   return (
     <div className="w-screen h-screen lg:flex min-h-[818px] hide-scrollbar pt-[50px] lg:pt-0">
-      <div className=" hidden lg:block lg:w-[60%] lg:pl-8 xl:pl-24   ">
+      <div className="hidden lg:block lg:w-[60%] ltr:lg:pl-8 ltr:xl:pl-24 rtl:lg:pr-8 rtl:xl:pr-24">
         <Image
           src={AuthImage}
           alt="auth-image"
@@ -120,34 +120,27 @@ function PasswordEntryForm({
         onSubmit={handleSubmit}
         className="w-full lg:w-[50%] flex flex-col lg:justify-between px-5 sm:px-[50px] xl:px-[150px] pt-[80px]"
       >
-        <div className="w-full flex flex-col items-center lg:items-start">
-          <h1 className="text-black-1 font-medium text-[22px] w-[334px]  leading-[30px] text-center lg:text-left">
+        <div className="w-full flex flex-col items-center lg:ltr:items-start lg:rtl:items-end">
+          <h1 className="text-black-1 font-medium text-[22px] w-full leading-[30px] text-center lg:ltr:text-left lg:rtl:text-right">
             {title}
           </h1>
-          <p className="font-normal text-[16px] text-gray-8 text-center lg:text-left">
+          <p className="font-normal w-full text-[16px] text-gray-8 text-center lg:ltr:text-left lg:rtl:text-right">
             {subtitle}
           </p>
 
           <div className="space-y-2 mt-5 w-full max-w-[500px] lg:max-w-full">
-            <p
-              className={`text-[14px] font-normal
-            ${passwordError ? "text-red-1" : "text-gray-8"}
-              `}
-            >
-              {placeholders.password}
-            </p>
             <div
-              className={`flex gap-1 items-center ${
-                passwordError ? "border-red-1" : "border-gray-9"
-              } border-b-[1px]`}
+              className={`flex gap-1 items-center ${passwordError ? "border-red-1" : "border-gray-9"
+                } border-b-[1px]`}
             >
               <input
                 type={showPassword ? "text" : "password"}
                 value={password}
+                placeholder={placeholders.password}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                   setPassword(e.target.value)
                 }
-                className="h-[28px] text-[14px] text-gray-8  font-normal focus:outline-none w-full  "
+                className="h-[28px] text-[14px] text-gray-8 font-normal focus:outline-none w-full rtl:text-right ltr:text-left placeholder:text-gray-8"
               />
               <span
                 onClick={() => setShowPassword(!showPassword)}
@@ -156,27 +149,26 @@ function PasswordEntryForm({
                 {showPassword ? placeholders.hide : placeholders.show}
               </span>
             </div>
-            <p className="text-red-1 text-[14px] font-normal -mt-1">
+            <p className="text-red-1 text-[14px] font-normal -mt-1 rtl:text-right ltr:text-left">
               {passwordError}
             </p>
           </div>
           {password !== "" && (
             <div className="mt-3 space-y-2 w-full  max-w-[500px] lg:max-w-full">
-              <div className="flex items-center gap-[4px] ">
+              <div className="flex items-center gap-[4px] rtl:flex-row-reverse">
                 <Image
                   src={validationStatus.length ? greenTick : redCross}
                   alt="validation status"
                   className="inline-block "
                 />
                 <p
-                  className={`text-[14px] font-normal ${
-                    validationStatus.length ? "text-green-1" : "text-red-500"
-                  }`}
+                  className={`text-[14px] font-normal ${validationStatus.length ? "text-green-1" : "text-red-500"
+                    }`}
                 >
                   {placeholders.password_min_8_chars}
                 </p>
               </div>
-              <div className="flex items-center gap-[4px]">
+              <div className="flex items-center gap-[4px] rtl:flex-row-reverse">
                 <Image
                   src={
                     validationStatus.specialCharacter ? greenTick : redCross
@@ -185,25 +177,23 @@ function PasswordEntryForm({
                   className="inline-block "
                 />
                 <p
-                  className={`text-[14px] font-normal leading-none ${
-                    validationStatus.specialCharacter
-                      ? "text-green-1"
-                      : "text-red-500"
-                  }`}
+                  className={`text-[14px] font-normal leading-none ${validationStatus.specialCharacter
+                    ? "text-green-1"
+                    : "text-red-500"
+                    }`}
                 >
                   {placeholders.password_special_char}
                 </p>
               </div>
-              <div className="flex items-center gap-[4px]">
+              <div className="flex items-center gap-[4px] rtl:flex-row-reverse">
                 <Image
                   src={validationStatus.noSpaces ? greenTick : redCross}
                   alt="validation status"
                   className="inline-block "
                 />
                 <p
-                  className={`text-[14px] font-normal ${
-                    validationStatus.noSpaces ? "text-green-1" : "text-red-500"
-                  }`}
+                  className={`text-[14px] font-normal ${validationStatus.noSpaces ? "text-green-1" : "text-red-500"
+                    }`}
                 >
                   {placeholders.password_no_spaces}
                 </p>
@@ -212,25 +202,18 @@ function PasswordEntryForm({
           )}
 
           <div className="space-y-2 mt-5 w-full  max-w-[500px] lg:max-w-full">
-            <p
-              className={`text-[14px] font-normal
-            ${confirmPasswordError ? "text-red-1" : "text-gray-8"}
-              `}
-            >
-              {placeholders.confirm_password}
-            </p>
             <div
-              className={`flex gap-1 items-center ${
-                confirmPasswordError ? "border-red-1" : "border-gray-9"
-              } border-b-[1px]`}
+              className={`flex gap-1 items-center ${confirmPasswordError ? "border-red-1" : "border-gray-9"
+                } border-b-[1px]`}
             >
               <input
                 type={showConfirmPassword ? "text" : "password"}
                 value={confirmPassword}
+                placeholder={placeholders.confirm_password}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                   setConfirmPassword(e.target.value)
                 }
-                className="h-[28px] text-[14px] text-gray-8  font-normal focus:outline-none w-full  "
+                className="h-[28px] text-[14px] text-gray-8 font-normal focus:outline-none w-full rtl:text-right ltr:text-left placeholder:text-gray-8"
               />
               <span
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
@@ -241,7 +224,7 @@ function PasswordEntryForm({
             </div>
 
             {confirmPasswordError && (
-              <p className="text-red-1 text-[14px] font-normal">
+              <p className="text-red-1 text-[14px] font-normal rtl:text-right ltr:text-left">
                 {confirmPasswordError}
               </p>
             )}
@@ -255,7 +238,7 @@ function PasswordEntryForm({
             {isLoading ? <BeatLoader color="white" size={8} /> : buttonLabel}
           </button>
         </div>
-        <div className="mt-14 w-full">
+        <div className="mb-14 w-full">
           <Footer />
         </div>
       </form>

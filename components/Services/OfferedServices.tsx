@@ -155,10 +155,12 @@ function OfferedServices() {
         data: servicesRequests,
         isLoading,
         isFetching,
+
         fulfilledTimeStamp,
     } = useGetServicesRequestsQuery(
         {
             id: userId,
+            role: "provider",
             page,
             limit: PAGE_LIMIT,
             ...requestQueryParams,
@@ -195,7 +197,7 @@ function OfferedServices() {
 
         const incoming = (
             (servicesRequests?.data as ServiceRequestItem[] | undefined) ?? []
-        ).filter((request) => request.provider?.id === userId);
+        )
 
         const mergeKey = `${activeRequestTab}-${activeStatusTab}-${page}-${fulfilledTimeStamp ?? 0}`;
         if (lastMergedKeyRef.current === mergeKey) return;
@@ -209,8 +211,8 @@ function OfferedServices() {
                 totalPages != null
                     ? page < totalPages
                     : total != null
-                      ? next.length < total
-                      : incoming.length >= PAGE_LIMIT,
+                        ? next.length < total
+                        : incoming.length >= PAGE_LIMIT,
             );
             return next;
         });

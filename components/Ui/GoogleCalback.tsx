@@ -23,6 +23,7 @@ export default function GoogleCallback() {
 
   const dispatch = useAppDispatch();
   const token = searchParams.get("token");
+  const refreshToken = searchParams.get("refreshToken");
 
   const {
     data: user,
@@ -50,8 +51,9 @@ export default function GoogleCallback() {
     if (isSuccess) {
       dispatch(
         setToken({
-          accessToken: token,
-        })
+          accessToken: token ?? "",
+          ...(refreshToken ? { refreshToken } : {}),
+        }),
       );
       dispatch(setUserId(user?.data?.sub));
       getUserDetail(user?.data?.sub);

@@ -1,6 +1,12 @@
 import CompleteInfo from "@/components/Auth/CompleteInfo";
 import { createSlice } from "@reduxjs/toolkit";
 import { setCookie, getCookie, deleteCookie } from "cookies-next";
+import {
+  clearAuthCookies,
+  setAuthTokens,
+  setProfileCompletedCookie,
+  setUserIdCookie,
+} from "@/utils/authCookies";
 import { use } from "react";
 // import { deleteCookie } from "cookies-next";
 
@@ -72,11 +78,15 @@ const authSlice = createSlice({
 
     setToken: (state, action) => {
       state.token = action.payload.accessToken;
-      state.refreshToken = action.payload.refreshToken;
+      if (action.payload.refreshToken) {
+        state.refreshToken = action.payload.refreshToken;
+      }
       state.isGuest = false;
-      setCookie("token", action.payload.accessToken);
-      setCookie("refreshToken", action.payload.refreshToken);
-      deleteCookie("isGuest");
+      setAuthTokens({
+        accessToken: action.payload.accessToken,
+        refreshToken: action.payload.refreshToken ?? state.refreshToken,
+      });
+      deleteCookie("isGuest", { path: "/" });
     },
 
     setGuest: (state, action) => {
@@ -91,11 +101,11 @@ const authSlice = createSlice({
 
     setUserId: (state, action) => {
       state.userId = action.payload;
-      setCookie("userId", action.payload);
+      setUserIdCookie(action.payload);
     },
     setProfileCompleted: (state, action) => {
       state.profileCompleted = action.payload;
-      setCookie("profileCompleted", action.payload);
+      setProfileCompletedCookie(action.payload);
     },
     logout: (state) => {
       state.token = "";
@@ -110,11 +120,7 @@ const authSlice = createSlice({
       localStorage.removeItem("confirmedPwd");
       localStorage.removeItem("user");
 
-      deleteCookie("token");
-      deleteCookie("refreshToken");
-      deleteCookie("userId");
-      deleteCookie("profileCompleted");
-      deleteCookie("isGuest", { path: "/" });
+      clearAuthCookies();
     },
   },
 });

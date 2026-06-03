@@ -1,7 +1,13 @@
 export default async function RootLayout({
   children,
+  params,
 }: Readonly<{
   children: React.ReactNode;
+  params: Promise<{ lang: string }>;
 }>) {
-  return <div dir={"ltr"}>{children}</div>;
+  const { lang } = await params;
+
+  return (
+    <div dir={lang === "en" ? "ltr" : "rtl"}>{children}</div>
+  );
 }

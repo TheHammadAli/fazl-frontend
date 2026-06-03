@@ -116,29 +116,29 @@ function HomeSection() {
               activeTab === "products" ? productsData : servicesData,
             ).length > 0 ? (
               <div className=" overflow-scroll  hide-scrollbar">
-              {getCatalogItemsFromSearchResponse(
-                activeTab === "products" ? productsData : servicesData,
-              ).map((item: { title: string }, index: number) => (
-                <div
-                  key={index}
-                  onClick={() => {
-                    router.push(
-                      `/home/search-list?category=${categoryId}&tab=${activeTab}&search=${item?.title}`
-                    );
-                  }}
-                  className="px-[15px] cursor-pointer h-[56px] flex justify-between items-center border-b-[1px] border-b-[#E5E5E5]"
-                >
-                  <span>{item?.title}</span>
-                  <Image src={linkIcon} alt="link" className="rtl:rotate-90" />
-                </div>
-              ))}
-            </div>
+                {getCatalogItemsFromSearchResponse(
+                  activeTab === "products" ? productsData : servicesData,
+                ).map((item: { title: string }, index: number) => (
+                  <div
+                    key={index}
+                    onClick={() => {
+                      router.push(
+                        `/home/search-list?category=${categoryId}&tab=${activeTab}&search=${item?.title}`
+                      );
+                    }}
+                    className="px-[15px] cursor-pointer h-[56px] flex justify-between items-center border-b-[1px] border-b-[#E5E5E5]"
+                  >
+                    <span>{item?.title}</span>
+                    <Image src={linkIcon} alt="link" className="rtl:rotate-90" />
+                  </div>
+                ))}
+              </div>
             ) : debounceSearch ? (
               <div className="h-[410px] w-full flex items-center justify-center">
-              <h1 className="text-black-3 text-[16px] font-medium">
-                {activeTab === "products" ? error_messages.no_product_data : error_messages.no_service_data}
-              </h1>
-            </div>
+                <h1 className="text-black-3 text-[16px] font-medium">
+                  {activeTab === "products" ? error_messages.no_product_data : error_messages.no_service_data}
+                </h1>
+              </div>
             ) : null}
             {/* <CategoriesList
               categoryId={categoryId}
@@ -174,7 +174,7 @@ function HomeSection() {
             setOpen={setOpenBroadcast}
             centered={false}
           >
-            <div className=" h-full w-full flex justify-center  pt-20 ">
+            <div className=" h-full w-full flex justify-center  pt-12 ">
               <BroadCastModal setOpenBroadcast={setOpenBroadcast} />
             </div>
           </Modal>

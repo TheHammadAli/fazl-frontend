@@ -13,6 +13,7 @@ type CategoryItem = {
     name: string;
 };
 type BroadcastType = "product" | "service";
+type BroadcastPurpose = "buying" | "selling";
 
 function BroadCastModal({ setOpenBroadcast }: { setOpenBroadcast: (open: boolean) => void }) {
     const SUCCESS_TOAST_DURATION = 1500;
@@ -25,13 +26,14 @@ function BroadCastModal({ setOpenBroadcast }: { setOpenBroadcast: (open: boolean
     const [selectedRadius, setSelectedRadius] = useState<number | null>(null);
     const [isTypeOpen, setIsTypeOpen] = useState(false);
     const [selectedType, setSelectedType] = useState<BroadcastType | null>(null);
+    const [isPurposeOpen, setIsPurposeOpen] = useState(false);
+    const [selectedPurpose, setSelectedPurpose] = useState<BroadcastPurpose | null>(null);
     const [isCategoryOpen, setIsCategoryOpen] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState<CategoryItem | null>(null);
     const { data: categories, isLoading: isCategoriesLoading, isFetching: isCategoriesFetching } = useGetAllCategoriesQuery("");
     const [message, setMessage] = useState("");
     const [images, setImages] = useState<(File | string)[]>([]);
     const [broadcastMessage, { isLoading: isBroadcastLoading }] = useBroadcastMessageMutation();
-
     const handleSendMessage = async () => {
         if (selectedRadius === null) {
             toast.error(eh("radius_required"));
@@ -39,6 +41,10 @@ function BroadCastModal({ setOpenBroadcast }: { setOpenBroadcast: (open: boolean
         }
         if (selectedType === null) {
             toast.error(eh("type_required"));
+            return;
+        }
+        if (selectedPurpose === null) {
+            toast.error(eh("purpose_required"));
             return;
         }
         if (selectedCategory === null) {
@@ -58,6 +64,7 @@ function BroadCastModal({ setOpenBroadcast }: { setOpenBroadcast: (open: boolean
                 ? (() => {
                     const fd = new FormData();
                     fd.append("type", selectedType);
+                    fd.append("purpose", selectedPurpose);
                     fd.append("message", message.trim());
                     fd.append("radius", String(selectedRadius));
                     fd.append("categoryId", selectedCategory._id);
@@ -66,6 +73,7 @@ function BroadCastModal({ setOpenBroadcast }: { setOpenBroadcast: (open: boolean
                 })()
                 : {
                     type: selectedType,
+                    purpose: selectedPurpose,
                     message: message.trim(),
                     radius: selectedRadius,
                     categoryId: selectedCategory._id,
@@ -105,6 +113,7 @@ function BroadCastModal({ setOpenBroadcast }: { setOpenBroadcast: (open: boolean
                         onClick={() => {
                             setIsRadiusOpen((prev) => !prev);
                             setIsTypeOpen(false);
+                            setIsPurposeOpen(false);
                             setIsCategoryOpen(false);
                         }}
                         className="flex w-full cursor-pointer items-center justify-between text-left disabled:cursor-not-allowed"
@@ -141,6 +150,7 @@ function BroadCastModal({ setOpenBroadcast }: { setOpenBroadcast: (open: boolean
                         onClick={() => {
                             setIsTypeOpen((prev) => !prev);
                             setIsRadiusOpen(false);
+                            setIsPurposeOpen(false);
                             setIsCategoryOpen(false);
                         }}
                         className="flex w-full cursor-pointer items-center justify-between text-left disabled:cursor-not-allowed"
@@ -172,6 +182,48 @@ function BroadCastModal({ setOpenBroadcast }: { setOpenBroadcast: (open: boolean
                     ) : null}
                 </div>
 
+                <div className="relative border-b border-gray-9 pb-2">
+                    <p className="mb-1 text-[14px] font-normal text-gray-8">{ph("purpose")}</p>
+                    <button
+                        disabled={isBroadcastLoading}
+                        type="button"
+                        onClick={() => {
+                            setIsPurposeOpen((prev) => !prev);
+                            setIsRadiusOpen(false);
+                            setIsTypeOpen(false);
+                            setIsCategoryOpen(false);
+                        }}
+                        className="flex w-full cursor-pointer items-center justify-between text-left disabled:cursor-not-allowed"
+                    >
+                        <span className="text-[15px] first-letter:capitalize font-normal text-gray-8">
+                            {selectedPurpose
+                                ? ph(selectedPurpose)
+                                : ph("choose_purpose")}
+                        </span>
+                        <Image src={chevDown} alt="chev-down" />
+                    </button>
+                    {isPurposeOpen ? (
+                        <div className="absolute left-0 right-0 top-[62px] z-20 max-h-[200px] overflow-y-auto rounded-[8px] border border-gray-9 bg-white shadow-md">
+                            {([
+                                { value: "buying", label: ph("buying") },
+                                { value: "selling", label: ph("selling") },
+                            ] as { value: BroadcastPurpose; label: string }[]).map((purpose) => (
+                                <button
+                                    key={purpose.value}
+                                    type="button"
+                                    className="w-full cursor-pointer border-b border-gray-9 px-3 py-2 text-left text-[14px] text-black-1 last:border-b-0 hover:bg-gray-10"
+                                    onClick={() => {
+                                        setSelectedPurpose(purpose.value);
+                                        setIsPurposeOpen(false);
+                                    }}
+                                >
+                                    <p className="first-letter:uppercase rtl:text-right ltr:text-left">{purpose.label}</p>
+                                </button>
+                            ))}
+                        </div>
+                    ) : null}
+                </div>
+
                 <div className="relative border-b border-gray-9 pb-2 ">
                     <p className="mb-1 text-[14px] font-normal text-gray-8">{ph("category")}</p>
                     <button
@@ -181,6 +233,7 @@ function BroadCastModal({ setOpenBroadcast }: { setOpenBroadcast: (open: boolean
                             setIsCategoryOpen((prev) => !prev);
                             setIsRadiusOpen(false);
                             setIsTypeOpen(false);
+                            setIsPurposeOpen(false);
                         }}
                         className="flex cursor-pointer w-full items-center justify-between text-left disabled:cursor-not-allowed"
                     >
@@ -216,7 +269,7 @@ function BroadCastModal({ setOpenBroadcast }: { setOpenBroadcast: (open: boolean
 
                 <div className=" ">
                     <p className="mb-2 text-[14px] font-normal text-gray-8">{ph("your_message")}</p>
-                    <textarea className="text-[15px] outline-none resize-none font-normal placeholder:text-gray-8 text-gray-8 h-24 border-b border-gray-9 w-full"
+                    <textarea className="text-[15px] outline-none resize-none font-normal placeholder:text-gray-8 text-gray-8 h-20 border-b border-gray-9 w-full"
                         placeholder={ph("type_your_message_here")}
                         value={message}
                         disabled={isBroadcastLoading}

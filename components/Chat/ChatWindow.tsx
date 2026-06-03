@@ -259,8 +259,7 @@ export default function ChatWindow({ thread, onBack, threadType }: ChatWindowPro
           body,
         })
           .unwrap()
-          .then((res) => {
-            toast.success(res?.message ?? "Operation completed successfully");
+          .then(() => {
             setMessageText("");
             setSelectedFile(null);
             if (fileInputRef.current) {
@@ -315,8 +314,7 @@ export default function ChatWindow({ thread, onBack, threadType }: ChatWindowPro
           return;
         }
         // socket.emit('sendMessage', selectedFile ? formData : messageData);
-        const res = await sendMessage(singleFile ? formData : messageData).unwrap();
-        toast.success(res?.message ?? "Operation completed successfully");
+        await sendMessage(singleFile ? formData : messageData).unwrap();
         setMessageText("");
         setSelectedFile(null);
         if (fileInputRef.current) {
