@@ -3,14 +3,12 @@ import React, { useState } from "react";
 import Image from "next/image";
 import crossIcon from "@/assets/icons/cross-icon.svg";
 import deleteIcon from "@/assets/icons/delete-icon.svg";
+import type { parameterTypes } from "./ParametersModal";
 export type priceTypes = {
   paymentType?: string;
   price?: string;
 };
-export type parameterTypes = {
-  name: string;
-  variants: string[];
-};
+export type { parameterTypes } from "./ParametersModal";
 export type ParametersModalTypes = {
   index?: number | null;
   parameters?: parameterTypes[];

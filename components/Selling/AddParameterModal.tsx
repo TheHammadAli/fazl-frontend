@@ -2,14 +2,11 @@ import { useDictionary } from "@/dictionaries/DictionaryProvider";
 import React, { useState } from "react";
 import Image from "next/image";
 import crossIcon from "@/assets/icons/cross-icon.svg";
-import chevron from "@/assets/icons/chev-down-icon.svg";
+import type { parameterTypes } from "./ParametersModal";
+export type { parameterTypes } from "./ParametersModal";
 export type priceTypes = {
   paymentType?: string;
   price?: string;
-};
-export type parameterTypes = {
-  name: string;
-  variants: string[];
 };
 export type ParametersModalTypes = {
   index?: number | null;

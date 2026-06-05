@@ -103,18 +103,18 @@ function UpdateService() {
       toast.error(error_messages.image_required);
       return;
     }
-    if (video === null || video === "") {
-      toast.error(error_messages.video_required);
-      return;
-    }
+    // if (video === null || video === "") {
+    //   toast.error(error_messages.video_required);
+    //   return;
+    // }
 
     if (
       title !== "" &&
       description !== "" &&
       selectedCategory !== null &&
       selectedPrice.price !== "" &&
-      video !== null &&
-      video !== "" &&
+      // video !== null &&
+      // video !== "" &&
       images?.length > 0
     ) {
       const formData = new FormData();

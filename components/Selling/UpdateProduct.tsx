@@ -16,9 +16,9 @@ import {
   useUpdateProductMutation,
 } from "@/store/services/sellingService";
 import toast from "react-hot-toast";
-import AddParameterModal, { parameterTypes } from "./AddParameterModal";
-import plusIcon from "@/assets/icons/green-plus-icon.svg";
-import AddParameterValueModal from "./AddParameterValueModal";
+import { parameterTypes } from "./ParametersModal";
+import ParametersModal from "./ParametersModal";
+import ParameterTags from "./ParameterTags";
 import TypeModal from "./TypeModal";
 import { useSearchParams } from "next/navigation";
 import ProductListed from "./ProductListed";
@@ -78,8 +78,7 @@ function ListProduct() {
   const [isCatOpen, setIsCatOpen] = useState(false);
   const [isPriceOpen, setIsPriceOpen] = useState(false);
   const [isTypeOpen, setIsTypeOpen] = useState(false);
-  const [isParameterOpen, setIsParameterOpen] = useState(false);
-  const [isParameterValueOpen, setIsParameterValueOpen] = useState(false);
+  const [isParametersModalOpen, setIsParametersModalOpen] = useState(false);
   const [priceError, setPriceError] = useState("");
   const [selectedCategory, setSelectedCategory] =
     useState<categroyTypes | null>(null);
@@ -88,7 +87,6 @@ function ListProduct() {
     paymentType: "fixed",
     price: "",
   });
-  const [index, setIndex] = useState<number | null>(0);
   const [parameters, setParameters] = useState<parameterTypes[]>([]);
   const [parameterError, setParameterError] = useState("");
 
@@ -124,10 +122,10 @@ function ListProduct() {
       toast.error(error_messages.image_required);
       return;
     }
-    if (video === null || video === "") {
-      toast.error(error_messages.video_required);
-      return;
-    }
+    // if (video === null || video === "") {
+    //   toast.error(error_messages.video_required);
+    //   return;
+    // }
 
     if (
       title !== "" &&
@@ -135,8 +133,9 @@ function ListProduct() {
       selectedCategory !== null &&
       selectedPrice.price !== "" &&
       type !== "" &&
-      video !== null &&
-      video !== "" &&
+      // video !== null &&
+      // video !== ""
+      //  &&
       images?.length > 0 &&
       parameters.length > 0
     ) {
@@ -230,30 +229,16 @@ function ListProduct() {
       </Modal>
       <Modal
         editModalRef={categoryRef}
-        open={isParameterOpen}
-        setOpen={setIsParameterOpen}
+        open={isParametersModalOpen}
+        setOpen={setIsParametersModalOpen}
         centered={false}
       >
-        <div className=" h-full w-full flex justify-center pt-[80px]">
-          <AddParameterModal
+        <div className="h-full w-full flex justify-center pt-[80px]">
+          <ParametersModal
+            open={isParametersModalOpen}
             parameters={parameters}
             setParameters={setParameters}
-            setIsParameterOpen={setIsParameterOpen}
-          />
-        </div>
-      </Modal>
-      <Modal
-        editModalRef={categoryRef}
-        open={isParameterValueOpen}
-        setOpen={setIsParameterValueOpen}
-        centered={false}
-      >
-        <div className=" h-full w-full flex justify-center pt-[80px]">
-          <AddParameterValueModal
-            parameters={parameters}
-            setParameters={setParameters}
-            index={index}
-            setIsParameterOpen={setIsParameterValueOpen}
+            setOpen={setIsParametersModalOpen}
           />
         </div>
       </Modal>
@@ -409,46 +394,11 @@ function ListProduct() {
                     {categoryError}
                   </p>
                 )}
-                {/* mapping the parameters */}
-                {parameters?.map((parameter, index) => (
-                  <div
-                    key={index}
-                    className="bg-white h-[50px] flex items-center justify-between border-b-[1px] border-gray-9  px-4"
-                  >
-                    <h3 className="text-[15px] font-medium text-black-1">
-                      {parameter.name}
-                    </h3>
-                    <div className="flex items-center gap-2">
-                      <span>{parameter?.variants?.join(", ")} </span>
-                      <div
-                        className=" cursor-pointer"
-                        onClick={() => {
-                          setIndex(index);
-                          setIsParameterValueOpen(true);
-                        }}
-                      >
-                        <Image
-                          src={chevron}
-                          alt="chevron"
-                          className="-rotate-90 rtl:rotate-90 w-4"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                ))}
-
-                {/* add parameter */}
-                <div className="border-b-[1px] border-gray-9">
-                  <div
-                    className="w-max flex items-center cursor-pointer gap-2   my-4 ml-[15px] "
-                    onClick={() => setIsParameterOpen(true)}
-                  >
-                    <Image src={plusIcon} alt="plus_icon" />
-                    <h3 className="text-green-1 font-normal text-[15px]">
-                      {placeholders.add_parameter}
-                    </h3>
-                  </div>
-                </div>
+                <ParameterTags
+                  label={placeholders.add_parameter}
+                  parameters={parameters}
+                  onClick={() => setIsParametersModalOpen(true)}
+                />
                 {parameterError && (
                   <p className="text-red-1 text-[14px] font-normal">
                     {parameterError}
