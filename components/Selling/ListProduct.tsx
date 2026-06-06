@@ -17,7 +17,7 @@ import {
 } from "@/store/services/sellingService";
 import toast from "react-hot-toast";
 import ServiceCreated from "../Services/ServiceCreated";
-import { parameterTypes } from "./ParametersModal";
+import { parameterTypes, hasDuplicateParameterNames } from "./ParametersModal";
 import ParametersModal from "./ParametersModal";
 import ParameterTags from "./ParameterTags";
 import TypeModal from "./TypeModal";
@@ -120,6 +120,9 @@ function ListProduct() {
     if (parameters.some((parameter) => parameter.variants.length === 0)) {
       setParameterError(error_messages.parameter_value_required);
     }
+    if (hasDuplicateParameterNames(parameters)) {
+      setParameterError(error_messages.parameter_name_duplicate);
+    }
     if (images?.length === 0) {
       toast.error(error_messages.image_required);
       return;
@@ -135,7 +138,8 @@ function ListProduct() {
       // video !== "" &&
       images?.length > 0 &&
       parameters.length > 0 &&
-      parameters.some((parameter) => parameter.variants.length > 0)
+      parameters.some((parameter) => parameter.variants.length > 0) &&
+      !hasDuplicateParameterNames(parameters)
     ) {
       const formData = new FormData();
       formData.append("title", title);
@@ -387,7 +391,7 @@ function ListProduct() {
                   </p>
                 )}
                 <ParameterTags
-                  label={placeholders.add_parameter}
+                  label={parameters.length > 0 ? placeholders.add_more : placeholders.add_parameter}
                   parameters={parameters}
                   onClick={() => setIsParametersModalOpen(true)}
                 />

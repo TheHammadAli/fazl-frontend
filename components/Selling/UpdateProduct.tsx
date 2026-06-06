@@ -16,7 +16,7 @@ import {
   useUpdateProductMutation,
 } from "@/store/services/sellingService";
 import toast from "react-hot-toast";
-import { parameterTypes } from "./ParametersModal";
+import { parameterTypes, hasDuplicateParameterNames } from "./ParametersModal";
 import ParametersModal from "./ParametersModal";
 import ParameterTags from "./ParameterTags";
 import TypeModal from "./TypeModal";
@@ -118,6 +118,9 @@ function ListProduct() {
     if (parameters.length === 0) {
       setParameterError(error_messages.parameter_required);
     }
+    if (hasDuplicateParameterNames(parameters)) {
+      setParameterError(error_messages.parameter_name_duplicate);
+    }
     if (images?.length === 0) {
       toast.error(error_messages.image_required);
       return;
@@ -137,7 +140,8 @@ function ListProduct() {
       // video !== ""
       //  &&
       images?.length > 0 &&
-      parameters.length > 0
+      parameters.length > 0 &&
+      !hasDuplicateParameterNames(parameters)
     ) {
       const formData = new FormData();
       formData.append("title", title);

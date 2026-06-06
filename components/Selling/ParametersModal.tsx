@@ -1,7 +1,7 @@
 "use client";
 
 import { useDictionary } from "@/dictionaries/DictionaryProvider";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import crossIcon from "@/assets/icons/cross-icon.svg";
 import deleteIcon from "@/assets/icons/delete-icon.svg";
@@ -42,13 +42,40 @@ function sanitizeParameters(items: parameterTypes[]): parameterTypes[] {
     .filter((p) => p.name !== "" && p.variants.length > 0);
 }
 
+export function hasDuplicateParameterNames(items: parameterTypes[]): boolean {
+  const names = items
+    .map((p) => p.name.trim().toLowerCase())
+    .filter(Boolean);
+  return new Set(names).size !== names.length;
+}
+
+function getDuplicateParameterNameIndexes(items: parameterTypes[]): Set<number> {
+  const seen = new Map<string, number>();
+  const duplicates = new Set<number>();
+
+  items.forEach((parameter, index) => {
+    const name = parameter.name.trim().toLowerCase();
+    if (!name) return;
+
+    const existingIndex = seen.get(name);
+    if (existingIndex !== undefined) {
+      duplicates.add(existingIndex);
+      duplicates.add(index);
+    } else {
+      seen.set(name, index);
+    }
+  });
+
+  return duplicates;
+}
+
 function ParametersModal({
   open,
   parameters,
   setParameters,
   setOpen,
 }: ParametersModalProps) {
-  const { placeholders } = useDictionary();
+  const { placeholders, error_messages } = useDictionary();
   const [draft, setDraft] = useState<parameterTypes[]>(() =>
     normalizeDraft(parameters),
   );
@@ -180,9 +207,15 @@ function ParametersModal({
     setOpen(false);
   };
 
-  const canConfirm = draft.some(
-    (p) => p.name.trim() !== "" && p.variants.length > 0,
+  const duplicateNameIndexes = useMemo(
+    () => getDuplicateParameterNameIndexes(draft),
+    [draft],
   );
+  const hasDuplicateNames = duplicateNameIndexes.size > 0;
+
+  const canConfirm =
+    draft.some((p) => p.name.trim() !== "" && p.variants.length > 0) &&
+    !hasDuplicateNames;
 
   return (
     <div className="w-[min(400px,92vw)] max-h-[80vh] flex flex-col bg-white rounded-[10px] overflow-hidden shadow-lg">
@@ -207,15 +240,26 @@ function ParametersModal({
             className="rounded-[8px] border border-gray-9 bg-gray-12/40 p-3 space-y-2.5"
           >
             <div className="flex items-center gap-2">
-              <input
-                type="text"
-                value={parameter.name}
-                placeholder={placeholders.parameter_name}
-                onChange={(e) =>
-                  handleParameterNameChange(paramIndex, e.target.value)
-                }
-                className="flex-1 min-w-0 h-[32px] px-2 text-[14px] text-black-1 bg-white rounded-[6px] border border-gray-9 focus:outline-none focus:border-green-1"
-              />
+              <div className="flex-1 min-w-0">
+                <input
+                  type="text"
+                  value={parameter.name}
+                  placeholder={placeholders.parameter_name}
+                  onChange={(e) =>
+                    handleParameterNameChange(paramIndex, e.target.value)
+                  }
+                  className={`w-full min-w-0 h-[32px] px-2 text-[14px] text-black-1 bg-white rounded-[6px] border focus:outline-none ${
+                    duplicateNameIndexes.has(paramIndex)
+                      ? "border-red-1 focus:border-red-1"
+                      : "border-gray-9 focus:border-green-1"
+                  }`}
+                />
+                {duplicateNameIndexes.has(paramIndex) && (
+                  <p className="mt-1 text-[12px] font-normal text-red-1">
+                    {error_messages.parameter_name_duplicate}
+                  </p>
+                )}
+              </div>
               <button
                 type="button"
                 onClick={() => handleRemoveParameter(paramIndex)}
