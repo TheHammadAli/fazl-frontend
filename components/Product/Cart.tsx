@@ -46,20 +46,21 @@ function Cart({ product, shopData, selectedVariants, ownerData }: any) {
   const totalAmount =
     product?.data?.price + (deliveryMethod === "delivery" ? 250 : 0) + 90;
   useEffect(() => {
+
     if (isGuest) {
+
       router.push("/signin");
+
     }
+
   }, [isGuest, router]);
+
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log(shopData, "shopData")
-    console.log(ownerData, "ownerData")
-    console.log(product
-      , "product id")
     requireSignIn(() => {
       const body = {
         buyer: user?.id,
-        owner: shopData ? shopData?.ownerId : ownerData?._id,
+        owner: shopData ? shopData?._id : ownerData?._id,
         ownerModel: shopData ? "Shop" : "User",
         product: product?.data?.id,
         deliveryOption: deliveryMethod,
@@ -71,6 +72,7 @@ function Cart({ product, shopData, selectedVariants, ownerData }: any) {
       };
       orderProduct(body);
     });
+
   };
 
   useEffect(() => {
@@ -308,7 +310,7 @@ function Cart({ product, shopData, selectedVariants, ownerData }: any) {
           <div className="p-5 md:p-8 ">
             <div className="  md:w-[364px] bg-white  ">
               {/* Product Info */}
-              <div className="flex items-start gap-4">
+              {/* <div className="flex items-start gap-4">
                 <Image
                   src={product?.data?.shopId && shopData?.image
                     ? shopData.image
@@ -341,14 +343,14 @@ function Cart({ product, shopData, selectedVariants, ownerData }: any) {
                     </span>
                   </div>
                 </div>
-              </div>
+              </div> */}
 
-              <hr className="my-4 border-[#E5E5E5]" />
+              {/* <hr className="my-4 border-[#E5E5E5]" /> */}
 
               {/* Price Breakdown */}
               <div className="space-y-2 text-[#4B514F] text-[15px] font-light">
                 <div className="flex justify-between">
-                  <span>{placeholders.product}</span>
+                  <span className="capitalize">{placeholders.product}</span>
                   <span>
                     {placeholders.Rs} {product?.data?.price}
                   </span>

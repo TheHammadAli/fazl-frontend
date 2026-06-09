@@ -49,6 +49,7 @@ function PrivateListings() {
                 images: string[];
                 title: string;
                 price: number;
+                reviewCount: number;
               },
               index: number
             ) => (
@@ -91,7 +92,7 @@ function PrivateListings() {
                       </span> */}
                     </h3>
                     <h4 className="font-light text-[#4B514F] text-[14px]">
-                      {5 + " " + placeholders.reviews}
+                      {(product?.reviewCount ?? 0) + " " + (product?.reviewCount === 1 ? placeholders.review : placeholders.reviews)}
                     </h4>
                   </div>
                 </div>

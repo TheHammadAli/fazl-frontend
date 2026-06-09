@@ -151,11 +151,14 @@ function OfferedServices() {
         return REQUEST_FILTER_QUERY[activeStatusTab];
     }, [activeRequestTab, activeStatusTab]);
 
+    const listKey = `${activeRequestTab}-${activeStatusTab}`;
+
     const {
-        data: servicesRequests,
+        currentData: servicesRequests,
         isLoading,
         isFetching,
-
+        isError,
+        error,
         fulfilledTimeStamp,
     } = useGetServicesRequestsQuery(
         {
@@ -175,8 +178,13 @@ function OfferedServices() {
     const [updateServiceRequest, { isLoading: isUpdating }] =
         useUpdateServiceRequestMutation();
 
+    const hasResolvedData = servicesRequests !== undefined;
+
     const isInitialLoading =
-        !isHydrated || (requestItems.length === 0 && (isLoading || isFetching));
+        !isHydrated ||
+        (requestItems.length === 0 &&
+            !hasResolvedData &&
+            (isLoading || isFetching));
     const isLoadingMore = isFetching && page > 1;
     const showEmpty = isHydrated && !isInitialLoading && requestItems.length === 0;
 
@@ -193,18 +201,44 @@ function OfferedServices() {
     }, [activeRequestTab, activeStatusTab, resetPagination]);
 
     useEffect(() => {
-        if (servicesRequests == null || isFetching || !userId) return;
+        if (!userId || !isError) return;
+
+        const err = error as {
+            status?: number | string;
+            originalStatus?: number;
+        };
+        const isNotFound =
+            err?.status === 404 ||
+            err?.status === "404" ||
+            err?.originalStatus === 404;
+
+        if (!isNotFound) return;
+
+        lastMergedKeyRef.current = `${listKey}-empty`;
+        setRequestItems([]);
+        setHasMore(false);
+    }, [userId, isError, error, listKey]);
+
+    useEffect(() => {
+        if (!userId || servicesRequests === undefined || isError) return;
+        // Page > 1: wait for fetch — currentData may still hold the previous page.
+        if (page > 1 && isFetching) return;
 
         const incoming = (
             (servicesRequests?.data as ServiceRequestItem[] | undefined) ?? []
-        )
+        );
 
-        const mergeKey = `${activeRequestTab}-${activeStatusTab}-${page}-${fulfilledTimeStamp ?? 0}`;
+        const mergeKey = `${listKey}-${page}-${fulfilledTimeStamp ?? 0}`;
         if (lastMergedKeyRef.current === mergeKey) return;
+        const isFreshTabData = lastMergedKeyRef.current === "";
         lastMergedKeyRef.current = mergeKey;
 
         setRequestItems((prev) => {
-            const next = mergeRequests(prev, incoming, page);
+            const next = mergeRequests(
+                prev,
+                incoming,
+                isFreshTabData ? 1 : page,
+            );
             const totalPages = parsePositiveInt(servicesRequests?.meta?.totalPages);
             const total = parsePositiveInt(servicesRequests?.meta?.total);
             setHasMore(
@@ -220,9 +254,9 @@ function OfferedServices() {
         servicesRequests,
         page,
         isFetching,
+        isError,
         userId,
-        activeRequestTab,
-        activeStatusTab,
+        listKey,
         fulfilledTimeStamp,
     ]);
 
@@ -266,7 +300,7 @@ function OfferedServices() {
         return () => scrollRoot.removeEventListener("scroll", onScroll);
     }, [tryLoadFromScroll, hasMore, sentinelReady]);
 
-    const handleUpdateServiceRequest = ({
+    const handleUpdateServiceRequest = async ({
         requestId,
         date,
         action,
@@ -276,18 +310,21 @@ function OfferedServices() {
         action: ServiceAction;
     }) => {
         try {
-            updateServiceRequest({
+            await updateServiceRequest({
                 requestId,
                 ...(action === "propose" && { proposedDateTime: date?.toISOString() }),
                 action,
-            })
-                .unwrap()
-                .then(() => {
-                    resetPagination();
-                })
-                .catch((err: { data?: { message?: string } }) => {
-                    toast.error(err?.data?.message ?? "Something went wrong");
-                });
+            }).unwrap();
+
+            setOfferForId(null);
+            setSpinnerIndex(-1);
+            setSpinnerAction(null);
+            lastMergedKeyRef.current = "";
+            setRequestItems((prev) => {
+                const next = prev.filter((item) => getRequestId(item) !== requestId);
+                if (next.length === 0) setHasMore(false);
+                return next;
+            });
         } catch (err) {
             const errorData = err as { data?: { message?: string } };
             toast.error(errorData?.data?.message ?? "Something went wrong");
@@ -334,7 +371,11 @@ function OfferedServices() {
                             <button
                                 key={tab}
                                 type="button"
-                                onClick={() => setActiveRequestTab(tab)}
+                                onClick={() => {
+                                    if (tab === activeRequestTab) return;
+                                    resetPagination();
+                                    setActiveRequestTab(tab);
+                                }}
                                 className={`h-[34px] px-3 rounded-full border border-gray-2 text-[13px] font-normal text-black-1 cursor-pointer whitespace-nowrap ${activeRequestTab === tab
                                     ? "border-green-1 bg-green-4"
                                     : "bg-white"
@@ -351,7 +392,11 @@ function OfferedServices() {
                                 <button
                                     key={tab}
                                     type="button"
-                                    onClick={() => setActiveStatusTab(tab)}
+                                    onClick={() => {
+                                        if (tab === activeStatusTab) return;
+                                        resetPagination();
+                                        setActiveStatusTab(tab);
+                                    }}
                                     className={`w-full h-[48px] px-5 ltr:text-left rtl:text-right text-[15px] font-medium text-black-1 leading-none cursor-pointer ${activeStatusTab === tab ? "bg-green-4" : ""
                                         }`}
                                 >
@@ -466,7 +511,7 @@ function OfferedServices() {
                                                                     action: "reject",
                                                                 });
                                                             }}
-                                                            className="w-1/2 md:w-[144px] lg:w-1/2 xl:w-[144px] h-[42px] rounded-[6px] border border-green-2 text-green-2 text-[14px] font-normal cursor-pointer disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center"
+                                                            className="w-1/2  lg:w-1/2 xl:w-[144px] h-[42px] rounded-[6px] border border-green-2 text-green-2 text-[14px] font-normal cursor-pointer disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center"
                                                         >
                                                             {isUpdating &&
                                                                 spinnerAction === "reject" &&
@@ -484,7 +529,7 @@ function OfferedServices() {
                                                                 setSpinnerAction("propose");
                                                                 setOfferForId(requestId);
                                                             }}
-                                                            className="w-1/2 md:w-[144px] lg:w-1/2 xl:w-[144px] h-[42px] rounded-[6px] border border-green-2 text-green-2 text-[14px] font-normal cursor-pointer disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center"
+                                                            className="w-1/2  lg:w-1/2 xl:w-[144px] h-[42px] rounded-[6px] border border-green-2 text-green-2 text-[14px] font-normal cursor-pointer disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center"
                                                         >
                                                             {ph("offer_new_time")}
                                                         </button>

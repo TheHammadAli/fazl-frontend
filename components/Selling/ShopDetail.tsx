@@ -32,7 +32,6 @@ export default function ShopDetail() {
   } = useGetShopDetailQuery(id, {
     skip: !id,
   });
-  console.log("shop", shop);
   useEffect(() => {
     if (!id) {
       router.back();

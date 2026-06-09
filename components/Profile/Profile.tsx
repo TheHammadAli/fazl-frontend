@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Navigations from "./Navigations";
 import cartIcon from "@/assets/icons/my-cart.svg";
 import ordersIcon from "@/assets/icons/my-orders.svg";
@@ -14,6 +14,7 @@ import MyJobs from "./MyJobs";
 import Settings from "./Settings";
 import ProfileInfo from "./ProfileInfo";
 import { useDictionary } from "@/dictionaries/DictionaryProvider";
+import { useSearchParams } from "next/navigation";
 
 type tabsComponentsTypes = {
   my_cart: React.JSX.Element;
@@ -52,6 +53,13 @@ function Profile() {
     }),
     [toggle],
   );
+  const searchParams = useSearchParams();
+  const tab = searchParams.get("tab");
+  useEffect(() => {
+    if (tab) {
+      setSelectedTab(tab as TabKeys);
+    }
+  }, [tab]);
 
   const [selectedTab, setSelectedTab] = useState<TabKeys>("profile_info");
   const showMobileContent = toggle;

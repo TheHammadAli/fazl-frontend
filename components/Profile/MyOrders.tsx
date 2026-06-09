@@ -67,9 +67,9 @@ function getOrderId(order: CustomerOrder, index: number): string {
 }
 
 function getOrderStatusColorClass(status?: string): string {
-  return status === "pending" || status === "cancelled"
-    ? "text-[#E92440]"
-    : "text-[#030303]";
+  if (status === "pending" || status === "cancelled") return "text-[#E92440]";
+  if (status === "shipped") return "text-green-1";
+  return "text-[#030303]";
 }
 
 function mergeOrders(
@@ -457,7 +457,7 @@ function MyOrders() {
                               <p className="text-[14px] font-medium text-green-1">
                                 {placeholders.Rs} {order?.product?.price ?? ""}
                               </p>
-                              <p className="text-[14px] font-normal text-[#E92440]">
+                              <p className={`text-[14px] font-normal ${getOrderStatusColorClass(order?.status)}`}>
                                 {
                                   placeholders?.[
                                   order?.status as keyof typeof placeholders

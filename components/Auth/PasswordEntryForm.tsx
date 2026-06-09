@@ -155,7 +155,7 @@ function PasswordEntryForm({
           </div>
           {password !== "" && (
             <div className="mt-3 space-y-2 w-full  max-w-[500px] lg:max-w-full">
-              <div className="flex items-center gap-[4px] rtl:flex-row-reverse">
+              <div className="flex items-center gap-[4px] ">
                 <Image
                   src={validationStatus.length ? greenTick : redCross}
                   alt="validation status"
@@ -168,7 +168,7 @@ function PasswordEntryForm({
                   {placeholders.password_min_8_chars}
                 </p>
               </div>
-              <div className="flex items-center gap-[4px] rtl:flex-row-reverse">
+              <div className="flex items-center gap-[4px] ">
                 <Image
                   src={
                     validationStatus.specialCharacter ? greenTick : redCross
@@ -185,7 +185,7 @@ function PasswordEntryForm({
                   {placeholders.password_special_char}
                 </p>
               </div>
-              <div className="flex items-center gap-[4px] rtl:flex-row-reverse">
+              <div className="flex items-center gap-[4px] ">
                 <Image
                   src={validationStatus.noSpaces ? greenTick : redCross}
                   alt="validation status"

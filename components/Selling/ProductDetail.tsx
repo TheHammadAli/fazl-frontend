@@ -156,7 +156,8 @@ function ProductDetail() {
               alt="chevron"
               className="-rotate-90 rtl:rotate-90"
             />
-            <span className="text-gray-8">{pages.private_listing}</span>
+            <span className="text-gray-8">{product?.data?.shopId
+              ? shopData?.title : pages.private_listing}</span>
             <Image
               src={chevron}
               alt="chevron"

@@ -1,4 +1,31 @@
+import type { FetchBaseQueryError } from "@reduxjs/toolkit/query/react";
 import { baseApi } from "../baseApi";
+
+type PaginatedListResponse = {
+  data: unknown[];
+  meta?: { total?: number; totalPages?: number };
+};
+
+const EMPTY_PAGINATED_LIST: PaginatedListResponse = {
+  data: [],
+  meta: { total: 0, totalPages: 0 },
+};
+
+function isNotFoundError(error: FetchBaseQueryError | undefined): boolean {
+  if (!error) return false;
+  if (error.status === 404) return true;
+  const withOriginal = error as FetchBaseQueryError & { originalStatus?: number };
+  return withOriginal.originalStatus === 404;
+}
+
+function toSearchParams(params: Record<string, string | number | undefined>) {
+  const search = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    if (value != null && value !== "") search.set(key, String(value));
+  }
+  return search;
+}
+
 export const profileService = baseApi.injectEndpoints({
   endpoints: (build) => ({
     createShop: build.mutation({
@@ -157,12 +184,31 @@ export const profileService = baseApi.injectEndpoints({
       },
       providesTags: ["SERVICES"],
     }),
-    getServicesRequests: build.query({
-      query: ({ id, ...params }: any) => {
-        return {
-          url: `/services/requests/${id}?${new URLSearchParams(params)}`,
+    getServicesRequests: build.query<
+      PaginatedListResponse,
+      {
+        id: string;
+        role?: string;
+        page?: number;
+        limit?: number;
+        status?: string;
+        jobStatus?: string;
+      }
+    >({
+      async queryFn(arg, _queryApi, _extraOptions, baseQuery) {
+        const { id, ...params } = arg;
+        const result = await baseQuery({
+          url: `/services/requests/${id}?${toSearchParams(params)}`,
           method: "GET",
-        };
+        });
+
+        if (isNotFoundError(result.error as FetchBaseQueryError | undefined)) {
+          return { data: EMPTY_PAGINATED_LIST };
+        }
+        if (result.error) {
+          return { error: result.error as FetchBaseQueryError };
+        }
+        return { data: result.data as PaginatedListResponse };
       },
       providesTags: ["SERVICES_REQUESTS"],
     }),

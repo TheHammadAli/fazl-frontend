@@ -74,7 +74,7 @@ function MyShops() {
                 <h2 className="font-medium  text-[16px] text-black-3 text-center">
                   {shop?.title ?? ""}
                 </h2>
-                <p className="w-[160px] truncate -mt-1 leading-none text-[14px] text-center text-gray-13">
+                <p className="w-[160px] truncate   text-[14px] text-center text-gray-13">
                   {shop.description}
                 </p>
               </div>

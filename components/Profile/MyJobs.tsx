@@ -15,6 +15,7 @@ import { toast } from "react-hot-toast";
 import { parsePositiveInt } from "../Updates/Notifications";
 import JobActionConfirmModal from "./JobActionConfirmModal";
 import { BeatLoader } from "react-spinners";
+import { getUserId } from "@/utils/getUserId";
 type RequestFilterKey = "sent" | "new_offer" | "accepted" | "rejected";
 
 type RequestCard = {
@@ -39,7 +40,7 @@ function MyJobs() {
   const { currentLanguage } = useDictionary();
   const { placeholders } = useDictionary();
   type PlaceholderKey = keyof typeof placeholders;
-  const userId = getCookie("userId") ?? "";
+  const userId = getUserId() ?? "";
   const [filteredRequests, setFilteredRequests] = useState<RequestCard[]>([]);
   const [action, setAction] = useState<string>("");
   const [openConfirmModal, setOpenConfirmModal] = useState(false);
@@ -52,7 +53,7 @@ function MyJobs() {
     isLoading,
     isFetching,
   } = useGetServicesRequestsQuery(
-    { id: userId, page: page, limit: limit },
+    { id: userId, page: page, limit: limit, role: "provider", status: "accepted" },
     { skip: !userId },
   );
   const [startJob, { isLoading: isJobActionLoading }] = useStartJobMutation();
@@ -131,10 +132,7 @@ function MyJobs() {
 
   useEffect(() => {
     if (!servicesRequests) return;
-    const acceptedRequests = servicesRequests.data.filter(
-      (item: { status: string; customer: { id: string; name: string } }) =>
-        item.status === "accepted" && item.customer?.id !== userId,
-    );
+    const acceptedRequests: any = servicesRequests?.data
 
     if (page === 1) {
       setFilteredRequests(acceptedRequests);

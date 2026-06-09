@@ -126,7 +126,7 @@ function Notifications({ setOpenSidebar, unreadCount = 0, setReadCount }: Notifi
                 router.push(`/book-service?id=${targetId}`);
                 break;
             case "ORDER":
-                router.push(`/selling/product-detail?id=${targetId}${item.payload.ownerModel === "User" && "&type=personal"}`);
+                router.push(`/profile?tab=my_orders`);
                 break;
             default:
                 break;

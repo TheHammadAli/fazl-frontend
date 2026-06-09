@@ -9,11 +9,14 @@ import ratingIcons from "@/assets/icons/rating-icons.svg";
 import { useSearchParams } from "next/navigation";
 import ProductSkeleton from "./ProductsSkelton";
 import { useRouter } from "next/navigation";
+import { AvgRatingStars } from "../Ui/Reviews";
 interface productTypes {
   id: string;
   title: string;
   images: string[];
   price: number | string;
+  averageRating: number;
+  reviewCount: number;
 }
 
 function ShopProductsList() {
@@ -76,10 +79,20 @@ function ShopProductsList() {
                 <h2 className="text-black-1 font-medium text-[16px] mt-3 line-clamp-1 first-letter:capitalize ">
                   {product?.title}{" "}
                 </h2>
-                <div className="flex gap-2">
+                {/* <div className="flex gap-2">
                   <Image src={ratingIcons} alt="rating_icon" />
                   <span className="text-gray-8 text-[14px] font-normal">
                     (8)
+                  </span>
+                </div> */}
+                <div className="flex gap-2">
+                  <AvgRatingStars
+                    rating={product?.averageRating}
+                    isLoading={false}
+                    size={22}
+                  />
+                  <span className="text-gray-8 text-[14px] font-normal">
+                    ({product?.reviewCount ?? 0})
                   </span>
                 </div>
                 <h2 className="text-green-1 font-normal text-[16px]  ">

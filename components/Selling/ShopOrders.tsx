@@ -62,9 +62,9 @@ function getOrderId(order: ShopOrder, index: number): string {
 }
 
 function getOrderStatusColorClass(status?: string): string {
-  return status === "pending" || status === "cancelled"
-    ? "text-[#E92440]"
-    : "text-[#030303]";
+  if (status === "pending" || status === "cancelled") return "text-[#E92440]";
+  if (status === "shipped") return "text-green-1";
+  return "text-[#030303]";
 }
 
 function mergeOrders(
