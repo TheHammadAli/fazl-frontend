@@ -332,7 +332,7 @@ function BroadCastModal({ setOpenBroadcast }: { setOpenBroadcast: (open: boolean
                     >
                         <span className="text-[15px] first-letter:capitalize font-normal text-gray-8">
                             {selectedPurpose
-                                ? ph(selectedPurpose)
+                                ? ph(selectedPurpose.toLocaleLowerCase() as keyof typeof placeholders)
                                 : ph("choose_purpose")}
                         </span>
                         <Image src={chevDown} alt="chev-down" />
