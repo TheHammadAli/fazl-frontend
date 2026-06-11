@@ -13,12 +13,9 @@ import { useDebounce } from "use-debounce";
 import { useGetLocationsQuery } from "@/store/services/authService";
 import locationIcon from "@/assets/icons/location-icon.svg";
 import { useCreateShopMutation } from "@/store/services/sellingService";
-import { useRouter } from "next/navigation";
 import ShopCreated from "./ShopCreated";
-
 interface Location {
   description?: string;
-
   type?: string;
   coordinates?: {
     lat?: number;
@@ -35,7 +32,6 @@ function CreateShop() {
   const [location, setLocation] = useState<Location>({});
   const [createShop, { isLoading, isSuccess, isError, error, data }] =
     useCreateShopMutation();
-
   const [locationError, setLocationError] = useState("");
   const [profile, setProfile] = useState<File | null>(null);
   const [locationSearch, setLocationSearch] = useState("");
@@ -46,7 +42,6 @@ function CreateShop() {
   const [debouncedLocationSearch] = useDebounce(locationSearch, 500);
   const [description, setDescription] = useState("");
   const [descriptionError, setDescriptionError] = useState("");
-
   const {
     data: locationsData,
     isLoading: isLocationsLoading,
@@ -75,7 +70,7 @@ function CreateShop() {
     if (isError && "data" in error) {
       toast.error(
         (error?.data as { message?: string })?.message ||
-          "something went wrong!"
+        "something went wrong!"
       );
     }
   }, [isSuccess, isError, data, error]);
@@ -214,9 +209,8 @@ function CreateShop() {
             {/*  name */}
             <div className="space-y-1 mt-5 w-full">
               <p
-                className={`text-[14px] font-normal  ${
-                  nameError ? "text-red-1" : "text-gray-8"
-                }`}
+                className={`text-[14px] font-normal  ${nameError ? "text-red-1" : "text-gray-8"
+                  }`}
               >
                 {info_messages.shop_name}
               </p>
@@ -260,9 +254,8 @@ function CreateShop() {
             {/* location */}
             <div className="mt-5 w-full">
               <div
-                className={`text-[14px] font-normal w-full ${
-                  locationError ? "text-red-1" : "text-gray-8"
-                }`}
+                className={`text-[14px] font-normal w-full ${locationError ? "text-red-1" : "text-gray-8"
+                  }`}
               >
                 {info_messages.shop_location}
               </div>
@@ -370,9 +363,8 @@ function CreateShop() {
             </div>
             <div className="space-y-1 mt-5 w-full">
               <p
-                className={`text-[14px] font-normal  ${
-                  descriptionError ? "text-red-1" : "text-gray-8"
-                }`}
+                className={`text-[14px] font-normal  ${descriptionError ? "text-red-1" : "text-gray-8"
+                  }`}
               >
                 {info_messages.describe_shop}
               </p>

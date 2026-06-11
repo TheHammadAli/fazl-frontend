@@ -195,6 +195,7 @@
         "type": "Type",
         "choose_type": "Choose type",
         "purpose": "Purpose",
+        "location": "Location",
         "choose_purpose": "Choose purpose",
         "buying": "Buying",
         "selling": "Selling",

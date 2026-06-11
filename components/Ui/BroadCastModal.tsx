@@ -1,12 +1,16 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import chevDown from "@/assets/icons/chev-down-icon.svg";
 import crossIcon from "@/assets/icons/cross-icon.svg";
+import locationIcon from "@/assets/icons/location-icon.svg";
 import Image from "next/image";
 import { useGetAllCategoriesQuery } from "@/store/services/sellingService";
+import { useGetLocationsQuery } from "@/store/services/authService";
 import { toast } from "react-hot-toast";
 import { useBroadcastMessageMutation } from "@/store/services/chatService";
 import { useDictionary } from "@/dictionaries/DictionaryProvider";
 import ChooseImagesTab from "@/components/Services/ChooseImagesTab";
+import { useClickOutside } from "@/custom-hooks/useClickOutside";
+import { useDebounce } from "use-debounce";
 
 type CategoryItem = {
     _id: string;
@@ -14,6 +18,25 @@ type CategoryItem = {
 };
 type BroadcastType = "product" | "service";
 type BroadcastPurpose = "buying" | "selling";
+
+type Location = {
+    description?: string;
+    type?: string;
+    coordinates?: {
+        lat?: number;
+        lng?: number;
+    };
+};
+
+function toPointLocation(location: Location) {
+    const lat = location.coordinates?.lat;
+    const lng = location.coordinates?.lng;
+    if (lat == null || lng == null) return null;
+    return {
+        type: "Point" as const,
+        coordinates: [lng, lat] as [number, number],
+    };
+}
 
 function BroadCastModal({ setOpenBroadcast }: { setOpenBroadcast: (open: boolean) => void }) {
     const SUCCESS_TOAST_DURATION = 1500;
@@ -30,13 +53,36 @@ function BroadCastModal({ setOpenBroadcast }: { setOpenBroadcast: (open: boolean
     const [selectedPurpose, setSelectedPurpose] = useState<BroadcastPurpose | null>(null);
     const [isCategoryOpen, setIsCategoryOpen] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState<CategoryItem | null>(null);
+    const locationRef = useRef<HTMLDivElement | null>(null);
+    const [isLocationOpen, setIsLocationOpen] = useState(false);
+    const [location, setLocation] = useState<Location>({});
+    const [locationSearch, setLocationSearch] = useState("");
+    const [debouncedLocationSearch] = useDebounce(locationSearch, 500);
     const { data: categories, isLoading: isCategoriesLoading, isFetching: isCategoriesFetching } = useGetAllCategoriesQuery("");
+    const {
+        data: locationsData,
+        isLoading: isLocationsLoading,
+        isFetching: isLocationsFetching,
+    } = useGetLocationsQuery(
+        { q: debouncedLocationSearch },
+        { skip: locationSearch?.trim() === "" },
+    );
     const [message, setMessage] = useState("");
     const [images, setImages] = useState<(File | string)[]>([]);
     const [broadcastMessage, { isLoading: isBroadcastLoading }] = useBroadcastMessageMutation();
+
+    useClickOutside(locationRef, () => {
+        setIsLocationOpen(false);
+    });
+
     const handleSendMessage = async () => {
         if (selectedRadius === null) {
             toast.error(eh("radius_required"));
+            return;
+        }
+        const pointLocation = toPointLocation(location);
+        if (!pointLocation) {
+            toast.error(eh("location_required"));
             return;
         }
         if (selectedType === null) {
@@ -68,6 +114,7 @@ function BroadCastModal({ setOpenBroadcast }: { setOpenBroadcast: (open: boolean
                     fd.append("message", message.trim());
                     fd.append("radius", String(selectedRadius));
                     fd.append("categoryId", selectedCategory._id);
+                    fd.append("location", JSON.stringify(pointLocation));
                     imageFiles.forEach((file) => fd.append("files", file));
                     return fd;
                 })()
@@ -77,6 +124,7 @@ function BroadCastModal({ setOpenBroadcast }: { setOpenBroadcast: (open: boolean
                     message: message.trim(),
                     radius: selectedRadius,
                     categoryId: selectedCategory._id,
+                    location: pointLocation,
                 };
 
         try {
@@ -115,6 +163,7 @@ function BroadCastModal({ setOpenBroadcast }: { setOpenBroadcast: (open: boolean
                             setIsTypeOpen(false);
                             setIsPurposeOpen(false);
                             setIsCategoryOpen(false);
+                            setIsLocationOpen(false);
                         }}
                         className="flex w-full cursor-pointer items-center justify-between text-left disabled:cursor-not-allowed"
                     >
@@ -143,6 +192,90 @@ function BroadCastModal({ setOpenBroadcast }: { setOpenBroadcast: (open: boolean
                 </div>
 
                 <div className="relative border-b border-gray-9 pb-2">
+                    <p className="mb-1 text-[14px] font-normal text-gray-8">
+                        {ph("location")}
+                    </p>
+                    <div ref={locationRef}>
+                        <button
+                            disabled={isBroadcastLoading}
+                            type="button"
+                            onClick={() => {
+                                setIsLocationOpen((prev) => !prev);
+                                setIsRadiusOpen(false);
+                                setIsTypeOpen(false);
+                                setIsPurposeOpen(false);
+                                setIsCategoryOpen(false);
+                            }}
+                            className="flex w-full cursor-pointer items-center justify-between text-left disabled:cursor-not-allowed"
+                        >
+                            <span className="text-[15px] font-normal text-gray-8">
+                                {location?.description ?? ph("choose_location")}
+                            </span>
+                            <Image src={chevDown} alt="chev-down" />
+                        </button>
+                        {isLocationOpen ? (
+                            <div className="absolute left-0 right-0 top-[62px] z-20 rounded-[8px] border border-gray-9 bg-white pt-1 shadow-md">
+                                <input
+                                    type="text"
+                                    placeholder={ph("search_country")}
+                                    className="w-full rounded-t-[8px] border-b border-gray-9 px-3 py-2 text-[14px] outline-none"
+                                    value={locationSearch}
+                                    onChange={(e) => setLocationSearch(e.target.value)}
+                                />
+                                <div className="max-h-[200px] overflow-y-auto">
+                                    {!isLocationsLoading &&
+                                        !isLocationsFetching &&
+                                        (locationsData?.data?.length ?? 0) > 0 &&
+                                        locationsData?.data?.map((item: Location, index: number) => (
+                                            <button
+                                                key={`${item.description}-${index}`}
+                                                type="button"
+                                                onClick={() => {
+                                                    setLocation(item);
+                                                    setIsLocationOpen(false);
+                                                    setLocationSearch("");
+                                                }}
+                                                className="flex w-full cursor-pointer items-center gap-2 border-b border-gray-9 px-3 py-2 text-left text-[14px] text-black-1 last:border-b-0 hover:bg-gray-10"
+                                            >
+                                                <Image
+                                                    src={locationIcon}
+                                                    alt=""
+                                                    className="h-[18px] w-[14px] shrink-0"
+                                                />
+                                                <span>{item.description}</span>
+                                            </button>
+                                        ))}
+                                    {!isLocationsLoading &&
+                                        !isLocationsFetching &&
+                                        locationsData?.data?.length === 0 && (
+                                            <p className="px-3 py-2 text-[14px] text-gray-8">
+                                                {ph("no_data_available")}
+                                            </p>
+                                        )}
+                                    {(isLocationsLoading || isLocationsFetching) && (
+                                        <div className="space-y-1 p-1">
+                                            {Array.from({ length: 4 }).map((_, index) => (
+                                                <div
+                                                    key={index}
+                                                    className="h-[36px] animate-pulse rounded bg-gray-10"
+                                                />
+                                            ))}
+                                        </div>
+                                    )}
+                                    {!locationsData &&
+                                        !isLocationsLoading &&
+                                        !isLocationsFetching && (
+                                            <p className="px-3 py-2 text-[14px] text-gray-8">
+                                                {ph("no_data_available")}
+                                            </p>
+                                        )}
+                                </div>
+                            </div>
+                        ) : null}
+                    </div>
+                </div>
+
+                <div className="relative border-b border-gray-9 pb-2">
                     <p className="mb-1 text-[14px] font-normal text-gray-8">{ph("type")}</p>
                     <button
                         disabled={isBroadcastLoading}
@@ -152,6 +285,7 @@ function BroadCastModal({ setOpenBroadcast }: { setOpenBroadcast: (open: boolean
                             setIsRadiusOpen(false);
                             setIsPurposeOpen(false);
                             setIsCategoryOpen(false);
+                            setIsLocationOpen(false);
                         }}
                         className="flex w-full cursor-pointer items-center justify-between text-left disabled:cursor-not-allowed"
                     >
@@ -192,6 +326,7 @@ function BroadCastModal({ setOpenBroadcast }: { setOpenBroadcast: (open: boolean
                             setIsRadiusOpen(false);
                             setIsTypeOpen(false);
                             setIsCategoryOpen(false);
+                            setIsLocationOpen(false);
                         }}
                         className="flex w-full cursor-pointer items-center justify-between text-left disabled:cursor-not-allowed"
                     >
@@ -205,9 +340,9 @@ function BroadCastModal({ setOpenBroadcast }: { setOpenBroadcast: (open: boolean
                     {isPurposeOpen ? (
                         <div className="absolute left-0 right-0 top-[62px] z-20 max-h-[200px] overflow-y-auto rounded-[8px] border border-gray-9 bg-white shadow-md">
                             {([
-                                { value: "buying", label: ph("buying") },
-                                { value: "selling", label: ph("selling") },
-                            ] as { value: BroadcastPurpose; label: string }[]).map((purpose) => (
+                                { value: "Buying", label: ph("buying") },
+                                { value: "Selling", label: ph("selling") },
+                            ] as any).map((purpose) => (
                                 <button
                                     key={purpose.value}
                                     type="button"
@@ -234,6 +369,7 @@ function BroadCastModal({ setOpenBroadcast }: { setOpenBroadcast: (open: boolean
                             setIsRadiusOpen(false);
                             setIsTypeOpen(false);
                             setIsPurposeOpen(false);
+                            setIsLocationOpen(false);
                         }}
                         className="flex cursor-pointer w-full items-center justify-between text-left disabled:cursor-not-allowed"
                     >
