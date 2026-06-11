@@ -123,7 +123,12 @@ function Notifications({ setOpenSidebar, unreadCount = 0, setReadCount }: Notifi
 
         switch (item.type) {
             case "SERVICE_REQUEST":
-                router.push(`/book-service?id=${targetId}`);
+                if (item.payload.action === "accept" || item.payload.action === "reject" || item.payload.action === "propose") {
+                    router.push(`/profile?tab=my_requests`);
+                }
+                else {
+                    router.push(`/services`);
+                }
                 break;
             case "ORDER":
                 router.push(`/profile?tab=my_orders`);
