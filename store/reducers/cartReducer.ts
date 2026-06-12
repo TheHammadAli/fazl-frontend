@@ -1,6 +1,8 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { getCookie } from "cookies-next";
+import { logout, setGuest, setUserId } from "./authReducer";
 
-const CART_STORAGE_KEY = "productCart";
+const LEGACY_CART_STORAGE_KEY = "productCart";
 
 export type CartItem = {
   id: string;
@@ -20,9 +22,46 @@ export type AddToCartPayload = Omit<CartItem, "id" | "quantity"> & {
   quantity?: number;
 };
 
-function persistCart(items: CartItem[]) {
+type CartState = {
+  items: CartItem[];
+  userId: string | null;
+};
+
+function getCartStorageKey(userId: string | null | undefined): string {
+  if (userId) return `productCart_${userId}`;
+  return "productCart_guest";
+}
+
+function readUserIdFromCookie(): string | null {
+  if (typeof window === "undefined") return null;
+  const id = getCookie("userId");
+  return typeof id === "string" && id ? id : null;
+}
+
+function loadCartFromStorage(userId: string | null | undefined): CartItem[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = localStorage.getItem(getCartStorageKey(userId));
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as CartItem[];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function persistCart(items: CartItem[], userId: string | null | undefined) {
+  if (typeof window === "undefined") return;
+  localStorage.setItem(getCartStorageKey(userId), JSON.stringify(items));
+}
+
+function switchCartUser(state: CartState, nextUserId: string | null) {
+  if (state.userId === nextUserId) return;
+  persistCart(state.items, state.userId);
+  state.userId = nextUserId;
+  state.items = loadCartFromStorage(nextUserId);
   if (typeof window !== "undefined") {
-    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
+    localStorage.removeItem(LEGACY_CART_STORAGE_KEY);
   }
 }
 
@@ -37,23 +76,14 @@ export function getCartLineId(
   return `${productId}__${variantKey}`;
 }
 
-function loadCartFromStorage(): CartItem[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const raw = localStorage.getItem(CART_STORAGE_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw) as CartItem[];
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-}
+const initialUserId = readUserIdFromCookie();
 
 const cartSlice = createSlice({
   name: "cart",
   initialState: {
-    items: loadCartFromStorage(),
-  },
+    items: loadCartFromStorage(initialUserId),
+    userId: initialUserId,
+  } satisfies CartState,
   reducers: {
     addToCart: (state, action: PayloadAction<AddToCartPayload>) => {
       const { quantity = 1, ...item } = action.payload;
@@ -66,11 +96,11 @@ const cartSlice = createSlice({
         state.items.push({ ...item, id, quantity });
       }
 
-      persistCart(state.items);
+      persistCart(state.items, state.userId);
     },
     removeFromCart: (state, action: PayloadAction<string>) => {
       state.items = state.items.filter((item) => item.id !== action.payload);
-      persistCart(state.items);
+      persistCart(state.items, state.userId);
     },
     updateCartQuantity: (
       state,
@@ -85,15 +115,34 @@ const cartSlice = createSlice({
         item.quantity = action.payload.quantity;
       }
 
-      persistCart(state.items);
+      persistCart(state.items, state.userId);
     },
     clearCart: (state) => {
       state.items = [];
-      persistCart(state.items);
+      persistCart(state.items, state.userId);
     },
     hydrateCart: (state) => {
-      state.items = loadCartFromStorage();
+      state.items = loadCartFromStorage(state.userId);
     },
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(setUserId, (state, action) => {
+        switchCartUser(state, action.payload);
+      })
+      .addCase(logout, (state) => {
+        persistCart(state.items, state.userId);
+        state.userId = null;
+        state.items = [];
+        persistCart([], null);
+        if (typeof window !== "undefined") {
+          localStorage.removeItem(LEGACY_CART_STORAGE_KEY);
+        }
+      })
+      .addCase(setGuest, (state, action) => {
+        if (!action.payload) return;
+        switchCartUser(state, null);
+      });
   },
 });
 
