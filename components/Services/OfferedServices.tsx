@@ -314,7 +314,12 @@ function OfferedServices() {
                 requestId,
                 ...(action === "propose" && { proposedDateTime: date?.toISOString() }),
                 action,
-            }).unwrap();
+            }).unwrap().then((res) => {
+                toast.success(res.message);
+            }).catch((err) => {
+                const errorData = err as { data?: { message?: string } };
+                toast.error(errorData?.data?.message ?? "Something went wrong");
+            });
 
             setOfferForId(null);
             setSpinnerIndex(-1);

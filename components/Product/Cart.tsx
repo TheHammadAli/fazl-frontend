@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import chevron from "@/assets/icons/chev-down-icon.svg";
 import { useDictionary } from "@/dictionaries/DictionaryProvider";
@@ -15,12 +15,64 @@ import { useRouter } from "next/navigation";
 import { BeatLoader } from "react-spinners";
 import addIcon from "@/assets/icons/add.svg";
 import { useGetAvgReviewsQuery } from "@/store/services/reviewService";
-import { useAppDispatch } from "@/store/store";
-import { getCartLineId, removeFromCart } from "@/store/reducers/cartReducer";
+import { useAppDispatch, useAppSelector } from "@/store/store";
+import {
+  clearCart,
+  getCartLineId,
+  type CartItem,
+} from "@/store/reducers/cartReducer";
 import { useRequireSignIn } from "@/custom-hooks/useRequireSignIn";
+
+const DELIVERY_FEE = 250;
+const SALES_TAX = 90;
+
+function resolveOwnerId(
+  item: CartItem,
+): { owner: string; ownerModel: "Shop" | "User" } | null {
+  const shop = item.shopId as string | { _id?: string } | undefined;
+  const owner = item.ownerId as string | { _id?: string } | undefined;
+
+  if (shop) {
+    const id = typeof shop === "object" ? shop._id : shop;
+    if (id) return { owner: id, ownerModel: "Shop" };
+  }
+  if (owner) {
+    const id = typeof owner === "object" ? owner._id : owner;
+    if (id) return { owner: id, ownerModel: "User" };
+  }
+  return null;
+}
+
+function buildCheckoutItems(
+  cartItems: CartItem[],
+  product: { data?: { id?: string; title?: string; price?: number; images?: string[]; shopId?: unknown; ownerId?: unknown } } | undefined,
+  selectedVariants: Record<string, string>,
+  shopData: { title?: string; image?: string } | undefined,
+  ownerData: { name?: string; image?: string; _id?: string } | undefined,
+): CartItem[] {
+  if (cartItems.length > 0) return cartItems;
+  if (!product?.data?.id) return [];
+
+  return [
+    {
+      id: getCartLineId(product.data.id, selectedVariants),
+      productId: product.data.id,
+      title: product.data.title ?? "",
+      price: Number(product.data.price) || 0,
+      image: product.data.images?.[0] ?? "",
+      shopId: product.data.shopId as CartItem["shopId"],
+      ownerId: product.data.ownerId as CartItem["ownerId"],
+      selectedVariants,
+      quantity: 1,
+      sellerLabel: shopData?.title ?? ownerData?.name ?? "",
+      sellerImage: shopData?.image ?? ownerData?.image ?? "",
+    },
+  ];
+}
 
 function Cart({ product, shopData, selectedVariants, ownerData }: any) {
   const dispatch = useAppDispatch();
+  const cartItems = useAppSelector((state) => state.cartReducer.items);
   const { isGuest, requireSignIn } = useRequireSignIn();
   const { pages, placeholders, info_messages, error_messages } =
     useDictionary();
@@ -28,8 +80,7 @@ function Cart({ product, shopData, selectedVariants, ownerData }: any) {
   const [deliveryMethod, setDeliveryMethod] = useState("delivery");
   const [toogleChoose, setToogleChoose] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState("");
-  const [orderProduct, { isLoading, isError, isSuccess, error, data }] =
-    useOrderProductMutation();
+  const [orderProduct, { isLoading }] = useOrderProductMutation();
   const { data: avgReview, isLoading: isLoadingAvgReview } = useGetAvgReviewsQuery(
     { type: "product", id: product?.data?.id ?? "" },
     { skip: !product?.data?.id || !product?.data?.id }
@@ -43,66 +94,81 @@ function Cart({ product, shopData, selectedVariants, ownerData }: any) {
       ? JSON.parse(localStorage.getItem("user") || "{}")
       : "";
 
-  const totalAmount =
-    product?.data?.price + (deliveryMethod === "delivery" ? 250 : 0) + 90;
+  const checkoutItems = useMemo(
+    () =>
+      buildCheckoutItems(
+        cartItems,
+        product,
+        selectedVariants as Record<string, string>,
+        shopData,
+        ownerData,
+      ),
+    [cartItems, product, selectedVariants, shopData, ownerData],
+  );
+
+  const subtotal = useMemo(
+    () =>
+      checkoutItems.reduce(
+        (sum, item) => sum + item.price * item.quantity,
+        0,
+      ),
+    [checkoutItems],
+  );
+
+  const deliveryFee = deliveryMethod === "delivery" ? DELIVERY_FEE : 0;
+  const totalAmount = subtotal + deliveryFee + SALES_TAX;
+
   useEffect(() => {
-
     if (isGuest) {
-
       router.push("/signin");
-
     }
-
   }, [isGuest, router]);
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    requireSignIn(() => {
-      const body = {
-        buyer: user?.id,
-        owner: shopData ? shopData?._id : ownerData?._id,
-        ownerModel: shopData ? "Shop" : "User",
-        product: product?.data?.id,
-        deliveryOption: deliveryMethod,
-        status: "pending",
-        paymentType: "cashonDelivery",
-        amount: totalAmount,
-        variant: selectedVariants,
-        quantity: 1,
-      };
-      orderProduct(body);
-    });
+    requireSignIn(async () => {
+      if (checkoutItems.length === 0) return;
 
-  };
+      try {
+        let lastMessage = "";
+        for (let i = 0; i < checkoutItems.length; i++) {
+          const item = checkoutItems[i];
+          const ownerInfo = resolveOwnerId(item);
+          if (!ownerInfo) continue;
 
-  useEffect(() => {
-    if (isSuccess) {
-      if (product?.data?.id) {
-        dispatch(
-          removeFromCart(
-            getCartLineId(
-              product.data.id,
-              selectedVariants as Record<string, string>,
-            ),
-          ),
+          const lineSubtotal = item.price * item.quantity;
+          const isLast = i === checkoutItems.length - 1;
+          const fees = isLast ? deliveryFee + SALES_TAX : 0;
+
+          const res = await orderProduct({
+            buyer: user?.id,
+            owner: ownerInfo.owner,
+            ownerModel: ownerInfo.ownerModel,
+            product: item.productId,
+            deliveryOption: deliveryMethod,
+            status: "pending",
+            paymentType: "cashonDelivery",
+            amount: lineSubtotal + fees,
+            variant: item.selectedVariants,
+            quantity: item.quantity,
+          }).unwrap();
+
+          lastMessage = (res as { message?: string })?.message ?? lastMessage;
+        }
+
+        dispatch(clearCart());
+        toast.success(lastMessage || "Order placed successfully");
+        setTimeout(() => {
+          router.push("/home");
+        }, 800);
+      } catch (err) {
+        toast.error(
+          (err as { data?: { message?: string } })?.data?.message ||
+            "something went wrong!",
         );
       }
-      toast.success(data?.message);
-      const timer = setTimeout(() => {
-        router.push("/home");
-      }, 800);
-
-      return () => clearTimeout(timer);
-    }
-    if (isError && "data" in error) {
-      toast.error(
-        (error?.data as { message?: string })?.message ||
-        "something went wrong!"
-      );
-      const timer = setTimeout(() => { }, 500);
-      return () => clearTimeout(timer);
-    }
-  }, [isSuccess, isError, data, error, dispatch, product?.data?.id, selectedVariants, router]);
+    });
+  };
 
   return (
     <div className=" ">
@@ -350,20 +416,24 @@ function Cart({ product, shopData, selectedVariants, ownerData }: any) {
               {/* Price Breakdown */}
               <div className="space-y-2 text-[#4B514F] text-[15px] font-light">
                 <div className="flex justify-between">
-                  <span className="capitalize">{placeholders.product}</span>
+                  <span>{placeholders.subtotal}</span>
                   <span>
-                    {placeholders.Rs} {product?.data?.price}
+                    {placeholders.Rs} {subtotal.toLocaleString()}
                   </span>
                 </div>
                 {deliveryMethod === "delivery" && (
                   <div className="flex justify-between">
                     <span>{placeholders.delivery_fee}</span>
-                    <span>{placeholders.Rs} 250</span>
+                    <span>
+                      {placeholders.Rs} {DELIVERY_FEE.toLocaleString()}
+                    </span>
                   </div>
                 )}
                 <div className="flex justify-between">
-                  <span> {placeholders.sale_tax}</span>
-                  <span>{placeholders.Rs} 90</span>
+                  <span>{placeholders.sale_tax}</span>
+                  <span>
+                    {placeholders.Rs} {SALES_TAX.toLocaleString()}
+                  </span>
                 </div>
               </div>
 
@@ -371,7 +441,7 @@ function Cart({ product, shopData, selectedVariants, ownerData }: any) {
               <div className="flex justify-between font-medium text-[15px] mt-3">
                 <span>{placeholders.total_pay}</span>
                 <span>
-                  {placeholders.Rs} {totalAmount}
+                  {placeholders.Rs} {totalAmount.toLocaleString()}
                 </span>
               </div>
               <button
