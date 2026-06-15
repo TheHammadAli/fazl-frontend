@@ -4,19 +4,21 @@ import {
     useSearchProductsQuery,
     useSearchServicesQuery,
 } from "@/store/services/homeService";
-import React, { useCallback, useEffect, useRef, useState } from "react";
-import AllProductsSkeleton from "./AllProductsSkelton";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { FreeMode } from "swiper/modules";
 import noImageAvtar from "@/assets/images/no-image-av.png";
 import { AvgRatingStars } from "../Ui/Reviews";
 import { useDictionary } from "@/dictionaries/DictionaryProvider";
 import { parsePositiveInt } from "../Updates/Notifications";
 import { getCatalogItemsFromSearchResponse } from "@/utils/catalogSearch";
+import "swiper/css";
 
 const PRODUCTS_LIMIT = 12;
 const SERVICES_LIMIT = 12;
-const SCROLL_LOAD_MARGIN_PX = 200;
+const SWIPE_CLICK_SUPPRESS_MS = 120;
 
 type TabKey = "products" | "services";
 
@@ -28,6 +30,33 @@ type CatalogItem = {
     images: string[];
     reviewCount: number;
     averageRating: number;
+};
+
+const CATALOG_SWIPER_BREAKPOINTS = {
+    0: {
+        slidesPerView: 1.35,
+        spaceBetween: 8,
+    },
+    640: {
+        slidesPerView: 2,
+        spaceBetween: 12,
+        slidesOffsetBefore: 0,
+        slidesOffsetAfter: 0,
+    },
+    1024: {
+        slidesPerView: 3,
+        spaceBetween: 20,
+        slidesOffsetBefore: 0,
+        slidesOffsetAfter: 0,
+        freeMode: false,
+    },
+    1280: {
+        slidesPerView: 4,
+        spaceBetween: 20,
+        slidesOffsetBefore: 0,
+        slidesOffsetAfter: 0,
+        freeMode: false,
+    },
 };
 
 function mergeCatalogItems(
@@ -48,35 +77,126 @@ function mergeCatalogItems(
     return next;
 }
 
-function getScrollParent(node: HTMLElement): HTMLElement | Window {
-    let parent = node.parentElement;
-    while (parent) {
-        const { overflowY } = window.getComputedStyle(parent);
-        if (/(auto|scroll|overlay)/.test(overflowY)) {
-            return parent;
-        }
-        parent = parent.parentElement;
-    }
-    return window;
+function CatalogCardSkeleton() {
+    return (
+        <div className="animate-pulse rounded-2xl p-1">
+            <div className="h-[180px] w-full rounded-[16px] bg-gray-200 sm:h-[276px]" />
+            <div className="mt-3 h-4 w-2/3 rounded bg-gray-200" />
+            <div className="mt-3 flex items-center gap-2">
+                <div className="h-4 w-24 rounded bg-gray-200" />
+                <div className="h-4 w-6 rounded bg-gray-200" />
+            </div>
+            <div className="mt-3 h-4 w-16 rounded bg-gray-200" />
+        </div>
+    );
 }
 
-function isSentinelVisible(sentinel: HTMLDivElement | null): boolean {
-    if (!sentinel) return false;
-    const rect = sentinel.getBoundingClientRect();
-    const viewportBottom =
-        window.innerHeight || document.documentElement.clientHeight;
-    return rect.top <= viewportBottom + SCROLL_LOAD_MARGIN_PX;
+type CatalogCardProps = {
+    item: CatalogItem;
+    currencyLabel: string;
+    onSelect: (itemId: string) => void;
+    shouldSuppressClick: () => boolean;
+};
+
+function CatalogCard({
+    item,
+    currencyLabel,
+    onSelect,
+    shouldSuppressClick,
+}: CatalogCardProps) {
+    const itemId = item.id || item._id;
+
+    return (
+        <div
+            role="button"
+            tabIndex={0}
+            className="h-full w-full cursor-pointer bg-none"
+            onClick={() => {
+                if (shouldSuppressClick() || !itemId) return;
+                onSelect(itemId);
+            }}
+            onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    if (itemId) onSelect(itemId);
+                }
+            }}
+        >
+            <div className="h-[180px] overflow-hidden rounded-[16px] shadow-menu sm:h-[276px]">
+                <Image
+                    src={item.images?.length > 0 ? item.images[0] : noImageAvtar}
+                    alt={item.title || "catalog_item"}
+                    height={100}
+                    width={100}
+                    draggable={false}
+                    className="pointer-events-none h-full w-full select-none bg-gray-12 object-cover"
+                    unoptimized
+                />
+            </div>
+            <h2 className="mt-3 line-clamp-1 text-[16px] font-medium text-black-1 first-letter:capitalize">
+                {item.title}
+            </h2>
+            <div className="flex gap-2">
+                <AvgRatingStars
+                    rating={item.averageRating}
+                    isLoading={false}
+                    size={22}
+                />
+                <span className="text-[14px] font-normal text-gray-8">
+                    ({item.reviewCount ?? 0})
+                </span>
+            </div>
+            <h2 className="text-[16px] font-normal text-green-1">
+                {currencyLabel} {item.price}
+            </h2>
+        </div>
+    );
 }
 
-function AllProductsAndServices({ tab }: { tab: string }) {
+function AllProductsAndServices({
+    tab,
+    categoryId = "",
+}: {
+    tab: string;
+    categoryId?: string;
+}) {
+
     const router = useRouter();
-    const { placeholders, error_messages } = useDictionary();
+    const { placeholders, error_messages, info_messages } = useDictionary();
     const activeTab = tab as TabKey;
-    const sentinelRef = useRef<HTMLDivElement>(null);
-    const [sentinelReady, setSentinelReady] = useState(false);
     const lastMergedProductsKeyRef = useRef("");
     const lastMergedServicesKeyRef = useRef("");
     const maxRequestedPageRef = useRef({ products: 1, services: 1 });
+    const isSwipingRef = useRef(false);
+    const swipeResetTimeoutRef = useRef<number | null>(null);
+
+    const clearSwipeResetTimeout = useCallback(() => {
+        if (swipeResetTimeoutRef.current != null) {
+            window.clearTimeout(swipeResetTimeoutRef.current);
+            swipeResetTimeoutRef.current = null;
+        }
+    }, []);
+
+    const handleSwiperTouchStart = useCallback(() => {
+        clearSwipeResetTimeout();
+        isSwipingRef.current = false;
+    }, [clearSwipeResetTimeout]);
+
+    const handleSwiperSliderMove = useCallback(() => {
+        isSwipingRef.current = true;
+    }, []);
+
+    const handleSwiperTouchEnd = useCallback(() => {
+        clearSwipeResetTimeout();
+        swipeResetTimeoutRef.current = window.setTimeout(() => {
+            isSwipingRef.current = false;
+            swipeResetTimeoutRef.current = null;
+        }, SWIPE_CLICK_SUPPRESS_MS);
+    }, [clearSwipeResetTimeout]);
+
+    const shouldSuppressClick = useCallback(() => isSwipingRef.current, []);
+
+    useEffect(() => clearSwipeResetTimeout, [clearSwipeResetTimeout]);
 
     const [productPage, setProductPage] = useState(1);
     const [servicePage, setServicePage] = useState(1);
@@ -91,8 +211,12 @@ function AllProductsAndServices({ tab }: { tab: string }) {
         isFetching: productsFetching,
         fulfilledTimeStamp: productsFulfilledTimeStamp,
     } = useSearchProductsQuery(
-        { page: productPage, limit: PRODUCTS_LIMIT },
-        { skip: activeTab !== "products" },
+        {
+            page: productPage,
+            limit: PRODUCTS_LIMIT,
+            ...(categoryId ? { category: categoryId } : {}),
+        },
+        { skip: activeTab !== "products", refetchOnMountOrArgChange: true },
     );
 
     const {
@@ -101,12 +225,15 @@ function AllProductsAndServices({ tab }: { tab: string }) {
         isFetching: servicesFetching,
         fulfilledTimeStamp: servicesFulfilledTimeStamp,
     } = useSearchServicesQuery(
-        { page: servicePage, limit: SERVICES_LIMIT },
-        { skip: activeTab !== "services" },
+        {
+            page: servicePage,
+            limit: SERVICES_LIMIT,
+            ...(categoryId ? { category: categoryId } : {}),
+        },
+        { skip: activeTab !== "services", refetchOnMountOrArgChange: true },
     );
 
     const items = activeTab === "products" ? productItems : serviceItems;
-    const hasMore = activeTab === "products" ? hasMoreProducts : hasMoreServices;
     const isFetching =
         activeTab === "products" ? productsFetching : servicesFetching;
     const isLoading =
@@ -150,13 +277,9 @@ function AllProductsAndServices({ tab }: { tab: string }) {
         ],
     );
 
-    const requestNextPageRef = useRef(requestNextPage);
-    requestNextPageRef.current = requestNextPage;
-
-    const tryLoadFromScroll = useCallback(() => {
-        if (!isSentinelVisible(sentinelRef.current)) return;
-        requestNextPageRef.current(activeTab);
-    }, [activeTab]);
+    const loadMore = useCallback(() => {
+        requestNextPage(activeTab);
+    }, [activeTab, requestNextPage]);
 
     useEffect(() => {
         setProductPage(1);
@@ -168,32 +291,7 @@ function AllProductsAndServices({ tab }: { tab: string }) {
         lastMergedProductsKeyRef.current = "";
         lastMergedServicesKeyRef.current = "";
         maxRequestedPageRef.current = { products: 1, services: 1 };
-    }, [tab]);
-
-    const setSentinelNode = useCallback((node: HTMLDivElement | null) => {
-        sentinelRef.current = node;
-        setSentinelReady(!!node);
-    }, []);
-
-    useEffect(() => {
-        const sentinel = sentinelRef.current;
-        if (!sentinelReady || !sentinel || !hasMore) return;
-
-        const scrollRoot = getScrollParent(sentinel);
-        let ticking = false;
-
-        const onScroll = () => {
-            if (ticking) return;
-            ticking = true;
-            window.requestAnimationFrame(() => {
-                ticking = false;
-                tryLoadFromScroll();
-            });
-        };
-
-        scrollRoot.addEventListener("scroll", onScroll, { passive: true });
-        return () => scrollRoot.removeEventListener("scroll", onScroll);
-    }, [tryLoadFromScroll, hasMore, sentinelReady, activeTab]);
+    }, [tab, categoryId]);
 
     useEffect(() => {
         if (activeTab !== "products" || productsData == null || productsFetching) {
@@ -266,87 +364,114 @@ function AllProductsAndServices({ tab }: { tab: string }) {
             ? productsData?.meta?.total
             : servicesData?.meta?.total;
 
+    const handleSelectItem = useCallback(
+        (itemId: string) => {
+            if (activeTab === "services") {
+                router.push(`/book-service?id=${itemId}`);
+            } else {
+                router.push(`/buy-product?id=${itemId}`);
+            }
+        },
+        [activeTab, router],
+    );
+
+    const swiperSlides = useMemo(() => {
+        if (isInitialLoading) {
+            return Array.from({ length: 4 }).map((_, index) => (
+                <SwiperSlide key={`catalog-skeleton-${index}`} className="!h-auto">
+                    <CatalogCardSkeleton />
+                </SwiperSlide>
+            ));
+        }
+
+        const slides = items.map((item) => {
+            const itemId = item.id || item._id;
+            return (
+                <SwiperSlide key={itemId} className="!h-auto bg-none">
+                    <CatalogCard
+                        item={item}
+                        currencyLabel={placeholders.Rs}
+                        onSelect={handleSelectItem}
+                        shouldSuppressClick={shouldSuppressClick}
+                    />
+                </SwiperSlide>
+            );
+        });
+
+        if (isLoadingMore) {
+            slides.push(
+                <SwiperSlide key="catalog-loading-more" className="!h-auto">
+                    <CatalogCardSkeleton />
+                </SwiperSlide>,
+            );
+        }
+
+        return slides;
+    }, [
+        handleSelectItem,
+        isInitialLoading,
+        isLoadingMore,
+        items,
+        placeholders.Rs,
+        shouldSuppressClick,
+    ]);
+
+    if (!isInitialLoading && !(totalCount > 0 || items.length > 0)) {
+        return (
+            <div className="flex h-[240px] w-full items-center justify-center text-black-1">
+                {activeTab === "products"
+                    ? error_messages.no_product_data
+                    : error_messages.no_service_data}
+            </div>
+        );
+    }
+
     return (
-        <div>
-            {isInitialLoading ? (
-                <AllProductsSkeleton />
-            ) : totalCount > 0 || items.length > 0 ? (
-                <>
-                    <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 md:gap-x-5 md:gap-y-14 mt-4">
-                        {items.map((item) => {
-                            const itemId = item?.id || item?._id;
-                            return (
-                                <div
-                                    key={itemId}
-                                    className="cursor-pointer"
-                                    onClick={() => {
-                                        if (!itemId) return;
-                                        if (activeTab === "services") {
-                                            router.push(
-                                                `/book-service?id=${itemId}`,
-                                            );
-                                        } else {
-                                            router.push(
-                                                `/buy-product?id=${itemId}`,
-                                            );
-                                        }
-                                    }}
-                                >
-                                    <div className="h-[180px] sm:h-[276px] rounded-[16px] overflow-hidden shadow-menu">
-                                        <Image
-                                            src={
-                                                item?.images?.length > 0
-                                                    ? item?.images?.[0]
-                                                    : noImageAvtar
-                                            }
-                                            alt="product_img"
-                                            height={100}
-                                            width={100}
-                                            className="h-full w-full object-cover bg-gray-12"
-                                            unoptimized
-                                        />
-                                    </div>
-                                    <h2 className="text-black-1 font-medium text-[16px] mt-3 line-clamp-1 first-letter:capitalize">
-                                        {item?.title}
-                                    </h2>
-                                    <div className="flex gap-2">
-                                        <AvgRatingStars
-                                            rating={item?.averageRating}
-                                            isLoading={false}
-                                            size={22}
-                                        />
-                                        <span className="text-gray-8 text-[14px] font-normal">
-                                            ({item?.reviewCount ?? 0})
-                                        </span>
-                                    </div>
-                                    <h2 className="text-green-1 font-normal text-[16px]">
-                                        {placeholders.Rs} {item?.price}
-                                    </h2>
-                                </div>
-                            );
-                        })}
-                    </div>
-                    {hasMore ? (
-                        <div
-                            ref={setSentinelNode}
-                            className="h-4 w-full shrink-0"
-                            aria-hidden
-                        />
-                    ) : null}
-                    {isLoadingMore ? (
-                        <div className="flex justify-center py-6">
-                            <span className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-gray-4 border-t-green-1" />
-                        </div>
-                    ) : null}
-                </>
-            ) : (
-                <div className="h-[80vh] flex items-center justify-center w-full text-black-1">
+        <section className="mt-6 sm:mt-8">
+            <div className="flex items-center justify-between gap-3">
+                <h2 className="text-[18px] font-medium text-[#001907]">
                     {activeTab === "products"
-                        ? error_messages.no_product_data
-                        : error_messages.no_service_data}
-                </div>
-            )}
-        </div>
+                        ? info_messages.recent_products
+                        : info_messages.recent_services}
+                </h2>
+                <button
+                    onClick={() => {
+                        const params = new URLSearchParams({ tab: activeTab });
+                        if (categoryId) params.set("categoryId", categoryId);
+                        router.push(`/home/search-list?${params.toString()}`);
+                    }}
+                    className="cursor-pointer text-[14px] font-normal text-green-1 hover:underline"
+                >
+                    {info_messages.see_all}
+                </button>
+            </div>
+
+            <div className="mt-4 w-full ">
+                <Swiper
+                    key={activeTab}
+                    modules={[FreeMode]}
+                    className="catalog-swiper w-full bg-none"
+                    spaceBetween={8}
+                    slidesPerView={1.35}
+                    freeMode={{ enabled: true, momentum: true }}
+                    grabCursor
+                    touchStartPreventDefault={false}
+                    observer
+                    observeParents
+                    watchOverflow={false}
+                    breakpoints={CATALOG_SWIPER_BREAKPOINTS}
+                    onTouchStart={handleSwiperTouchStart}
+                    onSliderMove={handleSwiperSliderMove}
+                    onTouchEnd={handleSwiperTouchEnd}
+                    onTransitionEnd={handleSwiperTouchEnd}
+                    preventClicks
+                    preventClicksPropagation
+                    onReachEnd={loadMore}
+                >
+                    {swiperSlides}
+                </Swiper>
+            </div>
+        </section>
     );
 }
 

@@ -2,6 +2,8 @@ import React, { useRef, useState } from "react";
 import chevDown from "@/assets/icons/chev-down-icon.svg";
 import crossIcon from "@/assets/icons/cross-icon.svg";
 import locationIcon from "@/assets/icons/location-icon.svg";
+import broadcastMicSec from "@/assets/icons/broadcast-mic-sec.svg";
+import broadcastMembers from "@/assets/icons/broadcast-members.svg";
 import Image from "next/image";
 import { useGetAllCategoriesQuery } from "@/store/services/sellingService";
 import { useGetLocationsQuery } from "@/store/services/authService";
@@ -40,7 +42,7 @@ function toPointLocation(location: Location) {
 
 function BroadCastModal({ setOpenBroadcast }: { setOpenBroadcast: (open: boolean) => void }) {
     const SUCCESS_TOAST_DURATION = 1500;
-    const { placeholders, error_messages } = useDictionary();
+    const { placeholders, error_messages, info_messages } = useDictionary();
     type PlaceholderKey = keyof typeof placeholders;
     type ErrorKey = keyof typeof error_messages;
     const ph = (key: PlaceholderKey) => placeholders[key];
@@ -140,6 +142,8 @@ function BroadCastModal({ setOpenBroadcast }: { setOpenBroadcast: (open: boolean
     };
     return (
         <div className="w-full max-w-[514px] overflow-hidden rounded-[12px] bg-white">
+
+
             <div className="flex items-center justify-between border-b border-gray-9 px-5 py-4">
                 <h2 className="text-[16px] font-semibold text-black-1">{ph("broadcast_message_title")}</h2>
                 <button
@@ -151,7 +155,34 @@ function BroadCastModal({ setOpenBroadcast }: { setOpenBroadcast: (open: boolean
                     <Image src={crossIcon} alt="cross-icon" className="w-3 h-3" />
                 </button>
             </div>
-
+            <div className="relative overflow-hidden bg-[#F2F9F3] mt-4 px-4 py-3 sm:px-5 sm:py-4">
+                <div className="relative z-10 flex items-center justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                        <h3 className="text-[15px] font-semibold leading-snug text-[#001907] sm:text-[16px] rtl:text-right">
+                            {info_messages.broadcast_modal_banner.split("\n").map((line, index) => (
+                                <span key={index} className={index > 0 ? "block" : undefined}>
+                                    {line}
+                                </span>
+                            ))}
+                        </h3>
+                        <Image
+                            src={broadcastMembers}
+                            alt=""
+                            unoptimized
+                            className="mt-2 h-[28px] w-auto max-w-[132px] object-contain object-left rtl:object-right"
+                        />
+                    </div>
+                    <div className="relative h-[88px] w-[118px] shrink-0 sm:h-[96px] sm:w-[128px]">
+                        <Image
+                            src={broadcastMicSec}
+                            alt=""
+                            fill
+                            unoptimized
+                            className="object-contain object-right-bottom"
+                        />
+                    </div>
+                </div>
+            </div>
             <div className={`space-y-2 px-5 py-3 ${isBroadcastLoading ? "pointer-events-none opacity-70" : ""}`}>
                 <div className="relative border-b border-gray-9 pb-2">
                     <p className="mb-1 text-[14px] font-normal text-gray-8">{ph("set_radius")}</p>

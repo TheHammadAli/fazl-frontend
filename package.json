@@ -37,6 +37,7 @@
     "react-time-picker": "^8.0.2",
     "react-virtuoso": "^4.18.5",
     "socket.io-client": "^4.8.3",
+    "swiper": "^12.2.0",
     "use-debounce": "^10.0.5",
     "world-countries-capitals": "^3.4.0",
     "yet-another-react-lightbox": "^3.32.0"

@@ -14,7 +14,9 @@ const EMPTY_PAGINATED_LIST: PaginatedListResponse = {
 function isNotFoundError(error: FetchBaseQueryError | undefined): boolean {
   if (!error) return false;
   if (error.status === 404) return true;
-  const withOriginal = error as FetchBaseQueryError & { originalStatus?: number };
+  const withOriginal = error as FetchBaseQueryError & {
+    originalStatus?: number;
+  };
   return withOriginal.originalStatus === 404;
 }
 
@@ -46,9 +48,9 @@ export const profileService = baseApi.injectEndpoints({
       providesTags: ["SHOP_DETAIL"],
     }),
     getAllCategories: build.query({
-      query: () => {
+      query: (params: any) => {
         return {
-          url: `/categories`,
+          url: `/categories?${new URLSearchParams(params)}`,
           method: "GET",
         };
       },
