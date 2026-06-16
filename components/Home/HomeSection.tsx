@@ -24,6 +24,7 @@ import type { StaticImageData } from "next/image";
 import FindProdBanner from "./FindProdBanner";
 import ProductCategories from "./ProductCategories";
 import ServicesCategories from "./ServicesCategories";
+import RecentBroadCasts from "./RecentBroadCasts";
 
 type HomeActionCardProps = {
   bgClass: string;
@@ -219,6 +220,9 @@ function HomeSection() {
         )}
       </div>
       <FindProdBanner />
+
+
+
       {!isGuest && (
         <>
           <div className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-3 md:grid-cols-3 lg:gap-6">
@@ -263,6 +267,7 @@ function HomeSection() {
           </Modal>
         </>
       )}
+      {!isGuest && <RecentBroadCasts />}
       <ProductCategories
         activeCategoryId={productCategoryId}
         onCategorySelect={setProductCategoryId}

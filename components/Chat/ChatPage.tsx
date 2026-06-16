@@ -32,6 +32,7 @@ export default function ChatPage() {
       setMobileShowConversation(true);
       return;
     }
+
     const nextId = thread._id ?? thread.id;
     setSelectedThread((prev) => {
       if (!prev) return thread;
@@ -58,10 +59,12 @@ export default function ChatPage() {
   }, [params]);
 
   useEffect(() => {
+
     if (threadType === "broadcast_messages") {
       setChatId("");
       setSelectedThread(null);
     }
+
     if (threadType === "direct_messages") {
       if (params.get("chatId")) {
         setChatId(params.get("chatId") || "");
@@ -70,13 +73,12 @@ export default function ChatPage() {
         setChatId("");
       }
     }
+
   }, [threadType, params]);
 
   return (
     <div className="h-[calc(100dvh-80px)] overflow-hidden bg-white lg:h-screen">
-
       <div className="flex h-full">
-
         <div className={`${mobileShowConversation ? "hidden lg:block" : "block"} h-full w-full lg:w-auto`}>
           <ChatSidebar
             threadType={threadType}
@@ -85,7 +87,6 @@ export default function ChatPage() {
             onSelectChat={handleSelectChat}
           />
         </div>
-
         <div className={`${mobileShowConversation ? "block" : "hidden lg:block"} h-full flex-1`}>
           {selectedThread ? (
             <ChatWindow
@@ -100,11 +101,10 @@ export default function ChatPage() {
               <p className="mt-1 max-w-[560px] text-[14px] font-normal  text-gray-8">
                 {placeholders.messages_appear_here}
               </p>
-            </div></div>}
+            </div>
+          </div>}
         </div>
-
       </div>
-
     </div>
   );
 }

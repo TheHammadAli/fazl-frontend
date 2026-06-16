@@ -166,3 +166,21 @@ input:-moz-autofill {
 .catalog-swiper .swiper-wrapper {
     align-items: stretch;
 }
+
+.broadcast-swiper.swiper {
+    padding-block: 4px;
+}
+
+.broadcast-swiper .swiper-wrapper {
+    align-items: stretch;
+}
+
+.broadcast-swiper .swiper-slide {
+    height: auto !important;
+    overflow: visible;
+}
+
+.broadcast-swiper img {
+    -webkit-user-drag: none;
+    user-select: none;
+}
