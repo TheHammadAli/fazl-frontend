@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { FreeMode } from "swiper/modules";
 import { useDictionary } from "@/dictionaries/DictionaryProvider";
-import { useReceivedBroadcastMessagesQuery } from "@/store/services/chatService";
+import { useSentBroadcastMessagesQuery } from "@/store/services/chatService";
 import { useCanInteractAsUser } from "@/custom-hooks/useIsGuest";
 import { parsePositiveInt } from "@/components/Updates/Notifications";
 import AvatarUi from "@/components/Ui/AvatarUi";
@@ -67,7 +67,7 @@ const BROADCAST_SWIPER_BREAKPOINTS = {
 };
 
 function getBroadcastId(item: RecentBroadcastItem): string {
-    return item.threadId ?? item._id ?? item.id ?? "";
+    return item._id ?? item.id ?? item.threadId ?? "";
 }
 
 function getResponseCount(item: RecentBroadcastItem): number {
@@ -174,12 +174,11 @@ function ResponderAvatarStack({
 
 type BroadcastCardProps = {
     item: RecentBroadcastItem;
-    responsesLabel: string;
     onClick: () => void;
     shouldSuppressClick: () => boolean;
 };
 
-function BroadcastCard({ item, responsesLabel, onClick, shouldSuppressClick }: BroadcastCardProps) {
+function BroadcastCard({ item, onClick, shouldSuppressClick }: BroadcastCardProps) {
     const responseCount = getResponseCount(item);
     const responders = getResponders(item);
     const location = getBroadcastLocation(item);
@@ -212,13 +211,13 @@ function BroadcastCard({ item, responsesLabel, onClick, shouldSuppressClick }: B
                 />
             </div>
 
-            <div className="min-w-0 flex-1 rtl:text-right">
+            <div className="min-w-0 flex-1 rtl:text-right  ">
 
-                <p className="truncate-safe mt-0.5 text-[14px] font-medium text-[#030303]">
+                <p className="truncate-safe text-[14px] leading-none font-medium text-[#030303]">
                     {item.message}
                 </p>
                 {location ? (
-                    <p className="truncate-safe mt-0.5 text-[13px] font-normal text-[#4B514F]">
+                    <p className="truncate-safe leading-none  text-[13px] font-normal text-[#4B514F]">
                         {location}
                     </p>
                 ) : null}
@@ -276,11 +275,10 @@ function RecentBroadCasts() {
         isLoading,
         isFetching,
         fulfilledTimeStamp,
-    } = useReceivedBroadcastMessagesQuery(
+    } = useSentBroadcastMessagesQuery(
         { page, limit: BROADCAST_LIMIT },
         { skip: !canInteractAsUser, refetchOnMountOrArgChange: true },
     );
-    console.log(data, "data");
 
     useEffect(() => {
         if (!canInteractAsUser || data == null || isFetching) return;
@@ -318,8 +316,6 @@ function RecentBroadCasts() {
         setPage(nextPage);
     }, [broadcastItems.length, hasMore, isFetching, page]);
 
-    const responsesLabel = info_messages.responses;
-
     const handleSelectBroadcast = useCallback((item: RecentBroadcastItem) => {
         const broadcastId = getBroadcastId(item);
         const params = new URLSearchParams({ threadType: "broadcast" });
@@ -343,7 +339,6 @@ function RecentBroadCasts() {
             >
                 <BroadcastCard
                     item={item}
-                    responsesLabel={responsesLabel}
                     shouldSuppressClick={shouldSuppressClick}
                     onClick={() => handleSelectBroadcast(item)}
                 />
@@ -359,7 +354,7 @@ function RecentBroadCasts() {
         }
 
         return slides;
-    }, [broadcastItems, handleSelectBroadcast, isInitialLoading, isLoadingMore, responsesLabel, shouldSuppressClick]);
+    }, [broadcastItems, handleSelectBroadcast, isInitialLoading, isLoadingMore, shouldSuppressClick]);
 
     if (!canInteractAsUser) {
         return null;
