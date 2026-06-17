@@ -19,9 +19,17 @@ export function useIsGuest(): boolean {
   return mounted && isGuest;
 }
 
-/** Signed-in user (not guest). False for guests and before hydration when there is no userId. */
+/** Signed-in user (not guest). False until mounted so SSR matches the first client render. */
 export function useCanInteractAsUser(): boolean {
   const isGuest = useIsGuest();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return false;
+
   const userId = getUserId();
   return !isGuest && Boolean(userId);
 }

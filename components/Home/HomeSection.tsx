@@ -267,7 +267,7 @@ function HomeSection() {
           </Modal>
         </>
       )}
-      {!isGuest && <RecentBroadCasts />}
+      <RecentBroadCasts />
       <ProductCategories
         activeCategoryId={productCategoryId}
         onCategorySelect={setProductCategoryId}

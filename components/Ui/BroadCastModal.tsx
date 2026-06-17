@@ -12,7 +12,7 @@ import broadcastMembers from "@/assets/icons/broadcast-members.svg";
 import safeAndSecureIcon from "@/assets/icons/safe-and-secure.svg";
 import Image, { type StaticImageData } from "next/image";
 import { Plus } from "lucide-react";
-import { useGetAllCategoriesQuery } from "@/store/services/sellingService";
+import { useCategoriesQuery } from "@/custom-hooks/useCategoriesQuery";
 import { useGetLocationsQuery } from "@/store/services/authService";
 import { toast } from "react-hot-toast";
 import { useBroadcastMessageMutation } from "@/store/services/chatService";
@@ -117,7 +117,7 @@ function BroadCastModal({ setOpenBroadcast }: { setOpenBroadcast: (open: boolean
     const [location, setLocation] = useState<Location>({});
     const [locationSearch, setLocationSearch] = useState("");
     const [debouncedLocationSearch] = useDebounce(locationSearch, 500);
-    const { data: categories, isLoading: isCategoriesLoading, isFetching: isCategoriesFetching } = useGetAllCategoriesQuery("");
+    const { data: categories, isLoading: isCategoriesLoading, isFetching: isCategoriesFetching } = useCategoriesQuery("");
     const {
         data: locationsData,
         isLoading: isLocationsLoading,
@@ -440,7 +440,7 @@ function BroadCastModal({ setOpenBroadcast }: { setOpenBroadcast: (open: boolean
                                             <button
                                                 key={category._id}
                                                 type="button"
-                                                className="w-full cursor-pointer border-b border-gray-9 px-3 py-2 text-left text-[14px] text-black-1 last:border-b-0 hover:bg-gray-10"
+                                                className="w-full cursor-pointer border-b border-gray-9 px-3 py-2 text-left text-[14px] text-black-1 rtl:text-right ltr:text-left last:border-b-0 hover:bg-gray-10"
                                                 onClick={() => {
                                                     setSelectedCategory(category);
                                                     setIsCategoryOpen(false);

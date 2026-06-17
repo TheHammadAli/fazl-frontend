@@ -2,7 +2,7 @@ import { useDictionary } from "@/dictionaries/DictionaryProvider";
 import React from "react";
 import Image from "next/image";
 import crossIcon from "@/assets/icons/cross-icon.svg";
-import { useGetAllCategoriesQuery } from "@/store/services/sellingService";
+import { useCategoriesQuery } from "@/custom-hooks/useCategoriesQuery";
 import CategoryImg from "@/assets/icons/category-icon.png";
 import chevron from "@/assets/icons/chev-down-icon.svg";
 import CategoriesSkeleton from "./CategoriesSkeleton";
@@ -29,7 +29,7 @@ function CategoryModal({
     data: categories,
     isLoading: isCategoriesLoading,
     isFetching: isCategoriesFetching,
-  } = useGetAllCategoriesQuery("");
+  } = useCategoriesQuery("");
   console.log(selectedCategory)
   const { currentLanguage } = useDictionary();
   return (

@@ -5,7 +5,7 @@ import { Plug, Wind, Wrench, type LucideIcon } from "lucide-react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { FreeMode } from "swiper/modules";
 import { useDictionary } from "@/dictionaries/DictionaryProvider";
-import { useGetAllCategoriesQuery } from "@/store/services/sellingService";
+import { useCategoriesQuery } from "@/custom-hooks/useCategoriesQuery";
 import { getFeedCategoryLabel } from "@/utils/getFeedCategoryLabel";
 import "swiper/css";
 
@@ -109,7 +109,7 @@ export default function ServicesCategories({
         data: categories,
         isLoading,
         isFetching,
-    } = useGetAllCategoriesQuery({ type: "service" });
+    } = useCategoriesQuery({ type: "service" });
 
     const isLoadingCategories = isLoading || isFetching;
     const categoryList = useMemo(

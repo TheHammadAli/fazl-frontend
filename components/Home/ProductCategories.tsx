@@ -12,7 +12,7 @@ import { useRouter } from "next/navigation";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { FreeMode } from "swiper/modules";
 import { useDictionary } from "@/dictionaries/DictionaryProvider";
-import { useGetAllCategoriesQuery } from "@/store/services/sellingService";
+import { useCategoriesQuery } from "@/custom-hooks/useCategoriesQuery";
 import { getFeedCategoryLabel } from "@/utils/getFeedCategoryLabel";
 import "swiper/css";
 
@@ -102,7 +102,7 @@ type CategoryCardProps = {
 function CategoryCard({ name, subtitle, theme, onClick, isActive }: CategoryCardProps) {
     const { Icon, bgClass, iconColor } = theme;
     const { info_messages } = useDictionary();
-
+    console.log(subtitle)
     return (
         <div
             role="button"
@@ -155,7 +155,7 @@ function ProductCategories({
         data: categories,
         isLoading,
         isFetching,
-    } = useGetAllCategoriesQuery({ type: "product" });
+    } = useCategoriesQuery({ type: "product" });
 
     const isLoadingCategories = isLoading || isFetching;
     const categoryList = useMemo(
@@ -180,13 +180,12 @@ function ProductCategories({
 
         const slides = categoryList.map((category, index) => {
             const theme = getCategoryTheme(index);
-            const name = getFeedCategoryLabel(category.name, currentLanguage);
             const listingsCount = getCategoryListingsCount(category);
 
             return (
                 <SwiperSlide key={category._id} className="!h-auto !overflow-visible">
                     <CategoryCard
-                        name={name}
+                        name={category.name as string}
                         subtitle={listingsCount ?? info_messages.explore_more}
                         theme={theme}
                         isActive={activeCategoryId === category._id}

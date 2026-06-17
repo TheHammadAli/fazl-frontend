@@ -19,7 +19,6 @@ import toast from "react-hot-toast";
 import { parameterTypes, hasDuplicateParameterNames } from "./ParametersModal";
 import ParametersModal from "./ParametersModal";
 import ParameterTags from "./ParameterTags";
-import TypeModal from "./TypeModal";
 import { useSearchParams } from "next/navigation";
 import ProductListed from "./ProductListed";
 import { useGetProductDetailQuery } from "@/store/services/homeService";
@@ -71,13 +70,11 @@ function ListProduct() {
   const [description, setDescription] = useState(
     productData?.description || ""
   );
-  const [type, setType] = useState(productData?.type || "");
+  const [type] = useState("classified");
 
   const [descriptionError, setDescriptionError] = useState("");
-  const [typeError, setTypeError] = useState("");
   const [isCatOpen, setIsCatOpen] = useState(false);
   const [isPriceOpen, setIsPriceOpen] = useState(false);
-  const [isTypeOpen, setIsTypeOpen] = useState(false);
   const [isParametersModalOpen, setIsParametersModalOpen] = useState(false);
   const [priceError, setPriceError] = useState("");
   const [selectedCategory, setSelectedCategory] =
@@ -96,7 +93,6 @@ function ListProduct() {
     setDescriptionError("");
     setCategoryError("");
     setPriceError("");
-    setTypeError("");
     setParameterError("");
 
     if (title === "") {
@@ -104,9 +100,6 @@ function ListProduct() {
     }
     if (description === "") {
       setDescriptionError(error_messages.description_required);
-    }
-    if (type === "") {
-      setTypeError(error_messages.type_required);
     }
     if (selectedCategory === null) {
       setCategoryError(error_messages.category_required);
@@ -135,7 +128,6 @@ function ListProduct() {
       description !== "" &&
       selectedCategory !== null &&
       selectedPrice.price !== "" &&
-      type !== "" &&
       // video !== null &&
       // video !== ""
       //  &&
@@ -189,7 +181,6 @@ function ListProduct() {
       const prouductData = product?.data;
       setTitle(prouductData?.title ?? "");
       setDescription(prouductData?.description ?? "");
-      setType(prouductData?.type ?? "");
       setSelectedCategory(prouductData?.category ?? null);
       setParameters(prouductData?.parameters ?? []);
       setSelectedPrice({ ...selectedPrice, price: prouductData?.price ?? "" });
@@ -243,20 +234,6 @@ function ListProduct() {
             parameters={parameters}
             setParameters={setParameters}
             setOpen={setIsParametersModalOpen}
-          />
-        </div>
-      </Modal>
-      <Modal
-        editModalRef={categoryRef}
-        open={isTypeOpen}
-        setOpen={setIsTypeOpen}
-        centered={true}
-      >
-        <div className=" h-full w-full flex justify-center ">
-          <TypeModal
-            type={type}
-            setType={setType}
-            setIsTypeOpen={setIsTypeOpen}
           />
         </div>
       </Modal>
@@ -349,30 +326,21 @@ function ListProduct() {
                     </p>
                   )}
                 </div>
-                <div className="flex items-center justify-between h-[40px] px-4 border-b-[1px] border-gray-9">
+                <div className="flex items-center justify-between h-[40px] px-4 border-b-[1px] border-gray-9 opacity-60">
                   <h3 className="text-[15px] leading-none font-medium text-black-1">
                     {placeholders.type}
                   </h3>
-                  <div
-                    className="flex items-center gap-2 cursor-pointer"
-                    onClick={() => setIsTypeOpen(true)}
-                  >
+                  <div className="flex items-center gap-2 cursor-not-allowed">
                     <h4 className="text-[15px] font-normal text-gray-8 leading-none">
-                      {placeholders?.[type as keyof typeof placeholders] ||
-                        placeholders.choose_type}
+                      {placeholders.classified}
                     </h4>
                     <Image
                       src={chevron}
                       alt="chevron"
-                      className="-rotate-90 rtl:rotate-90 w-4"
+                      className="-rotate-90 rtl:rotate-90 w-4 opacity-50"
                     />
                   </div>
                 </div>
-                {typeError && (
-                  <p className="text-red-1 text-[14px] font-normal">
-                    {typeError}
-                  </p>
-                )}
                 <div className="bg-gray-12  mt-2  h-[27px] "></div>
                 {/* category */}
                 <div className="bg-white h-[50px] flex items-center justify-between border-b-[1px] border-gray-9  px-4">

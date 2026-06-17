@@ -1,5 +1,4 @@
 "use client";
-
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -234,6 +233,7 @@ function RecentBroadCasts() {
     const router = useRouter();
     const canInteractAsUser = useCanInteractAsUser();
     const { info_messages } = useDictionary();
+    const [hasMounted, setHasMounted] = useState(false);
     const [page, setPage] = useState(1);
     const [broadcastItems, setBroadcastItems] = useState<RecentBroadcastItem[]>([]);
     const [hasMore, setHasMore] = useState(true);
@@ -269,6 +269,10 @@ function RecentBroadCasts() {
     const shouldSuppressClick = useCallback(() => isSwipingRef.current, []);
 
     useEffect(() => clearSwipeResetTimeout, [clearSwipeResetTimeout]);
+
+    useEffect(() => {
+        setHasMounted(true);
+    }, []);
 
     const {
         data,
@@ -356,7 +360,7 @@ function RecentBroadCasts() {
         return slides;
     }, [broadcastItems, handleSelectBroadcast, isInitialLoading, isLoadingMore, shouldSuppressClick]);
 
-    if (!canInteractAsUser) {
+    if (!hasMounted || !canInteractAsUser) {
         return null;
     }
 

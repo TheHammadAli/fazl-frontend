@@ -28,6 +28,19 @@ function toSearchParams(params: Record<string, string | number | undefined>) {
   return search;
 }
 
+export type GetAllCategoriesParams =
+  | string
+  | { type?: string; lang?: string };
+
+function normalizeCategoriesParams(
+  params: GetAllCategoriesParams = "",
+): { type?: string; lang?: string } {
+  if (typeof params === "string") {
+    return params ? { type: params } : {};
+  }
+  return params ?? {};
+}
+
 export const profileService = baseApi.injectEndpoints({
   endpoints: (build) => ({
     createShop: build.mutation({
@@ -48,12 +61,14 @@ export const profileService = baseApi.injectEndpoints({
       providesTags: ["SHOP_DETAIL"],
     }),
     getAllCategories: build.query({
-      query: (params: any) => {
+      query: (params: GetAllCategoriesParams = "") => {
+        const { lang: _lang, ...apiParams } = normalizeCategoriesParams(params);
         return {
-          url: `/categories?${new URLSearchParams(params)}`,
+          url: `/categories?${toSearchParams(apiParams)}`,
           method: "GET",
         };
       },
+      providesTags: ["CATEGORIES"],
     }),
     addService: build.mutation({
       query: (body) => ({

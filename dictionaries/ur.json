@@ -80,6 +80,7 @@
         "delivery": "ترسیل",
         "description": "تفصیل",
         "message_seller": "پیغام فروخت کریں",
+        "contact_seller_on_whatsapp": "واٹس ایپ پر فروخت کنندہ سے رابطہ کریں",
         "message_provider": "پیغام سروس فراہم کنندہ",
         "all": "تمام",
         "search_for": "تلاش کریں",
@@ -261,6 +262,7 @@
         "home_delivery": "ہوم ڈلیوری، 4–6 دن",
         "receive_order": "آپ اپنا آرڈر کس طرح وصول کرنا چاہتے ہیں؟",
         "added_to_cart": "کارٹ میں شامل ہو گیا",
+        "whatsapp_product_inquiry": "سلام، میں آپ کی لسٹنگ میں دلچسپی رکھتا ہوں",
         "guest_banner_message": "آپ مہمان کے طور پر براؤز کر رہے ہیں۔ خریداری، بکنگ، چیٹ اور مزید کے لیے سائن ان کریں۔",
         "cart_empty": "آپ کی ٹوکری خالی ہے",
         "cart_empty_subtitle": "جب آپ کسی چیز کو ٹوکری میں شامل کریں گے، تو وہ یہاں ظاہر ہوگی۔",
@@ -335,6 +337,7 @@
     "error_messages": {
         "future_time": "وقت مستقبل میں ہونا چاہیے",
         "something_went_wrong": "کچھ غلط ہو گیا، براہ کرم بعد میں دوبارہ کوشش کریں",
+        "seller_phone_unavailable": "فروخت کنندہ کا فون نمبر دستیاب نہیں ہے",
         "guest_signin_required": "اس حصے تک رسائی کے لیے سائن ان کریں",
         "name_required": "نام ضروری ہے*",
         "title_required": "عنوان ضروری ہے*",

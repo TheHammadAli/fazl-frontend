@@ -136,7 +136,7 @@ function CatalogCard({
             <h2 className="mt-3 line-clamp-1 text-[16px] font-medium text-black-1 first-letter:capitalize">
                 {item.title}
             </h2>
-            <div className="flex gap-2">
+            {/* <div className="flex gap-2">
                 <AvgRatingStars
                     rating={item.averageRating}
                     isLoading={false}
@@ -145,7 +145,7 @@ function CatalogCard({
                 <span className="text-[14px] font-normal text-gray-8">
                     ({item.reviewCount ?? 0})
                 </span>
-            </div>
+            </div> */}
             <h2 className="text-[16px] font-normal text-green-1">
                 {currencyLabel} {item.price}
             </h2>
