@@ -15,6 +15,13 @@ import { useAppDispatch } from "@/store/store";
 import { addToCart } from "@/store/reducers/cartReducer";
 import toast from "react-hot-toast";
 import { useRequireSignIn } from "@/custom-hooks/useRequireSignIn";
+import Modal from "../Ui/Modals/Modal";
+import SharePostModal from "../Ui/SharePostModal";
+import shareSimpleIcon from "@/assets/icons/share-simple.svg";
+import {
+  useLikeVideoMutation,
+  useUnlikeVideoMutation,
+} from "@/store/services/feedService";
 
 function buildWhatsAppUrl(phone: string, message: string) {
   const digits = phone.replace(/\D/g, "");
@@ -49,9 +56,14 @@ function BuyProductDetail({
   const dispatch = useAppDispatch();
   const { pages, placeholders, currentLanguage, info_messages, error_messages } = useDictionary();
   const ref = React.useRef<HTMLDivElement>(null);
+  const sharePostRef = React.useRef<HTMLDivElement>(null);
   const [toggle, setToggle] = useState(-1);
   const [type, setType] = useState("image");
   const [typeIndex, setTypeIndex] = useState(0);
+  const [shareModal, setShareModal] = useState(false);
+  const [isLiked, setIsLiked] = useState(false);
+  const isLikePendingRef = React.useRef(false);
+  const productId = product?.data?.id ?? product?.data?._id ?? "";
   useClickOutside(ref, () => {
     setToggle(-1);
   });
@@ -83,7 +95,11 @@ function BuyProductDetail({
   });
   const sellerPhone = sellerPhoneFromProduct ?? sellerDetail?.data?.phone;
 
+  const [likeVideo, { isLoading: isLikeLoading }] = useLikeVideoMutation();
+  const [unlikeVideo, { isLoading: isUnlikeLoading }] = useUnlikeVideoMutation();
+
   const [mounted, setMounted] = useState(false);
+  const showLikeAndShare = mounted && Boolean(userId);
 
   const videoSrc =
     typeof product?.data?.video === "string" && product.data.video.trim() !== ""
@@ -99,6 +115,48 @@ function BuyProductDetail({
       setType("image");
     }
   }, [type, videoSrc]);
+
+  useEffect(() => {
+    if (isLikePendingRef.current) return;
+    setIsLiked(Boolean(product?.data?.isLiked));
+  }, [product?.data?.isLiked, productId]);
+
+  const onLikeClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+    if (!productId || isLikeLoading || isUnlikeLoading) return;
+
+    const prevIsLiked = isLiked;
+    const nextIsLiked = !prevIsLiked;
+    isLikePendingRef.current = true;
+    setIsLiked(nextIsLiked);
+
+    const req = prevIsLiked
+      ? unlikeVideo({ itemId: productId, itemType: "product" }).unwrap()
+      : likeVideo({
+          itemId: productId,
+          itemType: "product",
+          ownerModel: product?.data?.shopId ? "Shop" : "User",
+        }).unwrap();
+
+    req
+      .catch(() => {
+        setIsLiked(prevIsLiked);
+        toast.error(error_messages.something_went_wrong);
+      })
+      .finally(() => {
+        isLikePendingRef.current = false;
+      });
+  };
+
+  const onShareClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+    setShareModal(true);
+  };
+
+  const shareUrl =
+    mounted && productId
+      ? `${window.location.origin}/buy-product?id=${productId}`
+      : "";
 
   const handleAddToCart = () => {
     if (!product?.data?.id) return;
@@ -150,6 +208,19 @@ function BuyProductDetail({
 
   return (
     <div className="">
+      <Modal
+        editModalRef={sharePostRef}
+        open={shareModal}
+        setOpen={setShareModal}
+        centered={true}
+      >
+        <SharePostModal
+          type={placeholders.product}
+          setShareModal={setShareModal}
+          shareUrl={shareUrl}
+          shareService={true}
+        />
+      </Modal>
       <div className="h-full min-h-screen flex flex-col items-center">
         <div className="px-5 sm:px-10 h-[61px] border-b-[1px] border-gray-9 bg-white w-full  flex justify-center">
           <div className="w-full   flex items-center gap-[6px] font-normal text-[14px] mt-5">
@@ -167,7 +238,7 @@ function BuyProductDetail({
           <div className="">
             <div className="flex  flex-col sm:flex-row gap-5 md:gap-12">
               <div className="space-y-3">
-                <div className="h-[280px] min-w-[250px] sm:h-[320px] md:h-[500px]  max-w-[496px] xl:w-[496px] object-cover overflow-hidden rounded-[10px]">
+                <div className="relative   h-[280px] min-w-[250px] sm:h-[320px] md:h-[500px] max-w-[496px] xl:w-[496px] overflow-hidden rounded-[10px]">
                   {type === "image" || !videoSrc ? (
                     <Image
                       src={
@@ -179,18 +250,50 @@ function BuyProductDetail({
                       width={100}
                       unoptimized
                       alt="product"
-                      className=" h-full w-full object-cover"
+                      className="h-full w-full object-cover"
                     />
                   ) : (
                     <video
                       src={`${videoSrc}?t=${Date.now()}`}
                       controls
                       autoPlay={false}
-                      className=" h-full w-full object-contain"
+                      className="h-full w-full object-contain"
                     />
                   )}
+                  {showLikeAndShare && (
+                    <div className="absolute top-4 z-10 flex items-center gap-3 ltr:right-4 rtl:left-4">
+                      <button
+                        type="button"
+                        onClick={onLikeClick}
+                        className={`flex h-12 w-12 cursor-pointer items-center justify-center rounded-full text-white ${isLiked ? "bg-black" : "bg-[#f2f2f2]/50"}`}
+                        aria-label="Like"
+                      >
+                        <svg
+                          viewBox="0 0 24 24"
+                          stroke={isLiked ? undefined : "black"}
+                          strokeWidth={isLiked ? undefined : 2}
+                          fill={isLiked ? "white" : "none"}
+                          className="h-6 w-6"
+                        >
+                          <path d="M2.25 10.5a2.25 2.25 0 0 1 2.25-2.25h2.4a1.5 1.5 0 0 0 1.42-.99l1.59-4.37a1.5 1.5 0 0 1 2.84.95l-.55 4.41H18a3 3 0 0 1 2.95 3.55l-1.1 6a3 3 0 0 1-2.95 2.45H9.75a3 3 0 0 1-3-3v-6.75H4.5a2.25 2.25 0 0 1-2.25-2.25Z" />
+                        </svg>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={onShareClick}
+                        className="flex h-12 w-12 cursor-pointer items-center justify-center rounded-full bg-[#f2f2f2]/50 text-white"
+                        aria-label="Share"
+                      >
+                        <Image
+                          className="h-6 w-6"
+                          src={shareSimpleIcon}
+                          alt="share-simple-icon"
+                        />
+                      </button>
+                    </div>
+                  )}
                 </div>
-                <div className="flex gap-1 flex-wrap max-w-[496px]">
+                <div className="flex gap-1 flex-wrap max-w-[496px] ">
                   {product?.data?.images?.map(
                     (image: string, index: number) => (
                       <div

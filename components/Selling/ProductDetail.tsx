@@ -59,7 +59,7 @@ function ProductDetail() {
     isLoading,
     isFetching,
     isSuccess,
-  } = useGetProductDetailQuery(id, {
+  } = useGetProductDetailQuery({ id: id, userId: userId }, {
     skip: !id,
   });
 

@@ -9,12 +9,14 @@ import { useGetProductOwnerDetailQuery } from "@/store/services/authService";
 import { useAppSelector } from "@/store/store";
 import { useRequireSignIn } from "@/custom-hooks/useRequireSignIn";
 import { useRouter } from "next/navigation";
+import { getUserId } from "@/utils/getUserId";
 
 function BuyProduct() {
   const router = useRouter();
   const { isGuest, requireSignIn } = useRequireSignIn();
   const searchParams = useSearchParams();
   const id = searchParams.get("id");
+  const userId = getUserId() ?? "";
   const cartLineId = searchParams.get("cartLine");
   const initialStep = searchParams.get("step") === "cart" ? "cart" : "product";
   const [step, setStep] = useState<"product" | "cart">(initialStep);
@@ -25,9 +27,12 @@ function BuyProduct() {
     isLoading,
     isFetching,
     isSuccess,
-  } = useGetProductDetailQuery(id, {
-    skip: !id,
-  });
+  } = useGetProductDetailQuery(
+    { id: id!, ...(userId ? { userId } : {}) },
+    {
+      skip: !id,
+    },
+  );
   const shopData = product?.data?.shopId;
   const ownerData = product?.data?.ownerId;
 

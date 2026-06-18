@@ -23,12 +23,13 @@ import { useSearchParams } from "next/navigation";
 import ProductListed from "./ProductListed";
 import { useGetProductDetailQuery } from "@/store/services/homeService";
 import { useRouter } from "next/navigation";
-
+import { getUserId } from "@/utils/getUserId";
 function ListProduct() {
   const router = useRouter();
   const categoryRef = useRef<HTMLDivElement | null>(null);
   const { pages, placeholders, info_messages, error_messages, currentLanguage } =
     useDictionary();
+  const userId = getUserId() ?? "";
   const [updateProduct, { data, isLoading, isError, isSuccess, error }] =
     useUpdateProductMutation();
   const id = useSearchParams().get("id") || "";
@@ -38,7 +39,7 @@ function ListProduct() {
   ] = useDeleteProductMediaMutation();
   const [deleteMedia, setDeleteMedia] = useState<string[]>([]);
   const { data: product, isSuccess: productSuccess } = useGetProductDetailQuery(
-    id,
+    { id: id, userId: userId },
     {
       skip: !id,
     }

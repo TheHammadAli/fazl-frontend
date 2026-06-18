@@ -25,6 +25,7 @@ export const feedService = baseApi.injectEndpoints({
           body,
         };
       },
+      invalidatesTags: ["PRODUCT"],
     }),
     unlikeVideo: build.mutation({
       query: (body: any) => {
@@ -34,6 +35,7 @@ export const feedService = baseApi.injectEndpoints({
           body,
         };
       },
+      invalidatesTags: ["PRODUCT"],
     }),
     likedVideoByUser: build.query({
       query: ({ userId, type }: any) => {
