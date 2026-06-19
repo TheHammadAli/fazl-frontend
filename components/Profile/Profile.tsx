@@ -33,8 +33,8 @@ function Profile() {
 
   const tabs = useMemo(
     () => [
-      { title: "my_cart", icon: cartIcon },
-      { title: "my_orders", icon: ordersIcon },
+      // { title: "my_cart", icon: cartIcon },
+      // { title: "my_orders", icon: ordersIcon },
       { title: "my_requests", icon: requestsIcon },
       { title: "my_jobs", icon: jobsIcon },
       { title: "broadcast_messages", icon: broadcastMessagesIcon },

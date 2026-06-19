@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import {
     Laptop,
     MoreHorizontal,
@@ -8,7 +8,6 @@ import {
     Smartphone,
     type LucideIcon,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { FreeMode } from "swiper/modules";
 import { useDictionary } from "@/dictionaries/DictionaryProvider";
@@ -28,6 +27,8 @@ type CategoryTheme = {
     iconColor: string;
     Icon: LucideIcon;
 };
+
+const INITIAL_CATEGORY_COUNT = 5;
 
 const CATEGORY_STYLES: CategoryTheme[] = [
     { bgClass: "bg-[#EAF1FB]", iconColor: "#3A46FF", Icon: Smartphone },
@@ -102,7 +103,7 @@ type CategoryCardProps = {
 function CategoryCard({ name, subtitle, theme, onClick, isActive }: CategoryCardProps) {
     const { Icon, bgClass, iconColor } = theme;
     const { info_messages } = useDictionary();
-    console.log(subtitle)
+
     return (
         <div
             role="button"
@@ -149,8 +150,8 @@ function ProductCategories({
     activeCategoryId: string;
     onCategorySelect: (categoryId: string) => void;
 }) {
-    const router = useRouter();
-    const { info_messages, currentLanguage } = useDictionary();
+    const { info_messages, placeholders, currentLanguage } = useDictionary();
+    const [showAllCategories, setShowAllCategories] = useState(false);
     const {
         data: categories,
         isLoading,
@@ -162,6 +163,15 @@ function ProductCategories({
         () => (categories?.data ?? []) as CategoryItem[],
         [categories?.data],
     );
+    const visibleCategories = useMemo(
+        () =>
+            showAllCategories
+                ? categoryList
+                : categoryList.slice(0, INITIAL_CATEGORY_COUNT),
+        [categoryList, showAllCategories],
+    );
+    const hasMoreCategories = categoryList.length > INITIAL_CATEGORY_COUNT;
+
     const handleCategorySelect = useCallback(
         (categoryId: string) => {
             onCategorySelect(activeCategoryId === categoryId ? "" : categoryId);
@@ -171,21 +181,21 @@ function ProductCategories({
 
     const swiperSlides = useMemo(() => {
         if (isLoadingCategories) {
-            return Array.from({ length: 6 }).map((_, index) => (
+            return Array.from({ length: INITIAL_CATEGORY_COUNT + 1 }).map((_, index) => (
                 <SwiperSlide key={`category-skeleton-${index}`} className="!h-auto !overflow-visible">
                     <CategoryCardSkeleton />
                 </SwiperSlide>
             ));
         }
 
-        const slides = categoryList.map((category, index) => {
+        const slides = visibleCategories.map((category, index) => {
             const theme = getCategoryTheme(index);
             const listingsCount = getCategoryListingsCount(category);
 
             return (
                 <SwiperSlide key={category._id} className="!h-auto !overflow-visible">
                     <CategoryCard
-                        name={category.name as string}
+                        name={getFeedCategoryLabel(category.name, currentLanguage)}
                         subtitle={listingsCount ?? info_messages.explore_more}
                         theme={theme}
                         isActive={activeCategoryId === category._id}
@@ -195,33 +205,31 @@ function ProductCategories({
             );
         });
 
-        slides.push(
-            <SwiperSlide key="category-more" className="!h-auto !overflow-visible">
-                <CategoryCard
-                    name={info_messages.more}
-                    theme={MORE_THEME}
-                    subtitle={info_messages.explore_more}
-                    isActive={false}
-                    onClick={() => {
-                        onCategorySelect("");
-                        router.push("/home/search-list?tab=products");
-                    }}
-                />
-            </SwiperSlide>,
-        );
+        if (!showAllCategories && hasMoreCategories) {
+            slides.push(
+                <SwiperSlide key="category-see-more" className="!h-auto !overflow-visible">
+                    <CategoryCard
+                        name={placeholders.show_more}
+                        theme={MORE_THEME}
+                        subtitle={info_messages.explore_more}
+                        isActive={false}
+                        onClick={() => setShowAllCategories(true)}
+                    />
+                </SwiperSlide>,
+            );
+        }
 
         return slides;
     }, [
         activeCategoryId,
-        categoryList,
         currentLanguage,
         handleCategorySelect,
+        hasMoreCategories,
         info_messages.explore_more,
-        info_messages.listings,
-        info_messages.more,
+        placeholders.show_more,
         isLoadingCategories,
-        onCategorySelect,
-        router,
+        showAllCategories,
+        visibleCategories,
     ]);
 
     if (!isLoadingCategories && categoryList.length === 0) {
@@ -238,6 +246,7 @@ function ProductCategories({
 
             <div className="mt-4 w-full">
                 <Swiper
+                    key={showAllCategories ? "all-categories" : "initial-categories"}
                     modules={[FreeMode]}
                     className="category-swiper w-full"
                     spaceBetween={12}

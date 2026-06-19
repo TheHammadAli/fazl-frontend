@@ -30,11 +30,11 @@ function toSearchParams(params: Record<string, string | number | undefined>) {
 
 export type GetAllCategoriesParams =
   | string
-  | { type?: string; lang?: string };
+  | { type?: string; lang?: string; page?: number; limit?: number };
 
 function normalizeCategoriesParams(
   params: GetAllCategoriesParams = "",
-): { type?: string; lang?: string } {
+): { type?: string; lang?: string; page?: number; limit?: number } {
   if (typeof params === "string") {
     return params ? { type: params } : {};
   }

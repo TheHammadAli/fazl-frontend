@@ -53,6 +53,7 @@ function BuyProductDetail({
   const userId = getUserId() ?? "";
   const { requireSignIn } = useRequireSignIn();
   const { onInitiateChat, isLoading } = useInitiateChat();
+  console.log(ownerData, "owenerDat")
   const dispatch = useAppDispatch();
   const { pages, placeholders, currentLanguage, info_messages, error_messages } = useDictionary();
   const ref = React.useRef<HTMLDivElement>(null);
@@ -76,9 +77,10 @@ function BuyProductDetail({
   const reviewCount = avgReview?.data?.count ?? 0;
   const isOwner = product?.data?.shopId
     ? Boolean(userId) && userId === shopData?.ownerId
-    : Boolean(userId) && userId === ownerData?.id;
+    : Boolean(userId) && userId === (ownerData?.id || ownerData?._id);
   const allowedToBuy = !isOwner;
-  const allowMessageAndReview = !isOwner && !isClassified;
+  const allowMessage = allowedToBuy;
+  const allowAddReview = allowedToBuy && !isClassified;
   const showPurchaseActions = allowedToBuy && !isClassified;
   const showWhatsAppContact = allowedToBuy && isClassified;
 
@@ -89,7 +91,7 @@ function BuyProductDetail({
     ? typeof shopData?.ownerId === "object"
       ? shopData?.ownerId?.id
       : shopData?.ownerId
-    : ownerData?.id;
+    : ownerData?.id || ownerData?._id;
   const { data: sellerDetail } = useGetProductOwnerDetailQuery(sellerUserId ?? "", {
     skip: !isClassified || !sellerUserId || Boolean(sellerPhoneFromProduct),
   });
@@ -133,10 +135,10 @@ function BuyProductDetail({
     const req = prevIsLiked
       ? unlikeVideo({ itemId: productId, itemType: "product" }).unwrap()
       : likeVideo({
-          itemId: productId,
-          itemType: "product",
-          ownerModel: product?.data?.shopId ? "Shop" : "User",
-        }).unwrap();
+        itemId: productId,
+        itemType: "product",
+        ownerModel: product?.data?.shopId ? "Shop" : "User",
+      }).unwrap();
 
     req
       .catch(() => {
@@ -367,14 +369,14 @@ function BuyProductDetail({
                     </div>
                   </div>
 
-                  {allowMessageAndReview && (
+                  {allowMessage && (
                     <button
                       disabled={isLoading}
                       onClick={() => {
                         requireSignIn(() => {
                           const sellerId = product?.data?.shopId
                             ? shopData?.ownerId
-                            : ownerData?.id;
+                            : ownerData?.id || ownerData?._id;
                           onInitiateChat(userId, sellerId ?? "");
                         });
                       }}
@@ -519,7 +521,7 @@ function BuyProductDetail({
             </div>
 
             {!isClassified && (
-              <Reviews type="product" id={product?.data?.id} allowAddReview={allowMessageAndReview} />
+              <Reviews type="product" id={product?.data?.id} allowAddReview={allowAddReview} />
             )}
           </div>
         </div>

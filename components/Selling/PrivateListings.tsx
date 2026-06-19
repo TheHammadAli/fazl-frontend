@@ -62,7 +62,7 @@ function PrivateListings() {
                 }}
                 className="flex items-center justify-between hover:bg-[#E6FBFB] p-2 rounded-lg cursor-pointer"
               >
-                <div className="flex gap-3">
+                <div className="flex gap-3 items-center">
                   <Image
                     src={
                       product?.images?.length > 0
@@ -91,9 +91,9 @@ function PrivateListings() {
                         (30% off)
                       </span> */}
                     </h3>
-                    <h4 className="font-light text-[#4B514F] text-[14px]">
+                    {/* <h4 className="font-light text-[#4B514F] text-[14px]">
                       {(product?.reviewCount ?? 0) + " " + (product?.reviewCount === 1 ? placeholders.review : placeholders.reviews)}
-                    </h4>
+                    </h4> */}
                   </div>
                 </div>
                 <div>

@@ -9,7 +9,9 @@ import { useGetShopProductsQuery } from "@/store/services/sellingService";
 import ShopOrders from "./ShopOrders";
 
 function ShopProducts() {
-  const tabs = ["shop", "orders"];
+  const tabs = ["shop",
+    // "orders"
+  ];
   const [activeTab, setActiveTab] = useState<string>(tabs[0]);
   const { placeholders } = useDictionary();
   const router = useRouter();
@@ -17,7 +19,7 @@ function ShopProducts() {
 
   const tabsComponents: { [key: string]: React.ReactNode } = {
     shop: <ShopProductsList />,
-    orders: <ShopOrders />,
+    // orders: <ShopOrders />,
   };
 
   return (

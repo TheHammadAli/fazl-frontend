@@ -64,9 +64,10 @@ function ProductDetail() {
   });
 
 
+  const isClassified = product?.data?.type === "classified";
   const { data: avgReview, isLoading: isLoadingAvgReview } = useGetAvgReviewsQuery(
     { type: "product", id: product?.data?.id ?? "" },
-    { skip: !product?.data?.id || !product?.data?.id }
+    { skip: !product?.data?.id || isClassified }
   );
   const reviewCount = avgReview?.data?.count ?? 0;
   const shopData = product?.data?.shopId;
@@ -303,9 +304,11 @@ function ProductDetail() {
                 <h3 className="text-[#030303] text-[16px] font-medium mt-4">
                   {product?.data?.title ?? ""}
                 </h3>
-                <h3 className="font-light text-[14px] text-[#4B514F] ">
-                  {reviewCount} {reviewCount === 1 ? placeholders.review : placeholders.reviews}
-                </h3>
+                {!isClassified && (
+                  <h3 className="font-light text-[14px] text-[#4B514F] ">
+                    {reviewCount} {reviewCount === 1 ? placeholders.review : placeholders.reviews}
+                  </h3>
+                )}
                 <div className="space-x-2 mt-4">
                   <span className="text-green-1 text-[16px] font-medium">
                     {placeholders.Rs} {product?.data?.price ?? ""}
@@ -321,7 +324,9 @@ function ProductDetail() {
 
               </div>
             </div>
-            <Reviews type="product" id={product?.data?.id || product?.data?._id} allowAddReview={allowedToBuy} />
+            {!isClassified && (
+              <Reviews type="product" id={product?.data?.id || product?.data?._id} allowAddReview={allowedToBuy} />
+            )}
           </div>
         </div>
       </div>

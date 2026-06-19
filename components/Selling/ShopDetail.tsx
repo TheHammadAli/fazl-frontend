@@ -122,7 +122,7 @@ export default function ShopDetail() {
                   </div>
                 </div>
 
-                <div className="flex lg:justify-between gap-2 mt-4">
+                {/* <div className="flex lg:justify-between gap-2 mt-4">
                   <div className="bg-gray-12 h-[73px] px-4 xl:px-6 w-[168px]  rounded-[14px] flex flex-col justify-center">
                     <p className="text-[14px] text-gray-8  font-normal">
                       {placeholders.total_orders}
@@ -136,7 +136,7 @@ export default function ShopDetail() {
                     </p>
                     <p className="font-medium text-[20px] text-black-1">{shop?.data?.productsCount ?? 0}</p>
                   </div>
-                </div>
+                </div> */}
 
                 <div className="mt-4 space-y-2">
                   <button
