@@ -267,11 +267,12 @@ function HomeSection() {
           </Modal>
         </>
       )}
-      <RecentBroadCasts />
+
       <ProductCategories
         activeCategoryId={productCategoryId}
         onCategorySelect={setProductCategoryId}
       />
+      <RecentBroadCasts />
       <AllProductsAndServices tab="products" categoryId={productCategoryId} />
       <ServicesCategories
         activeCategoryId={serviceCategoryId}
