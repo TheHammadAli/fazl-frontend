@@ -21,6 +21,7 @@ function ServiceCart({
   service: {
     data: {
       id: string;
+      _id: string;
       price: number;
       title: string;
       images: string[];
@@ -58,13 +59,13 @@ function ServiceCart({
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     requireSignIn(() => {
-    const body = {
-      serviceId: service?.data?.id,
-      customerId: user?.id,
-      requestedDateTime: date.toISOString(),
-      // message: "string",
-    };
-    serviceBookRequest(body);
+      const body = {
+        serviceId: service?.data?._id || service?.data?.id,
+        customerId: user?.id,
+        requestedDateTime: date.toISOString(),
+        // message: "string",
+      };
+      serviceBookRequest(body);
     });
   };
 

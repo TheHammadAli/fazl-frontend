@@ -53,7 +53,7 @@ function BuyServiceDetail({
   const [type, setType] = useState("image");
   const [typeIndex, setTypeIndex] = useState(0);
   const ownerData = service?.data?.ownerId;
-  const isOwner = Boolean(userId) && userId === ownerData?.id;
+  const isOwner = Boolean(userId) && userId === (ownerData?.id || ownerData?._id);
   const allowedToBuy = !isOwner;
   const allowMessageAndReview = !isOwner;
   const [mounted, setMounted] = useState(false);
@@ -173,7 +173,7 @@ function BuyServiceDetail({
                       </h4>
                     </div>
                   </div>
-                  {allowMessageAndReview && <button disabled={isLoading} onClick={() => requireSignIn(() => onInitiateChat(userId, ownerData?.id ?? ""))} className=" cursor-pointer border-[1px] w-[163px] whitespace-nowrap border-green-1 text-green-1 flex items-center justify-center rounded-lg h-[33px] px-2 text-[13px] font-light">
+                  {allowMessageAndReview && <button disabled={isLoading} onClick={() => requireSignIn(() => onInitiateChat(userId, ownerData?.id ?? ownerData?._id ?? ""))} className=" cursor-pointer border-[1px] w-[163px] whitespace-nowrap border-green-1 text-green-1 flex items-center justify-center rounded-lg h-[33px] px-2 text-[13px] font-light">
                     {isLoading ? <div className="flex  justify-center py-3" aria-hidden>
                       <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-gray-4 border-t-green-1" />
                     </div> : placeholders.message_provider}
