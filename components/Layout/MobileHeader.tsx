@@ -24,7 +24,7 @@ export default function MobileHeader({ unreadMessages, unreadCount, openSidebar,
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const router = useRouter();
   const path = usePathname();
-  const { pages, placeholders, currentLanguage } = useDictionary();
+  const { pages, placeholders, info_messages } = useDictionary();
   const {
     data: profileData,
     isLoading: profileLoading,
@@ -152,6 +152,18 @@ export default function MobileHeader({ unreadMessages, unreadCount, openSidebar,
                         {pages.profile}
                       </h2>
                     </div>
+                  )}
+                  {!isGuest && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        router.push("/selling/list-product?type=personal");
+                      }}
+                      className="border-green-1 mt-4 cursor-pointer border-[3px] bg-[#DFF4F4] text-[13px] font-medium text-green-1 px-4 py-2 rounded-xl h-[42px] w-full"
+                    >
+                      {info_messages.post_an_ad}
+                    </button>
                   )}
                   <div className=" flex flex-col items-center mt-20">
                     <div className="flex items-center gap-[6px] text-[12px] font-normal">

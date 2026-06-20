@@ -55,7 +55,7 @@ function SearchList() {
   const { placeholders, error_messages } = useDictionary();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { tab, search } = Object.fromEntries(searchParams.entries());
+  const { tab, search, categoryId } = Object.fromEntries(searchParams.entries());
   const [searchValue, setSearchValue] = useState(search || "");
   const [debounceSearch] = useDebounce(searchValue, 500);
 
@@ -75,6 +75,7 @@ function SearchList() {
       name: debounceSearch,
       page: productPage,
       limit: PRODUCTS_LIMIT,
+      ...(categoryId ? { category: categoryId } : {}),
     },
     { skip: tab !== "products" },
   );
@@ -88,6 +89,7 @@ function SearchList() {
       name: debounceSearch,
       page: servicePage,
       limit: SERVICES_LIMIT,
+      ...(categoryId ? { category: categoryId } : {}),
     },
     { skip: tab !== "services" },
   );
@@ -129,7 +131,7 @@ function SearchList() {
     setServicePage(1);
     setServiceItems([]);
     setHasMoreServices(true);
-  }, [tab, debounceSearch]);
+  }, [tab, debounceSearch, categoryId]);
 
   useEffect(() => {
     if (tab !== "products" || productsData == null) return;

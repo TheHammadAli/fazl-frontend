@@ -8,6 +8,7 @@ import {
     Smartphone,
     type LucideIcon,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { FreeMode } from "swiper/modules";
 import { useDictionary } from "@/dictionaries/DictionaryProvider";
@@ -97,10 +98,9 @@ type CategoryCardProps = {
     theme: CategoryTheme;
     onClick: () => void;
     subtitle: number | string;
-    isActive?: boolean;
 };
 
-function CategoryCard({ name, subtitle, theme, onClick, isActive }: CategoryCardProps) {
+function CategoryCard({ name, subtitle, theme, onClick }: CategoryCardProps) {
     const { Icon, bgClass, iconColor } = theme;
     const { info_messages } = useDictionary();
 
@@ -115,10 +115,7 @@ function CategoryCard({ name, subtitle, theme, onClick, isActive }: CategoryCard
                     onClick();
                 }
             }}
-            className={`w-full cursor-pointer rounded-[16px] border bg-white p-2.5 text-left transition-colors ${isActive
-                ? "border-1 border-[#007781]"
-                : "border border-[#E5E5E5] hover:border-[#C9D1D3]"
-                }`}
+            className="w-full cursor-pointer rounded-[16px] border border-[#E5E5E5] bg-white p-2.5 text-left transition-colors hover:border-[#C9D1D3]"
         >
             <div className="flex items-start gap-2.5">
                 <div
@@ -143,13 +140,8 @@ function CategoryCard({ name, subtitle, theme, onClick, isActive }: CategoryCard
     );
 }
 
-function ProductCategories({
-    activeCategoryId,
-    onCategorySelect,
-}: {
-    activeCategoryId: string;
-    onCategorySelect: (categoryId: string) => void;
-}) {
+function ProductCategories() {
+    const router = useRouter();
     const { info_messages, placeholders, currentLanguage } = useDictionary();
     const [showAllCategories, setShowAllCategories] = useState(false);
     const {
@@ -174,9 +166,10 @@ function ProductCategories({
 
     const handleCategorySelect = useCallback(
         (categoryId: string) => {
-            onCategorySelect(activeCategoryId === categoryId ? "" : categoryId);
+            const params = new URLSearchParams({ tab: "products", categoryId });
+            router.push(`/home/search-list?${params.toString()}`);
         },
-        [activeCategoryId, onCategorySelect],
+        [router],
     );
 
     const swiperSlides = useMemo(() => {
@@ -198,7 +191,6 @@ function ProductCategories({
                         name={getFeedCategoryLabel(category.name, currentLanguage)}
                         subtitle={listingsCount ?? info_messages.explore_more}
                         theme={theme}
-                        isActive={activeCategoryId === category._id}
                         onClick={() => handleCategorySelect(category._id)}
                     />
                 </SwiperSlide>
@@ -212,7 +204,6 @@ function ProductCategories({
                         name={placeholders.show_more}
                         theme={MORE_THEME}
                         subtitle={info_messages.explore_more}
-                        isActive={false}
                         onClick={() => setShowAllCategories(true)}
                     />
                 </SwiperSlide>,
@@ -221,7 +212,6 @@ function ProductCategories({
 
         return slides;
     }, [
-        activeCategoryId,
         currentLanguage,
         handleCategorySelect,
         hasMoreCategories,

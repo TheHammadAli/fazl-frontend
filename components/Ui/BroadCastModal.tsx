@@ -218,7 +218,7 @@ function BroadCastModal({ setOpenBroadcast }: { setOpenBroadcast: (open: boolean
                     <Image src={crossIcon} alt="cross-icon" className="w-3 h-3" />
                 </button>
             </div>
-            <div className=" bg-[#F2F9F3] mt-4 px-4">
+            <div className=" bg-[#F2F9F3]  px-4">
                 <div className="h-full  flex items-center justify-between gap-3  ">
                     <div className="min-w-0 flex-1">
                         <h3 className="text-[14px] font-medium lg:w-[220px] leading-snug text-[#030303] rtl:text-right ">

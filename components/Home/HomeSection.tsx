@@ -1,5 +1,5 @@
 "use client";
-import React, { useRef, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import searchIcon from "@/assets/icons/searchIcon.svg";
 import Image from "next/image";
 import Tabs from "../Ui/Tabs";
@@ -22,9 +22,12 @@ import { useIsGuest } from "@/custom-hooks/useIsGuest";
 import { getCatalogItemsFromSearchResponse } from "@/utils/catalogSearch";
 import type { StaticImageData } from "next/image";
 import FindProdBanner from "./FindProdBanner";
+import DownloadAppBanner from "./DownloadAppBanner";
+import HomeFooter from "./HomeFooter";
 import ProductCategories from "./ProductCategories";
 import ServicesCategories from "./ServicesCategories";
 import RecentBroadCasts from "./RecentBroadCasts";
+import { useCategoriesQuery } from "@/custom-hooks/useCategoriesQuery";
 
 type HomeActionCardProps = {
   bgClass: string;
@@ -81,6 +84,11 @@ function HomeActionCard({
   );
 }
 
+type ProductCategoryItem = {
+  _id: string;
+  name?: string | { en?: string; ur?: string };
+};
+
 function HomeSection() {
   const isGuest = useIsGuest();
   const [openBroadcast, setOpenBroadcast] = useState(false);
@@ -99,8 +107,6 @@ function HomeSection() {
   const [activeTab, setActiveTab] = useState<string>(tabs[0]);
   const { placeholders, info_messages, error_messages } = useDictionary();
   const [openCat, setOpenCat] = useState(false);
-  const [productCategoryId, setProductCategoryId] = useState("");
-  const [serviceCategoryId, setServiceCategoryId] = useState("");
   const { data: productsData, isLoading: isProductsLoading, isFetching: isProductsFetching } = useSearchProductsQuery(
     {
       // category: categoryId,
@@ -124,7 +130,13 @@ function HomeSection() {
         activeTab !== "services" || !debounceSearch
     }
   );
-
+  const {
+    data: categories,
+  } = useCategoriesQuery({ type: "product" });
+  const productCategoryList = useMemo(
+    () => ((categories?.data ?? []) as ProductCategoryItem[]).slice(0, 3),
+    [categories?.data],
+  );
   useClickOutside(catRef, () => {
     setOpenCat(false);
   });
@@ -135,7 +147,7 @@ function HomeSection() {
       : isServicesLoading || isServicesFetching);
 
   return (
-    <div className="p-5">
+    <div className="p-5 pb-0">
       {/* Search */}
       <div className="relative" onClick={() => setOpenCat(true)}>
         <Image
@@ -184,17 +196,10 @@ function HomeSection() {
                     <div
                       key={index}
                       onClick={() => {
-                        const activeCategoryId =
-                          activeTab === "products"
-                            ? productCategoryId
-                            : serviceCategoryId;
                         const params = new URLSearchParams({
                           tab: activeTab,
                           search: item?.title,
                         });
-                        if (activeCategoryId) {
-                          params.set("categoryId", activeCategoryId);
-                        }
                         router.push(`/home/search-list?${params.toString()}`);
                       }}
                       className="px-[15px] cursor-pointer h-[56px] flex justify-between items-center border-b-[1px] border-b-[#E5E5E5]"
@@ -268,17 +273,19 @@ function HomeSection() {
         </>
       )}
 
-      <ProductCategories
-        activeCategoryId={productCategoryId}
-        onCategorySelect={setProductCategoryId}
-      />
+      <ProductCategories />
       <RecentBroadCasts />
-      <AllProductsAndServices tab="products" categoryId={productCategoryId} />
-      <ServicesCategories
-        activeCategoryId={serviceCategoryId}
-        onCategorySelect={setServiceCategoryId}
-      />
-      <AllProductsAndServices tab="services" categoryId={serviceCategoryId} />
+      <ServicesCategories />
+      {productCategoryList.map((category) => (
+        <AllProductsAndServices
+          key={category._id}
+          tab="products"
+          categoryId={category._id}
+          title={category.name as string}
+        />
+      ))}
+      <DownloadAppBanner />
+      <HomeFooter />
 
     </div>
   );

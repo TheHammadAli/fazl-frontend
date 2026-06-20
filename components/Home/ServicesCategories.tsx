@@ -2,6 +2,7 @@
 
 import React, { useCallback, useMemo } from "react";
 import { Plug, Wind, Wrench, type LucideIcon } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { FreeMode } from "swiper/modules";
 import { useDictionary } from "@/dictionaries/DictionaryProvider";
@@ -69,10 +70,9 @@ type ServiceCategoryCardProps = {
     name: string;
     style: ServiceCategoryStyle;
     onClick: () => void;
-    isActive?: boolean;
 };
 
-function ServiceCategoryCard({ name, style, onClick, isActive }: ServiceCategoryCardProps) {
+function ServiceCategoryCard({ name, style, onClick }: ServiceCategoryCardProps) {
     const { bgClass, Icon } = style;
 
     return (
@@ -86,8 +86,7 @@ function ServiceCategoryCard({ name, style, onClick, isActive }: ServiceCategory
                     onClick();
                 }
             }}
-            className={`flex min-h-[100px] w-full cursor-pointer flex-col justify-between rounded-[14px] border-1 px-3 py-[14px] transition-opacity hover:opacity-95 ${bgClass} ${isActive ? "border-[#007781]" : "border-transparent"
-                }`}
+            className={`flex min-h-[100px] w-full cursor-pointer flex-col justify-between rounded-[14px] border-1 border-transparent px-3 py-[14px] transition-opacity hover:opacity-95 ${bgClass}`}
         >
             <Icon className="h-6 w-6 shrink-0 text-[#001907]" strokeWidth={1.75} />
             <p className="truncate-safe mt-3 w-full min-w-0 text-[13px] font-medium text-[#030303] rtl:text-right">
@@ -97,13 +96,8 @@ function ServiceCategoryCard({ name, style, onClick, isActive }: ServiceCategory
     );
 }
 
-export default function ServicesCategories({
-    activeCategoryId,
-    onCategorySelect,
-}: {
-    activeCategoryId: string;
-    onCategorySelect: (categoryId: string) => void;
-}) {
+export default function ServicesCategories() {
+    const router = useRouter();
     const { info_messages, currentLanguage } = useDictionary();
     const {
         data: categories,
@@ -119,9 +113,10 @@ export default function ServicesCategories({
 
     const handleCategorySelect = useCallback(
         (categoryId: string) => {
-            onCategorySelect(activeCategoryId === categoryId ? "" : categoryId);
+            const params = new URLSearchParams({ tab: "services", categoryId });
+            router.push(`/home/search-list?${params.toString()}`);
         },
-        [activeCategoryId, onCategorySelect],
+        [router],
     );
 
     const swiperSlides = useMemo(() => {
@@ -148,13 +143,12 @@ export default function ServicesCategories({
                     <ServiceCategoryCard
                         name={name}
                         style={style}
-                        isActive={activeCategoryId === category._id}
                         onClick={() => handleCategorySelect(category._id)}
                     />
                 </SwiperSlide>
             );
         });
-    }, [activeCategoryId, categoryList, currentLanguage, handleCategorySelect, isLoadingCategories]);
+    }, [categoryList, currentLanguage, handleCategorySelect, isLoadingCategories]);
 
     if (!isLoadingCategories && categoryList.length === 0) {
         return null;

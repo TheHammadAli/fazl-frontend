@@ -220,7 +220,7 @@ function BuyServiceDetail({
                 )}
               </div>
             </div>
-            <Reviews type="service" id={service?.data?.id} allowAddReview={allowMessageAndReview} />
+            <Reviews type="service" id={service?.data?.id || service?.data?._id} allowAddReview={allowMessageAndReview} />
 
           </div>
         </div>

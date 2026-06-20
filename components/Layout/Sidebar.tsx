@@ -39,7 +39,7 @@ function Sidebar({
   const { userId } = useAppSelector((state) => state.authReducer);
   const isGuest = useIsGuest();
 
-  const { placeholders, pages } = useDictionary();
+  const { placeholders, pages, info_messages } = useDictionary();
   const navLinks = isGuest ? getLinksForGuest(links) : links;
   const { data: profileData } = useGetUserDetailQuery(userId, {
     skip: userId === "" || isGuest,
@@ -48,7 +48,7 @@ function Sidebar({
   const router = useRouter();
   return (
     <div
-      className="bg-white hidden lg:flex flex-col justify-between border-r-[1px] border border-gray-9 w-[228px] min-w-[228px] h-screen min-h-screen
+      className="bg-white hidden lg:flex flex-col justify-between w-[228px] min-w-[228px] h-screen min-h-screen
     pt-[30px] px-[10px]"
     >
       <Dialog
@@ -68,7 +68,7 @@ function Sidebar({
         <Link href="/home" className="px-[14px] block">
           <Image src={logo} alt="logo" />
         </Link>
-        <div>
+        <div className="space-y-5">
           {navLinks.map((link, index) => {
             const active: boolean = path.includes(link?.href);
             const isUpdatesLink = link.href === "/updates";
@@ -141,9 +141,18 @@ function Sidebar({
             </div>
           )}
         </div>
+        {!isGuest && (
+          <button
+            type="button"
+            onClick={() => router.push("/selling/list-product?type=personal")}
+            className="border-green-1 mx-4 cursor-pointer border-[3px] bg-[#DFF4F4] text-[13px] font-medium text-green-1 px-4 py-2 rounded-xl h-[42px] w-[176px]"
+          >
+            {info_messages.post_an_ad}
+          </button>
+        )}
       </div>
 
-      <div className=" px-[14px] pb-20">
+      <div className=" px-[14px] pb-20 ">
         <div className="flex items-center gap-[6px] text-[12px] font-normal">
           <span className="text-green-1 underline cursor-pointer">
             {placeholders.company}

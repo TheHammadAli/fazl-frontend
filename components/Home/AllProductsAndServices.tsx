@@ -156,11 +156,13 @@ function CatalogCard({
 function AllProductsAndServices({
     tab,
     categoryId = "",
+    title,
 }: {
     tab: string;
     categoryId?: string;
+    title?: string;
 }) {
-
+    console.log(categoryId, "categoryId")
     const router = useRouter();
     const { placeholders, error_messages, info_messages } = useDictionary();
     const activeTab = tab as TabKey;
@@ -417,12 +419,39 @@ function AllProductsAndServices({
     ]);
 
     if (!isInitialLoading && !(totalCount > 0 || items.length > 0)) {
+        const sectionTitle =
+            title ??
+            (activeTab === "products"
+                ? info_messages.recent_products
+                : info_messages.recent_services);
+        const emptyMessage =
+            activeTab === "products"
+                ? error_messages.no_product_data
+                : error_messages.no_service_data;
+
         return (
-            <div className="flex h-[240px] w-full items-center justify-center text-black-1">
-                {activeTab === "products"
-                    ? error_messages.no_product_data
-                    : error_messages.no_service_data}
-            </div>
+            <section className="mt-6 sm:mt-8">
+                <div className="flex items-center justify-between gap-3">
+                    <h2 className="text-[18px] font-medium text-[#001907]">
+                        {sectionTitle}
+                    </h2>
+                    {categoryId ? (
+                        <button
+                            onClick={() => {
+                                const params = new URLSearchParams({ tab: activeTab });
+                                params.set("categoryId", categoryId);
+                                router.push(`/home/search-list?${params.toString()}`);
+                            }}
+                            className="cursor-pointer text-[14px] font-normal text-green-1 hover:underline"
+                        >
+                            {info_messages.see_all}
+                        </button>
+                    ) : null}
+                </div>
+                <div className="mt-4 flex h-[240px] w-full items-center justify-center text-black-1">
+                    {emptyMessage}
+                </div>
+            </section>
         );
     }
 
@@ -430,9 +459,10 @@ function AllProductsAndServices({
         <section className="mt-6 sm:mt-8">
             <div className="flex items-center justify-between gap-3">
                 <h2 className="text-[18px] font-medium text-[#001907]">
-                    {activeTab === "products"
-                        ? info_messages.recent_products
-                        : info_messages.recent_services}
+                    {title ??
+                        (activeTab === "products"
+                            ? info_messages.recent_products
+                            : info_messages.recent_services)}
                 </h2>
                 <button
                     onClick={() => {
