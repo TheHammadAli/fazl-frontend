@@ -17,6 +17,7 @@ import { BASE_URL } from "@/assets/content/constants";
 import GoogleIcon from "@/assets/icons/google-icon.svg";
 import Footer from "./Footer";
 import { useDictionary } from "@/dictionaries/DictionaryProvider";
+import { setAdminRoleCookie } from "@/utils/authCookies";
 
 export type Body = {
   email?: string;
@@ -101,14 +102,25 @@ function Signin() {
 
       dispatch(setUserId(res.data.user.id));
 
+      const roles = res?.data?.user?.roles ?? res?.data?.roles;
+      const isAdmin =
+        Array.isArray(roles) &&
+        roles.some(
+          (role) =>
+            String(typeof role === "string" ? role : role?.name).toLowerCase() ===
+            "admin",
+        );
+      setAdminRoleCookie(isAdmin);
+
       // ✅ Navigation
       if (!res?.data?.user?.phone) {
         dispatch(setProfileCompleted(false));
         router.replace("/complete-info");
-      } else {
-        dispatch(setProfileCompleted(true));
+      }
 
-        router.replace("/welcome");
+      else {
+        dispatch(setProfileCompleted(true));
+        router.replace(isAdmin ? "/admin/users" : "/welcome");
       }
     } catch (err) {
       const message = getSigninErrorMessage(

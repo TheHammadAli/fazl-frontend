@@ -86,6 +86,7 @@ export const authService = baseApi.injectEndpoints({
         url: `/users/${id}/deactivate`,
         method: "DELETE",
       }),
+      invalidatesTags: ["ADMIN_USERS"],
     }),
   }),
 });

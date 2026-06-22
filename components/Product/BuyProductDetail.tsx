@@ -267,7 +267,7 @@ function BuyProductDetail({
                       <button
                         type="button"
                         onClick={onLikeClick}
-                        className={`flex h-12 w-12 cursor-pointer items-center justify-center rounded-full text-white ${isLiked ? "bg-black" : "bg-[#f2f2f2]/50"}`}
+                        className={`flex h-12 w-12 cursor-pointer items-center shadow-menu justify-center rounded-full text-white ${isLiked ? "bg-black" : "bg-[#f2f2f2]/50"}`}
                         aria-label="Like"
                       >
                         <svg
@@ -283,7 +283,7 @@ function BuyProductDetail({
                       <button
                         type="button"
                         onClick={onShareClick}
-                        className="flex h-12 w-12 cursor-pointer items-center justify-center rounded-full bg-[#f2f2f2]/50 text-white"
+                        className="flex h-12 w-12 cursor-pointer items-center shadow-menu justify-center rounded-full bg-[#f2f2f2]/50 text-white"
                         aria-label="Share"
                       >
                         <Image
@@ -521,7 +521,7 @@ function BuyProductDetail({
             </div>
 
             {!isClassified && (
-              <Reviews type="product" id={product?.data?.id} allowAddReview={allowAddReview} />
+              <Reviews type="product" id={product?.data?.id || product?.data?._id} allowAddReview={allowAddReview} />
             )}
           </div>
         </div>

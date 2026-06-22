@@ -32,9 +32,12 @@ export type GetAllCategoriesParams =
   | string
   | { type?: string; lang?: string; page?: number; limit?: number };
 
-function normalizeCategoriesParams(
-  params: GetAllCategoriesParams = "",
-): { type?: string; lang?: string; page?: number; limit?: number } {
+function normalizeCategoriesParams(params: GetAllCategoriesParams = ""): {
+  type?: string;
+  lang?: string;
+  page?: number;
+  limit?: number;
+} {
   if (typeof params === "string") {
     return params ? { type: params } : {};
   }
@@ -68,7 +71,7 @@ export const profileService = baseApi.injectEndpoints({
           method: "GET",
         };
       },
-      providesTags: ["CATEGORIES"],
+      providesTags: ["CATEGORIES", "ADMIN_CATEGORIES"],
     }),
     addService: build.mutation({
       query: (body) => ({

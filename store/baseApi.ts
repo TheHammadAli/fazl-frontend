@@ -41,10 +41,7 @@ const rawBaseQuery = fetchBaseQuery({
     const lang = resolveLanguage();
     headers.set("accept-language", lang);
     const token = getToken();
-    const excludeToken = [
-      ...PUBLIC_AUTH_ENDPOINTS,
-      "getLocations",
-    ];
+    const excludeToken = [...PUBLIC_AUTH_ENDPOINTS, "getLocations"];
 
     if (token && !excludeToken.includes(endpoint)) {
       headers.set("Authorization", `Bearer ${token}`);
@@ -85,11 +82,7 @@ export const baseQueryWithReauth: BaseQueryFn<
     }
 
     const refreshToken = getRefreshToken();
-    if (
-      !refreshToken ||
-      refreshToken === "" ||
-      refreshToken === "undefined"
-    ) {
+    if (!refreshToken || refreshToken === "" || refreshToken === "undefined") {
       api.dispatch(logout());
       redirectToSignIn();
       return result;
@@ -140,6 +133,8 @@ export const baseApi = createApi({
     "BROADCAST",
     "ORDERS",
     "CATEGORIES",
+    "ADMIN_USERS",
+    "ADMIN_CATEGORIES",
   ],
   endpoints: () => ({}),
 });

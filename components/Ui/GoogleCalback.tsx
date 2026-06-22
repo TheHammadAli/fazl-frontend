@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import tickIcon from "@/assets/icons/tick-circle.svg";
 import Image from "next/image";
@@ -11,10 +11,7 @@ import {
   setToken,
   setUserId,
 } from "@/store/reducers/authReducer";
-import {
-  useGetUserDetailQuery,
-  useLazyGetUserDetailQuery,
-} from "@/store/services/profileService";
+import { useLazyGetUserDetailQuery } from "@/store/services/profileService";
 
 export default function GoogleCallback() {
   const searchParams = useSearchParams();

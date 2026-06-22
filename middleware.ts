@@ -6,6 +6,15 @@ import {
   isGuestRestrictedPathname,
 } from "@/utils/guestAccess";
 
+function isAdminPath(path: string) {
+  return path === "/admin" || path.startsWith("/admin/");
+}
+
+function getLocalizedAdminPath(pathname: string) {
+  const match = pathname.match(/^\/(en|ur)(\/admin(?:\/.*)?)$/);
+  return match ? match[2] : null;
+}
+
 export function middleware(request: NextRequest) {
   const {
     nextUrl: { search },
@@ -23,6 +32,27 @@ export function middleware(request: NextRequest) {
     (locale) =>
       !pathname.startsWith(`/${locale}/`) && pathname !== `/${locale}`,
   );
+
+  const localizedAdminPath = getLocalizedAdminPath(pathname);
+  if (localizedAdminPath) {
+    return NextResponse.redirect(
+      new URL(`${localizedAdminPath}${search}`, request.url),
+    );
+  }
+
+  if (isAdminPath(pathname)) {
+    const isAdmin = request.cookies.get("isAdmin")?.value === "true";
+
+    if (!token) {
+      return NextResponse.redirect(new URL(`/${locale}/signin`, request.url));
+    }
+
+    if (!isAdmin) {
+      return NextResponse.redirect(new URL(`/${locale}/home`, request.url));
+    }
+
+    return NextResponse.next();
+  }
 
   const publicRoutes: string[] = [`/${locale}/google/auth/success`];
 

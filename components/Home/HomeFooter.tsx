@@ -39,6 +39,9 @@ const SOCIAL_LINKS: SocialLink[] = [
     { label: "X", href: "#", icon: XIcon },
 ];
 
+const FOOTER_LINK_CLASS =
+    "text-[13px] font-light text-gray-8 transition-colors hover:text-green-1 sm:text-[14px]";
+
 function FooterColumn({
     title,
     children,
@@ -121,7 +124,7 @@ function HomeFooter() {
                                     <button
                                         type="button"
                                         onClick={() => router.push(item.href)}
-                                        className="cursor-pointer text-left text-[13px] font-light text-[#4B514F] transition-colors hover:text-green-1 sm:text-[14px]"
+                                        className={`cursor-pointer text-left ${FOOTER_LINK_CLASS}`}
                                     >
                                         {item.label}
                                     </button>
@@ -135,13 +138,13 @@ function HomeFooter() {
                             {companyLinks.map((item) => (
                                 <li key={item.label}>
                                     {item.href === "#" ? (
-                                        <span className="text-[13px] font-light text-[#4B514F] sm:text-[14px]">
+                                        <span className={FOOTER_LINK_CLASS}>
                                             {item.label}
                                         </span>
                                     ) : (
                                         <Link
                                             href={item.href}
-                                            className="text-[13px] font-normal text-gray-11 transition-colors hover:text-green-1 sm:text-[14px]"
+                                            className={FOOTER_LINK_CLASS}
                                         >
                                             {item.label}
                                         </Link>
@@ -156,7 +159,7 @@ function HomeFooter() {
                             <li>
                                 <a
                                     href={`tel:${info_messages.footer_phone.replace(/\s/g, "")}`}
-                                    className="inline-flex items-center gap-2 whitespace-nowrap text-[13px] font-light text-[#4B514F] transition-colors hover:text-green-1 sm:text-[14px]"
+                                    className={`inline-flex items-center gap-2 whitespace-nowrap ${FOOTER_LINK_CLASS}`}
                                 >
                                     <Image
                                         src={PhoneIconFooter}
@@ -169,7 +172,7 @@ function HomeFooter() {
                             <li>
                                 <a
                                     href={`mailto:${info_messages.footer_email}`}
-                                    className="inline-flex items-center gap-2 text-[13px] font-normal text-gray-11 transition-colors hover:text-green-1 sm:text-[14px]"
+                                    className={`inline-flex items-center gap-2 ${FOOTER_LINK_CLASS}`}
                                 >
                                     <Image
                                         src={GmailIconFooter}
