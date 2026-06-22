@@ -146,13 +146,13 @@ function CategoryActionsMenu({
                     >
                         Edit
                     </button>
-                    <button
+                    {/* <button
                         type="button"
                         onMouseDown={handleMenuAction(onStatusAction)}
                         className="w-full cursor-pointer p-[10px] text-left text-[12px] leading-none hover:bg-green-3"
                     >
                         {category.status === "active" ? "Deactivate" : "Activate"}
-                    </button>
+                    </button> */}
                 </div>
             )}
         </div>
@@ -330,7 +330,7 @@ function AdminCategories() {
             </Modal>
 
             <div className="bg-[#F6F8FA] pt-10 pb-5">
-                <div className="container mx-auto flex items-center justify-between gap-4 px-5">
+                <div className="container mx-auto flex items-center justify-between gap-4 px-5 lg:px-0">
                     <h1 className="text-[24px] font-semibold text-[#001907] sm:text-[28px]">
                         {loading ? "..." : `${totalCategories} Categories`}
                     </h1>
@@ -360,9 +360,9 @@ function AdminCategories() {
                                     <th className="py-3 pr-4 text-[14px] font-medium text-[#001907]">
                                         Created Date
                                     </th>
-                                    <th className="py-3 pr-4 text-[14px] font-medium text-[#001907]">
+                                    {/* <th className="py-3 pr-4 text-[14px] font-medium text-[#001907]">
                                         Status
-                                    </th>
+                                    </th> */}
                                     <th className="py-3 text-center text-[14px] font-medium text-[#001907]">
                                         Actions
                                     </th>
@@ -411,13 +411,13 @@ function AdminCategories() {
                                                 <td className="whitespace-nowrap py-3.5 pr-4 text-[14px] font-normal text-gray-11">
                                                     {category.createdAt}
                                                 </td>
-                                                <td className="py-3.5 pr-4">
+                                                {/* <td className="py-3.5 pr-4">
                                                     <span
                                                         className={`inline-flex rounded-[6px] px-2.5 py-1 text-[12px] font-medium ${statusStyle.className}`}
                                                     >
                                                         {statusStyle.label}
                                                     </span>
-                                                </td>
+                                                </td> */}
                                                 <td className="py-3.5 text-center">
                                                     <CategoryActionsMenu
                                                         category={category}
