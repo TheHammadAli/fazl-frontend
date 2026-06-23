@@ -1,7 +1,7 @@
 "use client";
 
 import { useDictionary } from "@/dictionaries/DictionaryProvider";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import crossIcon from "@/assets/icons/cross-icon.svg";
 import deleteIcon from "@/assets/icons/delete-icon.svg";
@@ -39,7 +39,7 @@ function sanitizeParameters(items: parameterTypes[]): parameterTypes[] {
       name: p.name.trim(),
       variants: p.variants.map((v) => v.trim()).filter(Boolean),
     }))
-    .filter((p) => p.name !== "" && p.variants.length > 0);
+    .filter((p) => p.name !== "");
 }
 
 export function hasDuplicateParameterNames(items: parameterTypes[]): boolean {
@@ -86,11 +86,15 @@ function ParametersModal({
     Record<number, number | null>
   >({});
 
+  const wasOpenRef = useRef(false);
+
   useEffect(() => {
-    if (!open) return;
-    setDraft(normalizeDraft(parameters));
-    setNewVariantByParam({});
-    setEditingVariantByParam({});
+    if (open && !wasOpenRef.current) {
+      setDraft(normalizeDraft(parameters));
+      setNewVariantByParam({});
+      setEditingVariantByParam({});
+    }
+    wasOpenRef.current = open;
   }, [open, parameters]);
 
   const handleAddParameter = () => {

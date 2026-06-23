@@ -29,10 +29,8 @@ function BroadCastList({ items, onScroll, onSelectItem, chatId, activeTab }: Bro
     return (
         <div onScroll={onScroll} className="hide-scrollbar flex-1 overflow-y-auto divide-y divide-gray-9 bg-white">
             {items?.map((item, index) => {
-                console.log(item, "item");
                 const isReceivedSelected =
                     activeTab === "received" && !!item?.threadId && chatId === item.threadId;
-                console.log(item, "item");
                 return (
                     <button
                         key={index}

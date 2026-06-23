@@ -219,7 +219,6 @@ function SearchList() {
         <>
           <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 md:gap-x-5 md:gap-y-14 mt-4">
             {items.map((item) => {
-              console.log(item)
               const itemId = item?.id || item?._id;
               return (
                 <div

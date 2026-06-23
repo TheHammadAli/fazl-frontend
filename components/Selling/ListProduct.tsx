@@ -9,7 +9,7 @@ import ChooseVideoTab from "../Services/ChooseVideoTab";
 import cameraIcon from "@/assets/icons/camera-icon.svg";
 import { BeatLoader } from "react-spinners";
 import Modal from "../Ui/Modals/Modal";
-import CategoryModal, { categroyTypes } from "../Services/CategoryModal";
+import CategoryModal, { categroyTypes, type CategoryParameters } from "../Services/CategoryModal";
 import PriceModal, { priceTypes } from "../Services/PriceModal";
 import {
   useGetShopDetailQuery,
@@ -23,10 +23,26 @@ import ParameterTags from "./ParameterTags";
 import { useSearchParams } from "next/navigation";
 import ProductListed from "./ProductListed";
 import { getCookie } from "cookies-next";
+import { getFeedCategoryLabel } from "@/utils/getFeedCategoryLabel";
+
+function mapCategoryParametersToProductParameters(
+  parameters: CategoryParameters | undefined,
+  lang: string,
+): parameterTypes[] {
+  if (!parameters) return [];
+
+  const names =
+    (lang === "ur" ? parameters.ur : parameters.en) ?? parameters.en ?? parameters.ur ?? [];
+
+  return names
+    .map((name) => name.trim())
+    .filter(Boolean)
+    .map((name) => ({ name, variants: [] }));
+}
 
 function ListProduct() {
   const categoryRef = useRef<HTMLDivElement | null>(null);
-  const { pages, placeholders, info_messages, error_messages } =
+  const { pages, placeholders, info_messages, error_messages, currentLanguage } =
     useDictionary();
   const [listProduct, { data, isLoading, isError, isSuccess, error }] =
     useListProductMutation();
@@ -79,9 +95,21 @@ function ListProduct() {
       isInitialCategoryRender.current = false;
       return;
     }
-    setParameters([]);
+
+    if (!selectedCategory) {
+      setParameters([]);
+      setParameterError("");
+      return;
+    }
+
+    setParameters(
+      mapCategoryParametersToProductParameters(
+        selectedCategory.parameters,
+        currentLanguage,
+      ),
+    );
     setParameterError("");
-  }, [selectedCategory]);
+  }, [selectedCategory, currentLanguage]);
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -344,7 +372,9 @@ function ListProduct() {
                     onClick={() => setIsCatOpen(true)}
                   >
                     <h4 className="text-[15px] font-normal text-gray-8 leading-none">
-                      {selectedCategory?.name || placeholders.choose_category}
+                      {selectedCategory
+                        ? getFeedCategoryLabel(selectedCategory.name, currentLanguage)
+                        : placeholders.choose_category}
                     </h4>
                     <Image
                       src={chevron}

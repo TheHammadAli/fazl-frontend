@@ -162,7 +162,6 @@ function AllProductsAndServices({
     categoryId?: string;
     title?: string;
 }) {
-    console.log(categoryId, "categoryId")
     const router = useRouter();
     const { placeholders, error_messages, info_messages } = useDictionary();
     const activeTab = tab as TabKey;

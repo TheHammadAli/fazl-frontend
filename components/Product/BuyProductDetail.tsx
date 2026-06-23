@@ -53,7 +53,6 @@ function BuyProductDetail({
   const userId = getUserId() ?? "";
   const { requireSignIn } = useRequireSignIn();
   const { onInitiateChat, isLoading } = useInitiateChat();
-  console.log(ownerData, "owenerDat")
   const dispatch = useAppDispatch();
   const { pages, placeholders, currentLanguage, info_messages, error_messages } = useDictionary();
   const ref = React.useRef<HTMLDivElement>(null);

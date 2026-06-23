@@ -68,7 +68,6 @@ function BroadCastThreadList({
     useEffect(() => {
         const threadList = (conversations?.data as ChatThread[] | undefined) ?? [];
         const firstConversation = threadList[0];
-        console.log("firstConversation", firstConversation);
 
         // When user opens a different broadcast from sent list,
         // always activate the first thread for that broadcast.

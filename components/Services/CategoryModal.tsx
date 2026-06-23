@@ -6,10 +6,18 @@ import { useCategoriesQuery } from "@/custom-hooks/useCategoriesQuery";
 import CategoryImg from "@/assets/icons/category-icon.png";
 import chevron from "@/assets/icons/chev-down-icon.svg";
 import CategoriesSkeleton from "./CategoriesSkeleton";
+import { getFeedCategoryLabel } from "@/utils/getFeedCategoryLabel";
+
+export type CategoryParameters = {
+  en: string[];
+  ur: string[];
+};
 
 export interface categroyTypes {
   _id: string;
-  name: string;
+  name: string | { en: string; ur: string };
+  type?: string;
+  parameters?: CategoryParameters;
 }
 interface CategoryModalRef {
   setIsCatOpen: React.Dispatch<React.SetStateAction<boolean>>;
@@ -23,21 +31,18 @@ function CategoryModal({
   selectedCategory,
   setSelectedCategory,
 }: CategoryModalRef) {
-  const { placeholders, error_messages } = useDictionary();
-  console.log(selectedCategory)
+  const { placeholders, error_messages, currentLanguage } = useDictionary();
   const {
     data: categories,
     isLoading: isCategoriesLoading,
     isFetching: isCategoriesFetching,
   } = useCategoriesQuery("");
-  console.log(selectedCategory)
-  const { currentLanguage } = useDictionary();
   return (
     <div className="  w-[456px] bg-[white] h-[470px] overflow-scroll hide-scrollbar rounded-[10px]">
       <div className="sticky bg-white top-0  z-50 px-[15px] py-[16px] flex justify-between items-center border-b-[1px] border-gray-9">
         <h1 className="leading-none text-black-3 text-[16px] font-medium">
           {selectedCategory
-            ? selectedCategory.name?.[currentLanguage]
+            ? getFeedCategoryLabel(selectedCategory.name, currentLanguage)
             : placeholders.choose_category}
         </h1>
         <Image
@@ -77,7 +82,7 @@ function CategoryModal({
                     />
                   </svg>
                   <h2 className="text-[15px] font-medium text-black-1">
-                    {category?.name}
+                    {getFeedCategoryLabel(category?.name, currentLanguage)}
                   </h2>
                 </div>
                 <Image

@@ -23,7 +23,7 @@ function AdminHeader() {
 
     return (
         <div className="bg-white border-b border-gray-9  ">
-            <header className=" container mx-auto py-4 px-5 lg:px-0">
+            <header className=" container mx-auto py-4 px-5 lg:px-10">
                 <div className="flex items-center justify-between gap-4">
                     <div className="inline-flex items-center rounded-[6px] bg-green-1 px-4 py-2">
                         <span className="text-[14px] font-medium text-white sm:text-[15px]">

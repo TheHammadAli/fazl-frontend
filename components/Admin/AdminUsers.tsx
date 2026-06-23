@@ -252,7 +252,7 @@ function AdminUsers() {
             </Modal>
 
             <div className="bg-[#F6F8FA] pt-10 pb-5">
-                <div className=" container mx-auto px-5 lg:px-0 ">
+                <div className=" container mx-auto px-5 lg:px-10 ">
                     <h1 className="text-[24px] font-semibold text-[#001907] sm:text-[28px]">
                         {loading ? "..." : `${totalUsers} Users`}
                     </h1>
@@ -261,7 +261,7 @@ function AdminUsers() {
             </div>
 
             <div className="bg-white">
-                <div className="container px-5 lg:px-0 mx-auto mt-4 ">
+                <div className="container px-5 lg:px-10 mx-auto mt-4 ">
                     <div className="overflow-x-auto">
                         <table className="min-w-[760px] w-full">
                             <thead className="   ">
@@ -355,7 +355,7 @@ function AdminUsers() {
 
                 {!loading && (
                     <Pagination
-                        className="container mx-auto px-5 lg:px-0 "
+                        className="container mx-auto px-5 lg:px-10 "
                         pageCount={pageCount}
                         currentPage={page}
                         onPageChange={setPage}

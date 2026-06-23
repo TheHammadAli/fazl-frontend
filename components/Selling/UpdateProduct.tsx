@@ -9,7 +9,7 @@ import ChooseVideoTab from "../Services/ChooseVideoTab";
 import cameraIcon from "@/assets/icons/camera-icon.svg";
 import { BeatLoader } from "react-spinners";
 import Modal from "../Ui/Modals/Modal";
-import CategoryModal, { categroyTypes } from "../Services/CategoryModal";
+import CategoryModal, { categroyTypes, type CategoryParameters } from "../Services/CategoryModal";
 import PriceModal, { priceTypes } from "../Services/PriceModal";
 import {
   useDeleteProductMediaMutation,
@@ -24,7 +24,24 @@ import ProductListed from "./ProductListed";
 import { useGetProductDetailQuery } from "@/store/services/homeService";
 import { useRouter } from "next/navigation";
 import { getUserId } from "@/utils/getUserId";
-function ListProduct() {
+import { getFeedCategoryLabel } from "@/utils/getFeedCategoryLabel";
+
+function mapCategoryParametersToProductParameters(
+  parameters: CategoryParameters | undefined,
+  lang: string,
+): parameterTypes[] {
+  if (!parameters) return [];
+
+  const names =
+    (lang === "ur" ? parameters.ur : parameters.en) ?? parameters.en ?? parameters.ur ?? [];
+
+  return names
+    .map((name) => name.trim())
+    .filter(Boolean)
+    .map((name) => ({ name, variants: [] }));
+}
+
+function UpdateProduct() {
   const router = useRouter();
   const categoryRef = useRef<HTMLDivElement | null>(null);
   const { pages, placeholders, info_messages, error_messages, currentLanguage } =
@@ -87,6 +104,8 @@ function ListProduct() {
   });
   const [parameters, setParameters] = useState<parameterTypes[]>([]);
   const [parameterError, setParameterError] = useState("");
+  const loadedCategoryIdRef = useRef<string | null>(null);
+  const hasLoadedProductRef = useRef(false);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -112,6 +131,9 @@ function ListProduct() {
     if (parameters.length === 0) {
       setParameterError(error_messages.parameter_required);
     }
+    if (parameters.some((parameter) => parameter.variants.length === 0)) {
+      setParameterError(error_messages.parameter_value_required);
+    }
     if (hasDuplicateParameterNames(parameters)) {
       setParameterError(error_messages.parameter_name_duplicate);
     }
@@ -134,6 +156,7 @@ function ListProduct() {
       //  &&
       images?.length > 0 &&
       parameters.length > 0 &&
+      parameters.every((parameter) => parameter.variants.length > 0) &&
       !hasDuplicateParameterNames(parameters)
     ) {
       const formData = new FormData();
@@ -184,11 +207,37 @@ function ListProduct() {
       setDescription(prouductData?.description ?? "");
       setSelectedCategory(prouductData?.category ?? null);
       setParameters(prouductData?.parameters ?? []);
-      setSelectedPrice({ ...selectedPrice, price: prouductData?.price ?? "" });
+      setSelectedPrice((prev) => ({ ...prev, price: prouductData?.price ?? "" }));
       setVideo(prouductData?.video ?? null);
       setImages(prouductData?.images ?? []);
+      loadedCategoryIdRef.current = prouductData?.category?._id ?? null;
+      hasLoadedProductRef.current = true;
     }
   }, [product?.data, productSuccess]);
+
+  useEffect(() => {
+    if (!hasLoadedProductRef.current) return;
+
+    if (!selectedCategory) {
+      setParameters([]);
+      setParameterError("");
+      loadedCategoryIdRef.current = null;
+      return;
+    }
+
+    const categoryId = selectedCategory._id;
+    if (categoryId === loadedCategoryIdRef.current) return;
+
+    loadedCategoryIdRef.current = categoryId;
+    setParameters(
+      mapCategoryParametersToProductParameters(
+        selectedCategory.parameters,
+        currentLanguage,
+      ),
+    );
+    setParameterError("");
+  }, [selectedCategory, currentLanguage]);
+
   return (
     <>
       <Modal
@@ -353,7 +402,9 @@ function ListProduct() {
                     onClick={() => setIsCatOpen(true)}
                   >
                     <h4 className="text-[15px] font-normal text-gray-8 leading-none">
-                      {selectedCategory?.name?.[currentLanguage] || placeholders.choose_category}
+                      {selectedCategory
+                        ? getFeedCategoryLabel(selectedCategory.name, currentLanguage)
+                        : placeholders.choose_category}
                     </h4>
                     <Image
                       src={chevron}
@@ -430,4 +481,4 @@ function ListProduct() {
   );
 }
 
-export default ListProduct;
+export default UpdateProduct;

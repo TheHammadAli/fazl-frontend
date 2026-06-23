@@ -6,8 +6,7 @@ import { BeatLoader } from "react-spinners";
 import Image from "next/image";
 import { toast } from "react-hot-toast";
 import Modal from "@/components/Ui/Modals/Modal";
-import CategoryImg from "@/assets/icons/category-icon.svg";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Plus, X } from "lucide-react";
 import {
     useCreateNewCategoryMutation,
     useUpdateCategoryMutation,
@@ -16,11 +15,17 @@ import noImageIcon from "@/assets/images/new-no-image-placeholder.png";
 
 export type CategoryType = "product" | "service";
 
+export type CategoryParameters = {
+    en: string[];
+    ur: string[];
+};
+
 export type CategoryFormCategory = {
     id: string;
     name: { en: string; ur: string };
     type: CategoryType;
     icon?: string;
+    parameters?: CategoryParameters;
 };
 
 export type CategoryFormMode = "add" | { type: "edit"; category: CategoryFormCategory };
@@ -35,6 +40,102 @@ type FormErrors = {
     nameUr?: string;
 };
 
+function ParameterInputList({
+    id,
+    label,
+    values,
+    inputValue,
+    dir,
+    placeholder,
+    onInputChange,
+    onAdd,
+    onRemove,
+}: {
+    id: string;
+    label: string;
+    values: string[];
+    inputValue: string;
+    dir?: "rtl" | "ltr";
+    placeholder: string;
+    onInputChange: (value: string) => void;
+    onAdd: () => void;
+    onRemove: (index: number) => void;
+}) {
+    return (
+        <div>
+            <label htmlFor={id} className="text-[14px] font-normal text-gray-11">
+                {label}
+            </label>
+            <div className="mt-2 flex items-center gap-2 border-0 border-b border-gray-9 pb-2">
+                <input
+                    id={id}
+                    type="text"
+                    value={inputValue}
+                    dir={dir}
+                    placeholder={placeholder}
+                    onChange={(event) => onInputChange(event.target.value)}
+                    onKeyDown={(event) => {
+                        if (event.key === "Enter") {
+                            event.preventDefault();
+                            onAdd();
+                        }
+                    }}
+                    className="w-full border-0 bg-transparent py-1 text-[14px] text-[#001907] outline-none focus:border-green-1"
+                />
+                <button
+                    type="button"
+                    onClick={onAdd}
+                    disabled={!inputValue.trim()}
+                    className="inline-flex h-7 w-7 shrink-0 cursor-pointer items-center justify-center rounded-full text-green-1 disabled:cursor-not-allowed disabled:opacity-40"
+                    aria-label={`Add ${label.toLowerCase()}`}
+                >
+                    <Plus className="h-4 w-4" />
+                </button>
+            </div>
+            {values.length > 0 && (
+                <div className="mt-3 flex flex-wrap gap-2">
+                    {values.map((value, index) => (
+                        <span
+                            key={`${value}-${index}`}
+                            className="inline-flex items-center gap-1 rounded-[6px] bg-[#E6FBFB] px-2.5 py-1 text-[12px] text-[#001907]"
+                        >
+                            <span dir={dir}>{value}</span>
+                            <button
+                                type="button"
+                                onClick={() => onRemove(index)}
+                                className="inline-flex cursor-pointer items-center justify-center text-gray-11 hover:text-red-1"
+                                aria-label={`Remove ${value}`}
+                            >
+                                <X className="h-3 w-3" />
+                            </button>
+                        </span>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+}
+
+function buildParametersPayload(parametersEn: string[], parametersUr: string[]): CategoryParameters | undefined {
+    const en = parametersEn.map((item) => item.trim()).filter(Boolean);
+    const ur = parametersUr.map((item) => item.trim()).filter(Boolean);
+    if (en.length === 0 && ur.length === 0) {
+        return undefined;
+    }
+    return { en, ur };
+}
+
+function addParameterValue(
+    value: string,
+    setValues: React.Dispatch<React.SetStateAction<string[]>>,
+    setInput: React.Dispatch<React.SetStateAction<string>>,
+) {
+    const trimmed = value.trim();
+    if (!trimmed) return;
+    setValues((prev) => [...prev, trimmed]);
+    setInput("");
+}
+
 type CategoryFormModalProps = {
     open: boolean;
     mode: CategoryFormMode;
@@ -44,7 +145,6 @@ type CategoryFormModalProps = {
 function CategoryFormModal({ open, mode, onClose }: CategoryFormModalProps) {
     const isEdit = mode !== "add";
     const editCategory = isEdit ? mode.category : null;
-
     const modalRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [nameEn, setNameEn] = useState("");
@@ -52,6 +152,10 @@ function CategoryFormModal({ open, mode, onClose }: CategoryFormModalProps) {
     const [type, setType] = useState<CategoryType>("product");
     const [iconPreview, setIconPreview] = useState<string | null>(null);
     const [iconFile, setIconFile] = useState<File | null>(null);
+    const [parametersEn, setParametersEn] = useState<string[]>([]);
+    const [parametersUr, setParametersUr] = useState<string[]>([]);
+    const [parameterInputEn, setParameterInputEn] = useState("");
+    const [parameterInputUr, setParameterInputUr] = useState("");
     const [errors, setErrors] = useState<FormErrors>({});
 
     const [createNewCategory, { isLoading: isCreatingCategory }] = useCreateNewCategoryMutation();
@@ -66,6 +170,10 @@ function CategoryFormModal({ open, mode, onClose }: CategoryFormModalProps) {
         setType(editCategory?.type ?? "product");
         setIconPreview(editCategory?.icon ?? null);
         setIconFile(null);
+        setParametersEn(editCategory?.parameters?.en ?? []);
+        setParametersUr(editCategory?.parameters?.ur ?? []);
+        setParameterInputEn("");
+        setParameterInputUr("");
         setErrors({});
     }, [open, editCategory]);
 
@@ -100,6 +208,8 @@ function CategoryFormModal({ open, mode, onClose }: CategoryFormModalProps) {
         const trimmedNameEn = nameEn.trim();
         const trimmedNameUr = nameUr.trim();
         const name = { en: trimmedNameEn, ur: trimmedNameUr };
+        const parameters = buildParametersPayload(parametersEn, parametersUr);
+        const payload = { name, type, isDisabled: false, ...(parameters ? { parameters } : {}) };
         const body = iconFile
             ? (() => {
                 const formData = new FormData();
@@ -107,9 +217,12 @@ function CategoryFormModal({ open, mode, onClose }: CategoryFormModalProps) {
                 formData.append("type", type);
                 formData.append("icon", iconFile);
                 formData.append("isDisabled", "false");
+                if (parameters) {
+                    formData.append("parameters", JSON.stringify(parameters));
+                }
                 return formData;
             })()
-            : { name, type, isDisabled: false };
+            : payload;
 
         try {
             if (isEdit && editCategory) {
@@ -264,6 +377,34 @@ function CategoryFormModal({ open, mode, onClose }: CategoryFormModalProps) {
                         {errors.nameUr && (
                             <p className="mt-1 text-[12px] font-normal text-red-1">{errors.nameUr}</p>
                         )}
+                    </div>
+
+                    <div className="space-y-4">
+                        <ParameterInputList
+                            id="category-parameters-en"
+                            label="Parameters (English)"
+                            values={parametersEn}
+                            inputValue={parameterInputEn}
+                            placeholder="e.g. Size"
+                            onInputChange={setParameterInputEn}
+                            onAdd={() => addParameterValue(parameterInputEn, setParametersEn, setParameterInputEn)}
+                            onRemove={(index) =>
+                                setParametersEn((prev) => prev.filter((_, itemIndex) => itemIndex !== index))
+                            }
+                        />
+                        <ParameterInputList
+                            id="category-parameters-ur"
+                            label="Parameters (Urdu)"
+                            values={parametersUr}
+                            inputValue={parameterInputUr}
+                            dir="rtl"
+                            placeholder="مثال: سائز"
+                            onInputChange={setParameterInputUr}
+                            onAdd={() => addParameterValue(parameterInputUr, setParametersUr, setParameterInputUr)}
+                            onRemove={(index) =>
+                                setParametersUr((prev) => prev.filter((_, itemIndex) => itemIndex !== index))
+                            }
+                        />
                     </div>
                 </div>
 

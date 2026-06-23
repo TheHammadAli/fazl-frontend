@@ -6,7 +6,7 @@ import { BeatLoader } from "react-spinners";
 import { toast } from "react-hot-toast";
 import Pagination from "@/components/Ui/Pagination";
 import Modal from "@/components/Ui/Modals/Modal";
-import CategoryFormModal, { type CategoryType } from "@/components/Admin/CategoryFormModal";
+import CategoryFormModal, { type CategoryParameters, type CategoryType } from "@/components/Admin/CategoryFormModal";
 import { useUpdateCategoryMutation } from "@/store/services/adminService";
 import threeDotsIcon from "@/assets/icons/three-dots.svg";
 import Image from "next/image";
@@ -29,6 +29,7 @@ type Category = {
     status: Status;
     type: CategoryType;
     icon?: string;
+    parameters?: CategoryParameters;
 };
 
 type ApiCategory = {
@@ -39,6 +40,7 @@ type ApiCategory = {
     isDisabled?: boolean;
     type?: CategoryType;
     icon?: string;
+    parameters?: CategoryParameters;
 };
 
 type CategoriesResponse = {
@@ -87,6 +89,12 @@ function mapApiCategory(category: ApiCategory): Category {
         status: mapCategoryStatus(category),
         type: category.type === "service" ? "service" : "product",
         icon: category.icon,
+        parameters: category.parameters
+            ? {
+                en: category.parameters.en ?? [],
+                ur: category.parameters.ur ?? [],
+            }
+            : undefined,
     };
 }
 
@@ -179,7 +187,6 @@ function AdminCategories() {
 
     const allCategories = useMemo(() => {
         const response = categoriesResponse as CategoriesResponse | undefined;
-        console.log(response?.data)
         return (response?.data ?? []).map(mapApiCategory);
     }, [categoriesResponse]);
 
@@ -330,7 +337,7 @@ function AdminCategories() {
             </Modal>
 
             <div className="bg-[#F6F8FA] pt-10 pb-5">
-                <div className="container mx-auto flex items-center justify-between gap-4 px-5 lg:px-0">
+                <div className="container mx-auto flex items-center justify-between gap-4 px-5 lg:px-10">
                     <h1 className="text-[24px] font-semibold text-[#001907] sm:text-[28px]">
                         {loading ? "..." : `${totalCategories} Categories`}
                     </h1>
@@ -346,9 +353,9 @@ function AdminCategories() {
             </div>
 
             <div className="bg-white">
-                <div className="container px-5  mx-auto mt-4 ">
+                <div className="container px-5  mx-auto mt-4 lg:px-10">
                     <div className="overflow-x-auto">
-                        <table className="min-w-[760px] w-full">
+                        <table className="min-w-[400px] w-full">
                             <thead className="   ">
                                 <tr className="text-left">
                                     <th className="py-3 pr-4 text-[14px] font-medium text-[#001907]">
@@ -442,7 +449,7 @@ function AdminCategories() {
 
                 {!loading && (
                     <Pagination
-                        className="container mx-auto px-5  "
+                        className="container mx-auto px-5 lg:px-10  "
                         pageCount={pageCount}
                         currentPage={page}
                         onPageChange={setPage}
