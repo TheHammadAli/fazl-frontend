@@ -39,7 +39,6 @@ SnapScroller.displayName = "SnapScroller";
 
 export default function ReelsFeed({ reels, onEndReached, isLoadingMore = false, type }: ReelsFeedProps) {
     const reelGap = 12;
-    const [isMuted, setIsMuted] = useState(true);
     const [activeReel, setActiveReel] = useState<string>("");
     const containerRef = useRef<HTMLDivElement | null>(null);
     const [itemHeight, setItemHeight] = useState(() =>
@@ -84,8 +83,6 @@ export default function ReelsFeed({ reels, onEndReached, isLoadingMore = false, 
                             type={type}
                             key={index}
                             item={item}
-                            isMuted={isMuted}
-                            setIsMuted={setIsMuted}
                             activeReel={activeReel}
                             onVisible={(reel) => setActiveReel(reel)}
                         />
