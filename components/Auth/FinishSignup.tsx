@@ -6,7 +6,6 @@ import chevDown from "@/assets/icons/chev-down-icon.svg";
 import countries from "country-list-with-dial-code-and-flag";
 import { useClickOutside } from "@/custom-hooks/useClickOutside";
 import locationIcon from "@/assets/icons/location-icon.svg";
-import { locations } from "@/assets/content/locations";
 import { BeatLoader } from "react-spinners";
 import { useAppSelector } from "@/store/store";
 import { validatePhone } from "./SendOtp";
