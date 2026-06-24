@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
 import Image from "next/image";
-import AuthImage from "@/assets/images/auth-image.png";
+import AuthImagePanel from "./AuthImagePanel";
 import Arrow from "@/assets/icons/right-gray-arrow-icon.svg";
 import { useDictionary } from "@/dictionaries/DictionaryProvider";
 import { useRouter } from "next/navigation";
@@ -12,13 +12,10 @@ function Wellcome() {
   const { info_messages, placeholders } = useDictionary();
   return (
     <div className="w-screen h-screen lg:flex lg:min-h-[100vh]">
-      <div className="w-full lg:w-[60%] ltr:lg:pl-8 ltr:xl:pl-24 rtl:lg:pr-8 rtl:xl:pr-24 ">
-        <Image
-          src={AuthImage}
-          alt="auth-image"
-          className="h-[360px] lg:h-full w-full object-cover"
-        />
-      </div>
+      <AuthImagePanel
+        className="relative w-full overflow-hidden lg:w-[60%] ltr:lg:pl-8 ltr:xl:pl-24 rtl:lg:pr-8 rtl:xl:pr-24"
+        imageClassName="h-[360px] lg:h-full w-full object-cover"
+      />
       <div className="w-ful px-5  lg:w-[50%] sm:px-[50px] xl:px-[150px] pt-5 lg:pt-[80px] lg:flex lg:flex-col justify-between">
         <div className="w-full flex flex-col items-center lg:items-start">
           <div className="w-full flex justify-between">

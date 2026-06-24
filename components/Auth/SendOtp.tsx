@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import AuthImage from "@/assets/images/auth-image.png";
+import AuthImagePanel from "./AuthImagePanel";
 import chevDown from "@/assets/icons/chev-down-icon.svg";
 import countries from "country-list-with-dial-code-and-flag";
 import { useClickOutside } from "@/custom-hooks/useClickOutside";
@@ -16,6 +16,7 @@ import { setOtpInfo } from "@/store/reducers/authReducer";
 import { useRouter } from "next/navigation";
 import { BASE_URL } from "@/assets/content/constants";
 import Footer from "./Footer";
+import buttonDoodleImage from "@/assets/images/button-doodle-image.svg";
 
 export type Body = {
   email?: string;
@@ -121,13 +122,7 @@ function Signup() {
   return (
     <div className="w-screen h-screen lg:flex min-h-[818px] hide-scrollbar  pt-[50px] lg:pt-0">
       {/* Left section */}
-      <div className=" hidden  lg:block lg:w-[55%]  lg:pl-8 xl:pl-16   ">
-        <Image
-          src={AuthImage}
-          alt="auth-image"
-          className="h-full w-full object-cover "
-        />
-      </div>
+      <AuthImagePanel className="relative hidden h-full overflow-hidden lg:block lg:w-[55%] ltr:lg:pl-8 ltr:xl:pl-16 rtl:lg:pr-8 rtl:xl:pr-16" />
       {/* Right section */}
       <form
         onSubmit={handleSendOtp}
@@ -256,9 +251,17 @@ function Signup() {
           <button
             type="submit"
             disabled={isLoading}
-            className="mt-6 h-[52px] w-full rounded-[12px] text-white font-medium text-[16px]  bg-green-1 cursor-pointer"
+            className="relative mt-6 flex h-[52px] w-full cursor-pointer items-center justify-center overflow-hidden rounded-[12px] bg-green-1 text-[16px] font-medium text-white disabled:cursor-not-allowed disabled:opacity-70"
           >
-            {isLoading ? <BeatLoader color="white" size={8} /> : "Continue"}
+            <Image
+              src={buttonDoodleImage}
+              alt=""
+              aria-hidden
+              className="pointer-events-none absolute inset-0 h-full w-full rounded-[12px] object-cover"
+            />
+            <span className="relative z-10">
+              {isLoading ? <BeatLoader color="white" size={8} /> : "Continue"}
+            </span>
           </button>
           <div className=" w-full flex gap-[10px] items-center text-[#19191999] text-[16px] font-normal mt-5">
             <div className="w-full h-[1px] bg-gray-2"></div>

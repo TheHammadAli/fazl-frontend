@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
-import AuthImage from "@/assets/images/auth-image.png";
+import AuthImagePanel from "./AuthImagePanel";
 import { BeatLoader } from "react-spinners";
 import greenTick from "@/assets/icons/green-tick-icon.svg";
 import redCross from "@/assets/icons/red-cross-icon.svg";
@@ -109,13 +109,7 @@ function PasswordEntryForm({
 
   return (
     <div className="w-screen h-screen lg:flex min-h-[818px] hide-scrollbar pt-[50px] lg:pt-0">
-      <div className="hidden lg:block lg:w-[60%] ltr:lg:pl-8 ltr:xl:pl-24 rtl:lg:pr-8 rtl:xl:pr-24">
-        <Image
-          src={AuthImage}
-          alt="auth-image"
-          className="h-full w-full object-cover "
-        />
-      </div>
+      <AuthImagePanel />
       <form
         onSubmit={handleSubmit}
         className="w-full lg:w-[50%] flex flex-col lg:justify-between px-5 sm:px-[50px] xl:px-[150px] pt-[80px]"

@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useGetAllServicesFeedQuery } from "@/store/services/feedService";
 import ReelsFeed, { type ReelItem } from "./ReelsFeed";
 

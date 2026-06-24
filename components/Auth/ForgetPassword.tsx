@@ -1,13 +1,14 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
-import AuthImage from "@/assets/images/auth-image.png";
+import AuthImagePanel from "./AuthImagePanel";
 import { parsePhoneNumberFromString } from "libphonenumber-js";
 import { BeatLoader } from "react-spinners";
 import { useForgotPasswordMutation } from "@/store/services/authService";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import Footer from "./Footer";
+import buttonDoodleImage from "@/assets/images/button-doodle-image.svg";
 
 export type Body = {
   email?: string;
@@ -66,13 +67,7 @@ function ForgetPassword() {
   return (
     <div className="w-screen h-screen lg:flex lg:min-h-[818px] hide-scrollbar pt-[50px] lg:pt-0">
       {/* Left section */}
-      <div className=" hidden lg:block lg:w-[60%] lg:pl-8 xl:pl-24   ">
-        <Image
-          src={AuthImage}
-          alt="auth-image"
-          className="h-full w-full object-cover "
-        />
-      </div>
+      <AuthImagePanel />
       {/* Right section */}
       <div className="w-full h-full  flex flex-col items-center lg:items-start  justify-between  lg:w-[50%] px-5  sm:px-[50px] xl:px-[150px] lg:pt-[80px] ">
         <div className=" w-full flex flex-col   items-center  lg:items-start max-w-[500px] lg:max-w-full">
@@ -105,9 +100,17 @@ function ForgetPassword() {
           <button
             onClick={handleSendOtp}
             disabled={isLoading}
-            className="mt-6 h-[52px] w-full rounded-[12px] text-white font-medium text-[16px]  bg-green-1 cursor-pointer"
+            className="relative mt-6 flex h-[52px] w-full cursor-pointer items-center justify-center overflow-hidden rounded-[12px] bg-green-1 text-[16px] font-medium text-white disabled:cursor-not-allowed disabled:opacity-70"
           >
-            {isLoading ? <BeatLoader color="white" size={8} /> : "Continue"}
+            <Image
+              src={buttonDoodleImage}
+              alt=""
+              aria-hidden
+              className="pointer-events-none absolute inset-0 h-full w-full rounded-[12px] object-cover"
+            />
+            <span className="relative z-10">
+              {isLoading ? <BeatLoader color="white" size={8} /> : "Continue"}
+            </span>
           </button>
         </div>
         <div className="w-full h-max mb-10 ">

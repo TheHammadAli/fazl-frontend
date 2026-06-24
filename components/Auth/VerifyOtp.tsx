@@ -1,7 +1,7 @@
 "use client";
 import React, { useRef, useState, useEffect } from "react";
 import Image from "next/image";
-import AuthImage from "@/assets/images/auth-image.png";
+import AuthImagePanel from "./AuthImagePanel";
 import InputForOtp from "../Ui/InputForOtp";
 import {
   useSendOtpMutation,
@@ -13,6 +13,7 @@ import toast from "react-hot-toast";
 import { BeatLoader } from "react-spinners";
 import { useRouter } from "next/navigation";
 import Footer from "./Footer";
+import buttonDoodleImage from "@/assets/images/button-doodle-image.svg";
 
 function VerifyOtp() {
   const router = useRouter();
@@ -120,13 +121,7 @@ function VerifyOtp() {
     return (
       <div className="w-screen h-screen flex min-h-[100vh]">
         {/* Left section */}
-        <div className="hidden lg:block lg:w-[60%] pl-8 xl:pl-24 ">
-          <Image
-            src={AuthImage}
-            alt="auth-image"
-            className="h-full w-full object-cover"
-          />
-        </div>
+        <AuthImagePanel />
         {/* Right section */}
         <form
           onSubmit={handleSubmit}
@@ -171,13 +166,21 @@ function VerifyOtp() {
             <button
               type="submit"
               disabled={otp.length < 6 || isSendOtpLoading}
-              className="mt-6 w-full max-w-[500px] lg:max-w-full h-[52px]  rounded-[12px] text-white font-medium text-[16px]  bg-green-1 cursor-pointer disabled:opacity-50"
+              className="relative mt-6 flex h-[52px] w-full max-w-[500px] cursor-pointer items-center justify-center overflow-hidden rounded-[12px] bg-green-1 text-[16px] font-medium text-white disabled:cursor-not-allowed disabled:opacity-50 lg:max-w-full"
             >
-              {isVerifyLoading ? (
-                <BeatLoader color="white" size={8} />
-              ) : (
-                "Continue"
-              )}
+              <Image
+                src={buttonDoodleImage}
+                alt=""
+                aria-hidden
+                className="pointer-events-none absolute inset-0 h-full w-full rounded-[12px] object-cover"
+              />
+              <span className="relative z-10">
+                {isVerifyLoading ? (
+                  <BeatLoader color="white" size={8} />
+                ) : (
+                  "Continue"
+                )}
+              </span>
             </button>
           </div>
           <div className="mt-14 w-full">

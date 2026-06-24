@@ -1,8 +1,8 @@
 "use client";
 import React, { useState } from "react";
 import Image from "next/image";
-import AuthImage from "@/assets/images/auth-image.png";
 import { BeatLoader } from "react-spinners";
+import AuthImagePanel from "./AuthImagePanel";
 import { useAppDispatch } from "@/store/store";
 import { useRouter } from "next/navigation";
 import { useSigninMutation } from "@/store/services/authService";
@@ -16,6 +16,7 @@ import {
 import { baseApi } from "@/store/baseApi";
 import { BASE_URL } from "@/assets/content/constants";
 import GoogleIcon from "@/assets/icons/google-icon.svg";
+import buttonDoodleImage from "@/assets/images/button-doodle-image.svg";
 import Footer from "./Footer";
 import { useDictionary } from "@/dictionaries/DictionaryProvider";
 import { setAdminRoleCookie } from "@/utils/authCookies";
@@ -147,13 +148,7 @@ function Signin() {
   return (
     <div className="w-screen h-screen flex min-h-[818px] ">
       {/* Left section */}
-      <div className="hidden lg:block lg:w-[60%] pl-8 xl:pl-24 ">
-        <Image
-          src={AuthImage}
-          alt="auth-image"
-          className="h-full w-full object-cover"
-        />
-      </div>
+      <AuthImagePanel />
 
       {/* Right section */}
       <form
@@ -229,10 +224,18 @@ function Signin() {
 
           <button
             type="submit"
-            className="mt-6 h-[52px] w-full cursor-pointer rounded-[12px] bg-green-1 text-white"
+            className="relative mt-6 flex h-[52px] w-full cursor-pointer items-center justify-center overflow-hidden rounded-[12px] bg-green-1 text-white disabled:cursor-not-allowed disabled:opacity-70"
             disabled={isLoading}
           >
-            {isLoading ? <BeatLoader color="white" size={8} /> : "Continue"}
+            <Image
+              src={buttonDoodleImage}
+              alt=""
+              aria-hidden
+              className="pointer-events-none absolute inset-0 h-full w-full rounded-[12px] object-cover"
+            />
+            <span className="relative z-10">
+              {isLoading ? <BeatLoader color="white" size={8} /> : "Continue"}
+            </span>
           </button>
 
           <button

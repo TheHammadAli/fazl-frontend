@@ -20,6 +20,7 @@ import { useDictionary } from "@/dictionaries/DictionaryProvider";
 import ChooseImagesTab from "@/components/Services/ChooseImagesTab";
 import { useClickOutside } from "@/custom-hooks/useClickOutside";
 import { useDebounce } from "use-debounce";
+import buttonDoodleImage from "@/assets/images/button-doodle-image.svg";
 
 type CategoryItem = {
     _id: string;
@@ -529,17 +530,25 @@ function BroadCastModal({ setOpenBroadcast }: { setOpenBroadcast: (open: boolean
                         type="button"
                         disabled={isBroadcastLoading}
                         onClick={handleSendMessage}
-                        className="flex h-[38px] min-w-[114px] cursor-pointer items-center justify-center rounded-[8px] bg-green-1 px-5 text-[15px] font-normal text-white disabled:cursor-not-allowed disabled:opacity-80"
+                        className="relative flex h-[38px] min-w-[114px] cursor-pointer items-center justify-center overflow-hidden rounded-[8px] bg-green-1 px-5 text-[15px] font-normal text-white disabled:cursor-not-allowed disabled:opacity-80"
                     >
-                        {isBroadcastLoading ? (
-                            <span className="flex items-center gap-1">
-                                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-white" />
-                                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-white [animation-delay:120ms]" />
-                                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-white [animation-delay:240ms]" />
-                            </span>
-                        ) : (
-                            ph("send")
-                        )}
+                        <Image
+                            src={buttonDoodleImage}
+                            alt=""
+                            aria-hidden
+                            className="pointer-events-none absolute inset-0 h-full w-full rounded-[8px] object-cover"
+                        />
+                        <span className="relative z-10">
+                            {isBroadcastLoading ? (
+                                <span className="flex items-center gap-1">
+                                    <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-white" />
+                                    <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-white [animation-delay:120ms]" />
+                                    <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-white [animation-delay:240ms]" />
+                                </span>
+                            ) : (
+                                ph("send")
+                            )}
+                        </span>
                     </button>
                 </div>
 

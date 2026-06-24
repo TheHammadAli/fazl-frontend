@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import AuthImage from "@/assets/images/auth-image.png";
+import AuthImagePanel from "./AuthImagePanel";
 import chevDown from "@/assets/icons/chev-down-icon.svg";
 import countries from "country-list-with-dial-code-and-flag";
 import { useClickOutside } from "@/custom-hooks/useClickOutside";
@@ -157,13 +157,7 @@ function CompleteInfo() {
   return (
     <div className="w-screen h-screen lg:flex min-h-[818px] hide-scrollbar  pt-[50px] lg:pt-0">
       {/* Left section */}
-      <div className=" hidden  lg:block lg:w-[55%]  lg:pl-8 xl:pl-16   ">
-        <Image
-          src={AuthImage}
-          alt="auth-image"
-          className="h-full w-full object-cover "
-        />
-      </div>
+      <AuthImagePanel className="relative hidden h-full overflow-hidden lg:block lg:w-[55%] ltr:lg:pl-8 ltr:xl:pl-16 rtl:lg:pr-8 rtl:xl:pr-16" />
       {/* Right section */}
       <form
         onSubmit={handleCompleteInfo}
