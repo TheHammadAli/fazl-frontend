@@ -1,10 +1,19 @@
-import { configureStore } from "@reduxjs/toolkit";
+import { configureStore, createListenerMiddleware } from "@reduxjs/toolkit";
 import { setupListeners } from "@reduxjs/toolkit/query";
 import { TypedUseSelectorHook, useDispatch, useSelector } from "react-redux";
-import authReducer from "./reducers/authReducer";
+import authReducer, { logout } from "./reducers/authReducer";
 import cartReducer from "./reducers/cartReducer";
 // import filtersReducer from "./reducers/filtersReducer";
 import { baseApi } from "./baseApi";
+
+const listenerMiddleware = createListenerMiddleware();
+
+listenerMiddleware.startListening({
+  matcher: logout.match,
+  effect: (_action, api) => {
+    api.dispatch(baseApi.util.resetApiState());
+  },
+});
 
 const store = configureStore({
   reducer: {
@@ -14,7 +23,9 @@ const store = configureStore({
     // filters: filtersReducer
   },
   middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware().concat(baseApi.middleware),
+    getDefaultMiddleware()
+      .prepend(listenerMiddleware.middleware)
+      .concat(baseApi.middleware),
 });
 
 setupListeners(store.dispatch);

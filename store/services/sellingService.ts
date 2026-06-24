@@ -55,7 +55,7 @@ export const profileService = baseApi.injectEndpoints({
       invalidatesTags: [],
     }),
     getUsersShops: build.query({
-      query: () => {
+      query: (_userId: string) => {
         return {
           url: `/shops/userShops`,
           method: "GET",

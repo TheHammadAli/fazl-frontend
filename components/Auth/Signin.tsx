@@ -13,6 +13,7 @@ import {
   setToken,
   setUserId,
 } from "@/store/reducers/authReducer";
+import { baseApi } from "@/store/baseApi";
 import { BASE_URL } from "@/assets/content/constants";
 import GoogleIcon from "@/assets/icons/google-icon.svg";
 import Footer from "./Footer";
@@ -88,6 +89,9 @@ function Signin() {
       const res = await signin(body).unwrap();
 
 
+
+      // Clear cached data from any previous session before storing the new user.
+      dispatch(baseApi.util.resetApiState());
 
       // ✅ Store tokens
       dispatch(

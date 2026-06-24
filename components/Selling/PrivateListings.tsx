@@ -4,15 +4,14 @@ import Image from "next/image";
 import chevron from "@/assets/icons/chev-down-icon.svg";
 import { useDictionary } from "@/dictionaries/DictionaryProvider";
 import { useGetUserProductsQuery } from "@/store/services/sellingService";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import testImage from "@/assets/images/product-image.jpg";
-import { getCookie } from "cookies-next";
-import filterIcon from "@/assets/icons/filter-icon.svg";
+import noProductsOrShopIcon from "@/assets/icons/no-products-or-shop.svg";
+import { useAppSelector } from "@/store/store";
 
 function PrivateListings() {
-  const id = useSearchParams().get("id");
-  const { placeholders, error_messages } = useDictionary();
-  const userId = typeof window !== "undefined" ? getCookie("userId") : "";
+  const { placeholders, info_messages } = useDictionary();
+  const userId = useAppSelector((state) => state.authReducer.userId);
   const router = useRouter();
 
   const {
@@ -22,7 +21,7 @@ function PrivateListings() {
   } = useGetUserProductsQuery(userId, { skip: !userId });
   return (
     <div className="px-4 py-5">
-      <div className="flex justify-between items-center  mt-4">
+      <div className="flex justify-between items-center  ">
         <div>
           <h1 className="text-black-1 font-medium text-[16px]">
             {placeholders.total}
@@ -40,7 +39,7 @@ function PrivateListings() {
           {placeholders.filter}
         </div> */}
       </div>
-      {products?.data?.length > 0 ? (
+      {userId && products?.data?.length > 0 ? (
         <div className="mt-6 space-y-7">
           {products?.data?.map(
             (
@@ -110,8 +109,23 @@ function PrivateListings() {
       ) : (
         !isLoading &&
         !isFetching && (
-          <div className="w-full  h-[300px] flex items-center justify-center">
-            {error_messages.no_product_data}
+          <div className="flex min-h-[300px] w-full items-center justify-center px-4 py-10">
+            <div className="flex max-w-[320px] flex-col items-center text-center">
+              <Image
+                src={noProductsOrShopIcon}
+                alt=""
+                width={140}
+                height={140}
+                unoptimized
+                className="h-auto w-[140px] max-w-full"
+              />
+              <h2 className="mt-4 text-[16px] font-medium text-[#030303] sm:text-[18px]">
+                {info_messages.no_products_yet}
+              </h2>
+              <p className="mt-2 text-[14px] font-normal leading-relaxed text-[#4B514F]">
+                {info_messages.no_private_listings_subtitle}
+              </p>
+            </div>
           </div>
         )
       )}

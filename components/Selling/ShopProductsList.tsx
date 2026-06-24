@@ -31,7 +31,7 @@ function ShopProductsList() {
 
   const loading = isProductsLoading || isProductsFetching;
   return (
-    <div className="px-5 md:px-6">
+    <div className="sm:px-2">
       <div className="flex justify-between items-center md:px-3.5 mt-4">
         <div>
           <h1 className="text-black-1 font-medium text-[16px]">
@@ -56,7 +56,7 @@ function ShopProductsList() {
 
       {/* listing  */}
       {!loading && products?.data?.length > 0 && (
-        <div className="grid grid-cols-2 xl:grid-cols-3 gap-2 md:gap-5 mt-4">
+        <div className="grid grid-cols-2 xl:grid-cols-5 gap-2 md:gap-5 mt-4">
           {products?.data?.map((product: productTypes, index: number) => {
             return (
               <div
@@ -103,14 +103,11 @@ function ShopProductsList() {
           })}
         </div>
       )}
-      {
-        // no data found
-        !loading && products?.data?.length === 0 && (
-          <div className="h-[80vh] flex items-center justify-center w-full text-black-1">
-            {error_messages.no_product_data}
-          </div>
-        )
-      }
+      {!loading && products?.data?.length === 0 && (
+        <div className="flex h-[30vh] w-full items-center justify-center text-black-1">
+          {error_messages.no_product_data}
+        </div>
+      )}
       {loading && <ProductSkeleton />}
     </div>
   );

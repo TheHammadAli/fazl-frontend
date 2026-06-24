@@ -11,6 +11,7 @@ import {
   setToken,
   setUserId,
 } from "@/store/reducers/authReducer";
+import { baseApi } from "@/store/baseApi";
 import { useLazyGetUserDetailQuery } from "@/store/services/profileService";
 
 export default function GoogleCallback() {
@@ -46,6 +47,7 @@ export default function GoogleCallback() {
 
   useEffect(() => {
     if (isSuccess) {
+      dispatch(baseApi.util.resetApiState());
       dispatch(
         setToken({
           accessToken: token ?? "",

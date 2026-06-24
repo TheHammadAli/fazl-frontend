@@ -9,10 +9,13 @@ import locationIcon from "@/assets/icons/location-gray.svg";
 import ShopProducts from "./ShopProducts";
 import { useGetShopDetailQuery } from "@/store/services/sellingService";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import ShopInfoSkelton from "./ShopInfoSkelton";
 import { useGetUserDetailQuery } from "@/store/services/profileService";
 import noImageAvtar from "@/assets/images/no-image-av.png";
+import noImageIcon from "@/assets/images/new-no-image-placeholder.png";
+import Modal from "../Ui/Modals/Modal";
+import SharePostModal from "../Ui/SharePostModal";
 
 export default function ShopDetail() {
   const router = useRouter();
@@ -24,6 +27,9 @@ export default function ShopDetail() {
       : {};
 
   const { user } = userData;
+  const [shareModal, setShareModal] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const sharePostRef = useRef<HTMLDivElement>(null);
   const {
     data: shop,
     isLoading: isShopLoading,
@@ -37,8 +43,31 @@ export default function ShopDetail() {
       router.back();
     }
   }, []);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const shareUrl =
+    mounted && id
+      ? `${window.location.origin}/selling/shop-detail?id=${id}`
+      : "";
+
   return (
     <div className="w-full ">
+      <Modal
+        editModalRef={sharePostRef}
+        open={shareModal}
+        setOpen={setShareModal}
+        centered={true}
+      >
+        <SharePostModal
+          type={placeholders.shop}
+          setShareModal={setShareModal}
+          shareUrl={shareUrl}
+          shareService={true}
+        />
+      </Modal>
       <div className=" px-5 md:px-6 h-[61px] border-b-[1px] border-gray-9 bg-[white] hide-scrollbar w-full  flex justify-center ">
         <div className="w-full min-w-max hide-scrollbar overflow-scroll flex items-center gap-[6px] font-normal text-[14px] mt-5">
           <span className="text-gray-8">{pages.selling}</span>
@@ -56,44 +85,78 @@ export default function ShopDetail() {
           <span className="text-green-1">{shop?.data?.title ?? ""}</span>
         </div>
       </div>
-      <div className="md:flex min-h-screen">
+      <div className=" min-h-screen  pt-4 px-5">
         {/* Sidebar */}
+        <div
+          className={`w-full h-[200px] sm:h-[240px] rounded-[24px] overflow-hidden ${isShopLoading || isShopFetching
+            ? "bg-gray-200 animate-pulse"
+            : shop?.data?.banner
+              ? ""
+              : "bg-gray-12 flex items-center justify-center"
+            }`}
+        >
+          {!isShopLoading && !isShopFetching && shop?.data?.banner ? (
+            <Image
+              src={`${shop.data.banner}?t=${Date.now()}`}
+              alt="banner"
+              width={100}
+              height={100}
+              unoptimized
+              className="w-full h-full object-cover"
+            />
+          ) : !isShopLoading && !isShopFetching ? (
+            <Image
+              src={noImageIcon}
+              alt="no banner"
 
-        <div className="md:w-[35%] border-r-[1px] border-gray-9 p-4 xl:p-6 space-y-[16px] md:space-y-[20px]">
-          <h2 className="text-black-1 font-semibold text-[16px] leading-none">
-            {placeholders.about}
-          </h2>
+              unoptimized
+              className="object-contain h-full w-full"
+            />
+          ) : null}
+        </div>
+
+        <div className="w-full   space-y-[16px] md:space-y-[20px]">
+
           <div>
             {isShopLoading || isShopFetching ? (
               <ShopInfoSkelton />
             ) : (
               <div className="space-y-[16px] md:space-y-[20px]">
-                <div className="flex items-center gap-[14px]">
-                  <div className="h-[66px] w-[66px] min-w-[66px] rounded-full overflow-hidden">
-                    <Image
-                      src={
-                        shop?.data?.image
-                          ? `${shop.data.image}?t=${Date.now()}`
-                          : noImageAvtar
-                      }
-                      alt="profile"
-                      width={100}
-                      height={100}
-                      unoptimized
-                      className="rounded-full h-full w-full object-cover"
-                    />
+                <div className="flex items-center sm:items-end justify-between gap-3 sm:pl-6 sm:rtl:pr-6 mt-5 sm:-mt-5">
+                  <div className="flex items-center sm:items-end gap-[14px] min-w-0">
+                    <div className="h-[80px] w-[80px] min-w-[80px] bg-white rounded-full sm:border-[white] sm:border-[5px] shadow-menu overflow-hidden">
+                      <Image
+                        src={
+                          shop?.data?.image
+                            ? `${shop.data.image}?t=${Date.now()}`
+                            : noImageAvtar
+                        }
+                        alt="profile"
+                        width={100}
+                        height={100}
+                        unoptimized
+                        className="rounded-full h-full w-full object-cover"
+                      />
+                    </div>
+                    <div className="pb-1 min-w-0">
+                      <h2 className="text-[#030303] text-[14px] font-medium truncate">
+                        {shop?.data?.title}
+                      </h2>
+                      <p className="text-[14px] font-normal text-[#4B514F] truncate">
+                        {user?.email ?? ""}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h2 className="  text-black-3 text-[18px] font-medium">
-                      {shop?.data?.title}
-                    </h2>
-                    <p className="text-[16px] font-normal text-gray-13">
-                      {user?.email ?? ""}
-                    </p>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShareModal(true)}
+                    className="shrink-0 border border-green-1 text-green-1 bg-white rounded-xl px-6 h-[36px] text-[14px] font-medium cursor-pointer"
+                  >
+                    {placeholders.share}
+                  </button>
                 </div>
                 <div className="flex justify-between text-[14px] font-normal">
-                  <h3 className="text-gray-8">{placeholders.about_us}</h3>
+                  <h3 className="text-[#4B514F]">{placeholders.about_us}</h3>
                   <h3
                     className="text-green-1 cursor-pointer underline "
                     onClick={() =>
@@ -105,7 +168,7 @@ export default function ShopDetail() {
                 </div>
 
                 <div className=" font-light text-[15px] text-black-1 -mt-3">
-                  <p>{shop?.data?.description}</p>
+                  <p className="leading-tight">{shop?.data?.description}</p>
                   <div className="mt-3 space-y-1">
                     <div className="flex gap-1.5  items-center">
                       <Image src={tickGray} alt="tick" />
@@ -143,7 +206,7 @@ export default function ShopDetail() {
                     onClick={() =>
                       router.push(`/selling/list-product?id=${shop?.data?.id}`)
                     }
-                    className="w-full max-w-[400px] bg-green-1 text-[16px] h-[46px] font-medium text-white flex items-center justify-center rounded-xl cursor-pointer"
+                    className="px-4 w-[180px] bg-green-1 text-[14px] h-[40px] font-medium text-white flex items-center justify-center rounded-xl cursor-pointer"
                   >
                     {placeholders.list_product}
                   </button>
@@ -157,7 +220,7 @@ export default function ShopDetail() {
         </div>
 
         {/* Main Content */}
-        <div className="md:w-[65%] xl:pr-5">
+        <div className="mt-4 pb-4">
           <ShopProducts />
         </div>
       </div>

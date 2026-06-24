@@ -17,7 +17,6 @@ import {
   useUpdateShopMutation,
 } from "@/store/services/sellingService";
 import { useRouter, useSearchParams } from "next/navigation";
-import ShopCreated from "./ShopCreated";
 
 interface Location {
   description?: string;
@@ -41,6 +40,7 @@ function UpdateShop() {
     useDictionary();
   const locationRef = useRef<HTMLDivElement | null>(null);
   const [isLocationOpen, setIsLocationOpen] = useState(false);
+  const [banner, setBanner] = useState<File | null | string>(null);
   const [location, setLocation] = useState<Location>({});
   const [updateShop, { isLoading, isSuccess, isError, error, data }] =
     useUpdateShopMutation();
@@ -94,6 +94,7 @@ function UpdateShop() {
       setName(shopData?.title ?? "");
       setDescription(shopData?.description ?? "");
       setProfile(shopData?.image ?? null);
+      setBanner(shopData?.banner ?? null);
       setLocation({ ...shopData?.location, description: shopData?.address });
     }
   }, [shop?.data, shopSuccess]);
@@ -166,6 +167,9 @@ function UpdateShop() {
           formData.append("image", profile);
         }
       }
+      if (banner && typeof banner !== "string") {
+        formData.append("banner", banner);
+      }
 
       updateShop({ id: id, formData: formData });
     }
@@ -196,6 +200,43 @@ function UpdateShop() {
           {/* <h4 className="text-[14px] font-normal text-gray-8">
               {info_messages.fill_details}
             </h4> */}
+          <label
+            htmlFor="shop-banner"
+            className="relative mt-4 block w-full cursor-pointer overflow-hidden rounded-[16px] bg-[#E6FBFB]  h-[105px]"
+          >
+            {banner ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={
+                  typeof banner === "string"
+                    ? `${banner}?t=${Date.now()}`
+                    : URL.createObjectURL(banner)
+                }
+                alt=""
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <span className="flex h-full w-full flex-col items-center justify-center">
+                <span className="text-[14px] font-medium text-green-1 underline">
+                  {info_messages.add_banner}
+                </span>
+                <span className="mt-1 text-[12px] font-normal text-[#4B514F]">
+                  {info_messages.banner_resolution}
+                </span>
+              </span>
+            )}
+          </label>
+          <input
+            id="shop-banner"
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => {
+              if (e.target.files && e.target.files.length > 0) {
+                setBanner(e.target.files[0]);
+              }
+            }}
+          />
           <div className="mt-5 flex gap-[14px] items-center  w-full ">
             <div className="h-[62px] overflow-hidden  font-medium text-[16px] text-black-2 rounded-[22px] w-[62px] bg-[#E6FBFB] flex items-center justify-center">
               {profile !== null ? (
@@ -239,6 +280,7 @@ function UpdateShop() {
             >
               {info_messages.shop_name}
             </p>
+
             <input
               type="text"
               value={name}

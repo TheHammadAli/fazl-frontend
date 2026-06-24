@@ -7,6 +7,7 @@ import { useGetUsersShopsQuery } from "@/store/services/sellingService";
 import noImageAvtar from "@/assets/images/no-image-av.png";
 import MyShopsSkeleton from "./MyShopsSkelton";
 import { useRouter } from "next/navigation";
+import { useAppSelector } from "@/store/store";
 interface shopTypes {
   title: string;
   id: string;
@@ -16,8 +17,9 @@ interface shopTypes {
 function MyShops() {
   const router = useRouter();
   const { placeholders, error_messages } = useDictionary();
+  const userId = useAppSelector((state) => state.authReducer.userId);
   const { data, isLoading, isFetching, isError, error } =
-    useGetUsersShopsQuery("");
+    useGetUsersShopsQuery(userId, { skip: !userId });
   const loading = isLoading || isFetching;
   if (isError) {
     return (
