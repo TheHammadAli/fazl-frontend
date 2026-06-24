@@ -7,6 +7,9 @@ import Tabs from "../Ui/Tabs";
 import ChooseImagesTab from "./ChooseImagesTab";
 import ChooseVideoTab from "./ChooseVideoTab";
 import cameraIcon from "@/assets/icons/camera-icon.svg";
+import reachMoreCustomerIcon from "@/assets/icons/reach-more-customer.svg";
+import secureReliableIcon from "@/assets/icons/secure-reliable.svg";
+import growBusinessImage from "@/assets/icons/grow-business.svg";
 import { BeatLoader } from "react-spinners";
 import Modal from "../Ui/Modals/Modal";
 import CategoryModal, { categroyTypes } from "./CategoryModal";
@@ -18,11 +21,12 @@ import {
 import toast from "react-hot-toast";
 import ServiceCreated from "./ServiceCreated";
 import { getCookie } from "cookies-next";
+import { getFeedCategoryLabel } from "@/utils/getFeedCategoryLabel";
 
 function CreateService() {
   const categoryRef = useRef<HTMLDivElement | null>(null);
 
-  const { pages, placeholders, info_messages, error_messages } =
+  const { pages, placeholders, info_messages, error_messages, currentLanguage } =
     useDictionary();
 
   const [addService, { data, isLoading, isError, isSuccess, error }] =
@@ -184,6 +188,56 @@ function CreateService() {
         ) : (
           <div className="md:flex w-full flex-1">
             <div className="md:w-[46%] p-4 md:p-6 border-b md:border-r border-gray-9 ">
+              {/* target */}
+              <div className="mb-4 overflow-hidden rounded-[10px] bg-[rgb(245,249,248)] sm:mb-5 sm:rounded-[12px] xl:mb-6">
+                <div className="flex items-end justify-between gap-2 pr-2 sm:gap-3 sm:pr-3 xl:gap-4 xl:pr-4 rtl:pl-2 sm:rtl:pl-3 xl:rtl:pl-4">
+                  <div className="min-w-0 flex-1 space-y-2 pb-2 pl-3 pt-3 sm:space-y-2.5 sm:pl-4 sm:pt-4 xl:space-y-3 rtl:pr-3 sm:rtl:pr-4">
+                    <div>
+                      <h3 className="text-[13px] font-medium text-[#030303] sm:text-[14px] xl:text-[14px]">
+                        {info_messages.grow_your_business}
+                      </h3>
+                      <p className="mt-0.5 max-w-full text-[10px] leading-tight text-[#4B514F] sm:mt-1 sm:max-w-[180px] sm:text-[11px] md:max-w-[195px] xl:mt-0 xl:w-[206px] xl:text-[11px]">
+                        {info_messages.list_services_sell_customers}
+                      </p>
+                    </div>
+                    <ul className="space-y-1 sm:space-y-1.5 xl:space-y-1.5">
+                      <li className="flex items-center gap-2 sm:gap-2.5 xl:gap-2.5">
+                        <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-[#DFF2EC] sm:h-5 sm:w-5 xl:h-5 xl:w-5">
+                          <Image
+                            src={reachMoreCustomerIcon}
+                            alt=""
+                            className="h-[10px] w-[10px] sm:h-3 sm:w-3 xl:h-3 xl:w-3"
+                          />
+                        </span>
+                        <span className="text-[10px] text-[#001907] sm:text-[11px] xl:text-[11px]">
+                          {info_messages.reach_more_customers}
+                        </span>
+                      </li>
+                      <li className="flex items-center gap-2 sm:gap-2.5 xl:gap-2.5">
+                        <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-[#DFF2EC] sm:h-5 sm:w-5 xl:h-5 xl:w-5">
+                          <Image
+                            src={secureReliableIcon}
+                            alt=""
+                            className="h-[10px] w-[10px] sm:h-3 sm:w-3 xl:h-3 xl:w-3"
+                          />
+                        </span>
+                        <span className="text-[10px] text-[#001907] sm:text-[11px] xl:text-[11px]">
+                          {info_messages.secure_and_reliable}
+                        </span>
+                      </li>
+                    </ul>
+                  </div>
+                  <div className="relative h-[88px] w-[108px] shrink-0 sm:h-[110px] sm:w-[150px] md:h-[120px] md:w-[170px] xl:h-[130px] xl:w-[195px]">
+                    <Image
+                      src={growBusinessImage}
+                      alt=""
+                      fill
+                      unoptimized
+                      className="object-contain object-bottom object-right"
+                    />
+                  </div>
+                </div>
+              </div>
               <div>
                 <Tabs
                   tabs={tabs}
@@ -261,7 +315,9 @@ function CreateService() {
                     onClick={() => setIsCatOpen(true)}
                   >
                     <h4 className="text-[15px] font-normal text-gray-8 leading-none">
-                      {selectedCategory?.name || placeholders.choose_category}
+                      {selectedCategory
+                        ? getFeedCategoryLabel(selectedCategory.name, currentLanguage)
+                        : placeholders.choose_category}
                     </h4>
                     <Image
                       src={chevron}
