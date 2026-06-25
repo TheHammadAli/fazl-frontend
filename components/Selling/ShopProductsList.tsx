@@ -85,7 +85,7 @@ function ShopProductsList() {
                     (8)
                   </span>
                 </div> */}
-                <div className="flex gap-2">
+                {/* <div className="flex gap-2">
                   <AvgRatingStars
                     rating={product?.averageRating}
                     isLoading={false}
@@ -94,7 +94,7 @@ function ShopProductsList() {
                   <span className="text-gray-8 text-[14px] font-normal">
                     ({product?.reviewCount ?? 0})
                   </span>
-                </div>
+                </div> */}
                 <h2 className="text-green-1 font-normal text-[16px]  ">
                   {placeholders.Rs} {product?.price}
                 </h2>

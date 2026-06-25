@@ -11,6 +11,7 @@ import { useDebounce } from "use-debounce";
 import dummyProfile from "@/assets/images/profile-placehonder.png";
 import chevDown from "@/assets/icons/chev-down-icon.svg";
 import { BeatLoader } from "react-spinners";
+import buttonDoodleImage from "@/assets/images/button-doodle-image.svg";
 import { useAppSelector } from "@/store/store";
 
 import {
@@ -436,13 +437,21 @@ function ProfileInfo({ toggle, setToggle }: ProfileInfoTypes) {
             <button
               type="submit"
               disabled={isLoading}
-              className="mt-6  h-[55px] w-full sm:w-[222px] rounded-[12px] text-white font-medium text-[16px]  bg-green-1 cursor-pointer"
+              className="relative mt-6 flex h-[55px] w-full cursor-pointer items-center justify-center overflow-hidden rounded-[12px] bg-green-1 text-[16px] font-medium text-white disabled:cursor-not-allowed disabled:opacity-70 sm:w-[222px]"
             >
-              {isLoading ? (
-                <BeatLoader color="white" size={8} />
-              ) : (
-                placeholders.save
-              )}
+              <Image
+                src={buttonDoodleImage}
+                alt=""
+                aria-hidden
+                className="pointer-events-none absolute inset-0 h-full w-full rounded-[12px] object-cover"
+              />
+              <span className="relative z-10">
+                {isLoading ? (
+                  <BeatLoader color="white" size={8} />
+                ) : (
+                  placeholders.save
+                )}
+              </span>
             </button>
           </div>
         </form>

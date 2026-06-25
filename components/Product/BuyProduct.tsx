@@ -5,6 +5,7 @@ import { useGetProductDetailQuery } from "@/store/services/homeService";
 import { useSearchParams } from "next/navigation";
 import { useGetShopDetailQuery } from "@/store/services/sellingService";
 import BuyProductDetail from "./BuyProductDetail";
+import BuyProductDetailSkeleton from "./BuyProductDetailSkeleton";
 import { useGetProductOwnerDetailQuery } from "@/store/services/authService";
 import { useAppSelector } from "@/store/store";
 import { useRequireSignIn } from "@/custom-hooks/useRequireSignIn";
@@ -55,24 +56,29 @@ function BuyProduct() {
     }
   }, [isGuest, step, router]);
 
+  const loading = isLoading || isFetching;
+
   return (
     <div>
-      {step === "product" && (
-        <BuyProductDetail
-          setStep={(val) => {
-            if (val === "cart") {
-              requireSignIn(() => setStep(val));
-            } else {
-              setStep(val);
-            }
-          }}
-          selectedVariants={selectedVariants}
-          setSelectedVariants={setSelectedVariants}
-          product={product}
-          shopData={shopData}
-          ownerData={ownerData}
-        />
-      )}
+      {step === "product" &&
+        (loading ? (
+          <BuyProductDetailSkeleton />
+        ) : (
+          <BuyProductDetail
+            setStep={(val) => {
+              if (val === "cart") {
+                requireSignIn(() => setStep(val));
+              } else {
+                setStep(val);
+              }
+            }}
+            selectedVariants={selectedVariants}
+            setSelectedVariants={setSelectedVariants}
+            product={product}
+            shopData={shopData}
+            ownerData={ownerData}
+          />
+        ))}
       {step === "cart" && (
         <Cart
           ownerData={ownerData}

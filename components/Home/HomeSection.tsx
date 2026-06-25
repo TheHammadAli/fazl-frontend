@@ -18,7 +18,9 @@ import { useDebounce } from "use-debounce";
 import BroadCastModal from "../Ui/BroadCastModal";
 import Modal from "../Ui/Modals/Modal";
 import AllProductsAndServices from "./AllProductsAndServices";
-import { useIsGuest } from "@/custom-hooks/useIsGuest";
+import { useCanInteractAsUser, useIsGuest } from "@/custom-hooks/useIsGuest";
+import { useAppDispatch } from "@/store/store";
+import { logout } from "@/store/reducers/authReducer";
 import { getCatalogItemsFromSearchResponse } from "@/utils/catalogSearch";
 import type { StaticImageData } from "next/image";
 import FindProdBanner from "./FindProdBanner";
@@ -91,6 +93,8 @@ type ProductCategoryItem = {
 
 function HomeSection() {
   const isGuest = useIsGuest();
+  const isLoggedIn = useCanInteractAsUser();
+  const dispatch = useAppDispatch();
   const [openBroadcast, setOpenBroadcast] = useState(false);
   const broadcastRef = useRef<HTMLDivElement>(null);
   const tabsComponents: { [key: string]: React.ReactNode } = {
@@ -149,21 +153,53 @@ function HomeSection() {
   return (
     <div className="p-5 pb-0">
       {/* Search */}
-      <div className="relative" onClick={() => setOpenCat(true)}>
-        <Image
-          className="absolute left-3 top-1/2 -translate-y-1/2"
-          src={searchIcon}
-          alt="search_icon"
-        />
+      <div className="flex items-center gap-4">
+        <div className="relative min-w-0 flex-1" onClick={() => setOpenCat(true)}>
+          <Image
+            className="absolute left-3 top-1/2 -translate-y-1/2"
+            src={searchIcon}
+            alt="search_icon"
+          />
 
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder={`${placeholders.search_for} ${placeholders?.[activeTab as keyof typeof placeholders]
-            }`}
-          className=" h-[46px] pl-8 text-[14px] placeholder:text-[14px] text-[#727272] placeholder:text-[#727272] font-normal w-full bg-[#EEF2F3] focus:outline-0 rounded-[8px]"
-        />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder={`${placeholders.search_for} ${placeholders?.[activeTab as keyof typeof placeholders]
+              }`}
+            className=" h-[46px] pl-8 text-[14px] placeholder:text-[14px] text-[#727272] placeholder:text-[#727272] font-normal w-full bg-[#EEF2F3] focus:outline-0 rounded-[8px]"
+          />
+        </div>
+
+        {isGuest ? (
+          <div className="flex shrink-0 items-center gap-3">
+            <button
+              type="button"
+              onClick={() => router.push("/signin")}
+              className="cursor-pointer text-[15px] font-semibold text-[#001907] underline"
+            >
+              {placeholders.login}
+            </button>
+            <button
+              type="button"
+              onClick={() => router.push("/signup")}
+              className="cursor-pointer text-[15px] font-semibold text-[#001907] underline"
+            >
+              {placeholders.sign_up}
+            </button>
+          </div>
+        ) : isLoggedIn ? (
+          <button
+            type="button"
+            onClick={() => {
+              dispatch(logout());
+              router.push("/signin");
+            }}
+            className="shrink-0 cursor-pointer text-[15px] font-semibold text-[#001907] underline"
+          >
+            {placeholders.logout}
+          </button>
+        ) : null}
       </div>
       <div ref={catRef}>
         {openCat && (

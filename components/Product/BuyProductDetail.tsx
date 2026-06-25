@@ -17,16 +17,32 @@ import toast from "react-hot-toast";
 import { useRequireSignIn } from "@/custom-hooks/useRequireSignIn";
 import Modal from "../Ui/Modals/Modal";
 import SharePostModal from "../Ui/SharePostModal";
-import shareSimpleIcon from "@/assets/icons/share-simple.svg";
+import detailShareIcon from "@/assets/icons/detial-share-icon.svg";
+import buttonDoodleImage from "@/assets/images/button-doodle-image.svg";
+import { useRouter } from "next/navigation";
+import viewShopIcon from "@/assets/icons/view-shop-icon.svg";
+import verifiedIcon from "@/assets/icons/verified.svg";
+import verifiedBlackIcon from "@/assets/icons/verified-black.svg";
 import {
   useLikeVideoMutation,
   useUnlikeVideoMutation,
 } from "@/store/services/feedService";
+import ShopProductsSlider from "./ShopProductsSlider";
 
 function buildWhatsAppUrl(phone: string, message: string) {
   const digits = phone.replace(/\D/g, "");
   if (!digits) return null;
   return `https://wa.me/${digits}?text=${encodeURIComponent(message)}`;
+}
+
+function resolveEntityId(value: unknown): string | null {
+  if (!value) return null;
+  if (typeof value === "string") return value;
+  if (typeof value === "object") {
+    const record = value as { id?: string; _id?: string };
+    return record.id ?? record._id ?? null;
+  }
+  return null;
 }
 
 function WhatsAppIcon({ className }: { className?: string }) {
@@ -42,6 +58,33 @@ function WhatsAppIcon({ className }: { className?: string }) {
   );
 }
 
+function ChatStoreIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.5}
+      aria-hidden
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m3.75 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m3.75 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z"
+      />
+    </svg>
+  );
+}
+
+function TrustSafetyIcon() {
+  return (
+    <div className="flex h-[36px] w-[36px] shrink-0 items-center justify-center rounded-full bg-[#EAF1FB]">
+      <Image src={verifiedIcon} alt="" aria-hidden className="h-[18px] w-[18px]" />
+    </div>
+  );
+}
+
 function BuyProductDetail({
   setStep,
   product,
@@ -51,6 +94,7 @@ function BuyProductDetail({
   setSelectedVariants,
 }: any) {
   const userId = getUserId() ?? "";
+  const router = useRouter();
   const { requireSignIn } = useRequireSignIn();
   const { onInitiateChat, isLoading } = useInitiateChat();
   const dispatch = useAppDispatch();
@@ -74,25 +118,28 @@ function BuyProductDetail({
   );
 
   const reviewCount = avgReview?.data?.count ?? 0;
-  const isOwner = product?.data?.shopId
-    ? Boolean(userId) && userId === shopData?.ownerId
+  const shopId =
+    resolveEntityId(product?.data?.shopId) ?? resolveEntityId(shopData);
+  const hasShop = Boolean(shopId) || Boolean(product?.data?.shopId);
+  const shopOwnerId = resolveEntityId(shopData?.ownerId);
+  const isOwner = hasShop
+    ? Boolean(userId) && userId === shopOwnerId
     : Boolean(userId) && userId === (ownerData?.id || ownerData?._id);
   const allowedToBuy = !isOwner;
   const allowMessage = allowedToBuy;
   const allowAddReview = allowedToBuy && !isClassified;
   const showPurchaseActions = allowedToBuy && !isClassified;
-  const showWhatsAppContact = allowedToBuy && isClassified;
+  const showWhatsAppContact = allowedToBuy && isClassified && !hasShop;
+  const showShopActions = allowedToBuy;
 
   const sellerPhoneFromProduct = product?.data?.shopId
     ? shopData?.ownerId?.phone
     : ownerData?.phone;
-  const sellerUserId = product?.data?.shopId
-    ? typeof shopData?.ownerId === "object"
-      ? shopData?.ownerId?.id
-      : shopData?.ownerId
+  const sellerUserId = hasShop
+    ? shopOwnerId
     : ownerData?.id || ownerData?._id;
   const { data: sellerDetail } = useGetProductOwnerDetailQuery(sellerUserId ?? "", {
-    skip: !isClassified || !sellerUserId || Boolean(sellerPhoneFromProduct),
+    skip: !sellerUserId || Boolean(sellerPhoneFromProduct),
   });
   const sellerPhone = sellerPhoneFromProduct ?? sellerDetail?.data?.phone;
 
@@ -159,6 +206,10 @@ function BuyProductDetail({
       ? `${window.location.origin}/buy-product?id=${productId}`
       : "";
 
+  const imageCount = product?.data?.images?.length ?? 0;
+  const showImageCounter =
+    (type === "image" || !videoSrc) && imageCount > 0;
+
   const handleAddToCart = () => {
     if (!product?.data?.id) return;
     requireSignIn(() => {
@@ -207,6 +258,22 @@ function BuyProductDetail({
     window.open(url, "_blank", "noopener,noreferrer");
   };
 
+  const handleChatStore = () => {
+    requireSignIn(() => {
+      onInitiateChat(userId, sellerUserId ?? "");
+    });
+  };
+
+  const handleViewShop = () => {
+    const resolvedShopId =
+      resolveEntityId(product?.data?.shopId) ?? resolveEntityId(shopData);
+    if (!resolvedShopId) {
+      toast.error(error_messages.something_went_wrong);
+      return;
+    }
+    router.push(`/selling/shop-detail?id=${resolvedShopId}`);
+  };
+
   return (
     <div className="">
       <Modal
@@ -237,9 +304,9 @@ function BuyProductDetail({
 
         <div className=" px-5 sm:px-10 py-6 w-full">
           <div className="">
-            <div className="flex  flex-col sm:flex-row gap-5 md:gap-12">
-              <div className="space-y-3">
-                <div className="relative   h-[280px] min-w-[250px] sm:h-[320px] md:h-[500px] max-w-[496px] xl:w-[496px] overflow-hidden rounded-[10px]">
+            <div className="flex  flex-col sm:flex-row gap-8">
+              <div className="space-y-2 w-full md:w-[52%]">
+                <div className="relative   h-[220px]  sm:h-[320px] md:h-[500px] overflow-hidden rounded-[10px]">
                   {type === "image" || !videoSrc ? (
                     <Image
                       src={
@@ -261,40 +328,50 @@ function BuyProductDetail({
                       className="h-full w-full object-contain"
                     />
                   )}
+                  {showImageCounter && (
+                    <div className="absolute text-[12px] bottom-4 z-10 rounded-md bg-[#2C2C2C]/80 px-2.5 py-[3px]  font-normal text-white ltr:right-4 rtl:left-4">
+                      {typeIndex + 1}/{imageCount}
+                    </div>
+                  )}
                   {showLikeAndShare && (
                     <div className="absolute top-4 z-10 flex items-center gap-3 ltr:right-4 rtl:left-4">
                       <button
                         type="button"
                         onClick={onLikeClick}
-                        className={`flex h-12 w-12 cursor-pointer items-center shadow-menu justify-center rounded-full text-white ${isLiked ? "bg-black" : "bg-[#f2f2f2]/50"}`}
+                        className={`flex h-[26px] w-[26px] cursor-pointer items-center shadow-menu justify-center rounded-full text-white bg-white`}
                         aria-label="Like"
                       >
                         <svg
+                          xmlns="http://www.w3.org/2000/svg"
                           viewBox="0 0 24 24"
                           stroke={isLiked ? undefined : "black"}
-                          strokeWidth={isLiked ? undefined : 2}
-                          fill={isLiked ? "white" : "none"}
-                          className="h-6 w-6"
+                          strokeWidth={isLiked ? undefined : 2.5}
+                          fill={isLiked ? "green" : "none"}
+                          className="h-4 w-4"
                         >
-                          <path d="M2.25 10.5a2.25 2.25 0 0 1 2.25-2.25h2.4a1.5 1.5 0 0 0 1.42-.99l1.59-4.37a1.5 1.5 0 0 1 2.84.95l-.55 4.41H18a3 3 0 0 1 2.95 3.55l-1.1 6a3 3 0 0 1-2.95 2.45H9.75a3 3 0 0 1-3-3v-6.75H4.5a2.25 2.25 0 0 1-2.25-2.25Z" />
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z"
+                          />
                         </svg>
                       </button>
                       <button
                         type="button"
                         onClick={onShareClick}
-                        className="flex h-12 w-12 cursor-pointer items-center shadow-menu justify-center rounded-full bg-[#f2f2f2]/50 text-white"
+                        className="flex h-[26px] w-[26px] cursor-pointer items-center shadow-menu justify-center rounded-full bg-white text-white"
                         aria-label="Share"
                       >
                         <Image
-                          className="h-6 w-6"
-                          src={shareSimpleIcon}
+                          className="h-4 w-4"
+                          src={detailShareIcon}
                           alt="share-simple-icon"
                         />
                       </button>
                     </div>
                   )}
                 </div>
-                <div className="flex gap-1 flex-wrap max-w-[496px] ">
+                <div className="flex gap-2 flex-wrap w-full ">
                   {product?.data?.images?.map(
                     (image: string, index: number) => (
                       <div
@@ -303,10 +380,10 @@ function BuyProductDetail({
                           setTypeIndex(index);
                           setType("image");
                         }}
-                        className={`rounded-[10px] border-[4px]  overflow-hidden  cursor-pointer ${typeIndex === index && type === "image"
+                        className={`rounded-[10px] border-[1px]  overflow-hidden  cursor-pointer ${typeIndex === index && type === "image"
                           ? " border-green-1"
                           : "border-transparent"
-                          } h-[96px] w-[96px] object-cover`}
+                          } h-[96px] w-[96px] md:w-[154px] object-cover`}
                       >
                         <Image
                           src={image}
@@ -314,7 +391,7 @@ function BuyProductDetail({
                           width={100}
                           alt="product"
                           unoptimized
-                          className="h-[96px] w-[96px] object-cover  "
+                          className="h-[96px] w-[96px] md:w-[154px] object-cover  "
                         />
                       </div>
                     ),
@@ -324,18 +401,30 @@ function BuyProductDetail({
                       onClick={() => setType("video")}
                       src={videoSrc}
                       controls={false}
-                      className={`h-[96px] w-[96px] border-[4px] object-cover rounded-[10px] cursor-pointer ${type === "video"
+                      className={`h-[96px] w-[96px] md:w-[154px] border-[1px] object-cover rounded-[10px] cursor-pointer ${type === "video"
                         ? " border-green-1"
                         : "border-transparent"
                         }`}
                     />
                   ) : null}
                 </div>
+                <div className="text-[#4B514F] text-[14px] font-medium mt-10">
+                  {placeholders.description}
+                </div>
+                <div className="text-[15px] text-[#030303] ">
+                  {product?.data?.description ?? ""}
+                </div>
               </div>
-              <div className="w-full sm:max-w-[364px] ">
+              <div className="w-full md:w-[48%] ">
+                <h3 className="text-[#030303] first-letter:uppercase text-[24px] font-medium">
+                  {product?.data?.title ?? ""}
+                </h3>
+                <div className="text-[#3C9197] text-[28px] font-medium mt-2 ">
+                  {placeholders.Rs} {product?.data?.price ?? ""}
+                </div>
                 <div className="space-y-2 sm:space-y-2 sm:flex sm:flex-wrap sm:justify-between items-center">
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex mt-4 items-center gap-2">
                     <Image
                       className="h-[44px] w-[44px] rounded-full object-cover "
                       src={
@@ -368,7 +457,7 @@ function BuyProductDetail({
                     </div>
                   </div>
 
-                  {allowMessage && (
+                  {/* {allowMessage && (
                     <button
                       disabled={isLoading}
                       onClick={() => {
@@ -389,28 +478,16 @@ function BuyProductDetail({
                         placeholders.message_seller
                       )}
                     </button>
-                  )}
+                  )} */}
                 </div>
-                <h3 className="text-[#030303] text-[16px] font-medium mt-4">
-                  {product?.data?.title ?? ""}
-                </h3>
-                {!isClassified && (
+
+                {/* {!isClassified && (
                   <h3 className="font-light text-[14px] text-[#4B514F] ">
                     {reviewCount} {reviewCount === 1 ? placeholders.review : placeholders.reviews}
                   </h3>
-                )}
-                <div className="space-x-2 mt-4">
-                  <span className="text-green-1 text-[16px] font-medium">
-                    {placeholders.Rs} {product?.data?.price ?? ""}
-                  </span>
+                )} */}
 
-                </div>
-                <div className="text-[#4B514F] text-[14px] font-light mt-4">
-                  {placeholders.description}
-                </div>
-                <div className="text-[15px] text-[#030303] font-light">
-                  {product?.data?.description ?? ""}
-                </div>
+
                 <div className="border-[#E5E5E5]  py-4 px-1.5 border-t-[0.5px] mt-4 flex justify-between">
                   <span className="text-[15px] font-medium">
                     {placeholders.category}
@@ -420,7 +497,7 @@ function BuyProductDetail({
                   </span>
                 </div>
                 {mounted &&
-                  showPurchaseActions &&
+                  // showPurchaseActions &&
                   product?.data?.parameters?.map(
                     (
                       parameter: { name: string; variants: string[] },
@@ -489,24 +566,37 @@ function BuyProductDetail({
                       product?.data?.parameters?.length
                     }
                     onClick={handleAddToCart}
-                    className=" mt-8 h-[46px]  disabled:opacity-50 disabled:pointer-events-none border-green-1 border-[1px] w-full rounded-xl flex items-center justify-center font-medium text-[16px] text-green-1 hover:text-white hover:bg-green-1 cursor-pointer"
+                    className="relative mt-8 flex h-[46px] w-full cursor-pointer items-center justify-center overflow-hidden rounded-xl border border-green-1 bg-white text-[16px] font-medium text-green-1 hover:bg-green-1 hover:text-white disabled:pointer-events-none disabled:opacity-50"
                   >
-                    {placeholders.add_cart}
+                    <Image
+                      src={buttonDoodleImage}
+                      alt=""
+                      aria-hidden
+                      className="pointer-events-none absolute inset-0 h-full w-full rounded-xl object-cover"
+                    />
+                    <span className="relative z-10">{placeholders.add_cart}</span>
                   </button>
                 )}
                 {mounted && showPurchaseActions && (
                   <button
+                    type="button"
                     disabled={
                       Object.keys(selectedVariants).length !==
                       product?.data?.parameters?.length
                     }
                     onClick={() => requireSignIn(() => setStep?.("cart"))}
-                    className="h-[46px] disabled:opacity-50 disabled:pointer-events-none mt-4 border-green-1 bg-green-1 border-[1px] w-full rounded-xl flex items-center justify-center font-medium text-[16px] text-white hover:text-green-1 hover:bg-white cursor-pointer"
+                    className="relative mt-4 flex h-[46px] w-full cursor-pointer items-center justify-center overflow-hidden rounded-xl border border-green-1 bg-green-1 text-[16px] font-medium text-white hover:bg-white hover:text-green-1 disabled:pointer-events-none disabled:opacity-50"
                   >
-                    {placeholders.buy_now}
+                    <Image
+                      src={buttonDoodleImage}
+                      alt=""
+                      aria-hidden
+                      className="pointer-events-none absolute inset-0 h-full w-full rounded-xl object-cover"
+                    />
+                    <span className="relative z-10">{placeholders.buy_now}</span>
                   </button>
                 )}
-                {mounted && showWhatsAppContact && (
+                {/* {mounted && showWhatsAppContact && (
                   <button
                     type="button"
                     onClick={handleWhatsAppContact}
@@ -515,12 +605,118 @@ function BuyProductDetail({
                     <WhatsAppIcon className="h-5 w-5 shrink-0" />
                     {placeholders.contact_seller_on_whatsapp}
                   </button>
+                )} */}
+
+                {showShopActions && (
+                  <div className="mt-8 space-y-3">
+                    <button
+                      type="button"
+                      disabled={isLoading}
+                      onClick={handleChatStore}
+                      className="relative flex h-[46px] w-full cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-xl bg-green-1 text-[16px] font-medium text-white disabled:cursor-not-allowed disabled:opacity-70"
+                    >
+                      <Image
+                        src={buttonDoodleImage}
+                        alt=""
+                        aria-hidden
+                        className="pointer-events-none absolute inset-0 h-full w-full rounded-xl object-cover"
+                      />
+                      <span className="relative z-10 flex items-center gap-2">
+                        {isLoading ? (
+                          <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                        ) : (
+                          <ChatStoreIcon className="h-5 w-5 shrink-0" />
+                        )}
+                        {hasShop ? placeholders.chat_store : placeholders.message_seller}
+                      </span>
+                    </button>
+                    <div className="flex gap-3">
+                      <button
+                        type="button"
+                        onClick={handleWhatsAppContact}
+                        className={`flex h-[46px] cursor-pointer items-center justify-center gap-2 rounded-xl border border-green-1 bg-white text-[16px] font-medium text-green-1 ${hasShop ? "flex-1" : "w-full"}`}
+                      >
+                        <WhatsAppIcon className="h-5 w-5 shrink-0 text-[#25D366]" />
+                        {placeholders.whatsapp}
+                      </button>
+                      {hasShop && (
+                        <button
+                          type="button"
+                          onClick={handleViewShop}
+                          className="relative flex h-[46px] flex-1 cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-xl bg-green-1 text-[16px] font-medium text-white"
+                        >
+                          <Image
+                            src={buttonDoodleImage}
+                            alt=""
+                            aria-hidden
+                            className="pointer-events-none absolute inset-0 h-full w-full rounded-xl object-cover"
+                          />
+                          <span className="relative z-10 flex items-center gap-2">
+                            <Image src={viewShopIcon} alt="view-shop-icon" className="h-5 w-5 shrink-0" />
+                            {placeholders.view_shop}
+                          </span>
+                        </button>
+                      )}
+                    </div>
+                  </div>
                 )}
+                {showShopActions && <div className="mt-2 flex items-center justify-center gap-2">
+                  <Image
+                    src={verifiedBlackIcon}
+                    alt=""
+                    aria-hidden
+                    className="h-[18px] w-[18px] shrink-0"
+                  />
+                  <p className="text-[14px] font-normal text-[#4B514F]">
+                    {placeholders.secure_transactions}
+                  </p>
+                </div>}
+                {showShopActions && <div className="mt-8 border-t border-[#E5E5E5] pt-6">
+                  <h4 className="text-[15px] font-medium text-[#030303]">
+                    {placeholders.trust_and_safety}
+                  </h4>
+                  <div className="mt-4 space-y-5">
+                    {[
+                      {
+                        title: placeholders.verified_seller,
+                        description: placeholders.identity_verified,
+                      },
+                      {
+                        title: placeholders.safe_payments,
+                        description: placeholders.safe_payments_description,
+                      },
+                      {
+                        title: placeholders.buyers_protection,
+                        description: placeholders.buyers_protection_description,
+                      },
+                    ].map((item) => (
+                      <div key={item.title} className="flex items-center gap-3">
+                        <TrustSafetyIcon />
+                        <div>
+                          <p className="text-[15px] font-medium text-[#030303]">
+                            {item.title}
+                          </p>
+                          <p className="mt-0.5 text-[13px] font-light text-[#4B514F]">
+                            {item.description}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>}
               </div>
             </div>
 
-            {!isClassified && (
+            {/* {!isClassified && (
               <Reviews type="product" id={product?.data?.id || product?.data?._id} allowAddReview={allowAddReview} />
+            )} */}
+
+            {hasShop && shopId && (
+              <ShopProductsSlider
+                shopId={shopId}
+                currentProductId={productId}
+                shopTitle={shopData?.title}
+              />
             )}
           </div>
         </div>

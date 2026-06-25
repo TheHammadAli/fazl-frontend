@@ -185,6 +185,7 @@ function UpdateService() {
             setIsCatOpen={setIsCatOpen}
             selectedCategory={selectedCategory}
             setSelectedCategory={setSelectedCategory}
+            type="service"
           />
         </div>
       </Modal>

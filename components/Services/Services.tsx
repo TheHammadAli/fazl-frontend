@@ -5,6 +5,7 @@ import ServiceDetail from "./ServiceDetail";
 import { useGetUserServiceQuery } from "@/store/services/sellingService";
 import { getCookie } from "cookies-next";
 import { useDictionary } from "@/dictionaries/DictionaryProvider";
+import ServiceDetailSkeleton from "../Ui/ServiceDetailPageSkelton";
 
 function Services() {
   const id = getCookie("userId");
@@ -18,15 +19,21 @@ function Services() {
     refetchOnMountOrArgChange: true,
   });
   const { error_messages } = useDictionary();
+  const loading = serviceLoading || serviceFetching;
+
   return (
     <div>
-      {service?.data && service?.data?.length > 0 && (
+      {loading && <ServiceDetailSkeleton />}
+
+      {!loading && service?.data && service?.data?.length > 0 && (
         <ServiceDetail serviceData={service?.data?.[0]} />
       )}
 
-      {!service?.data || (service?.data?.length === 0 && <CreateService />)}
+      {!loading &&
+        (!service?.data || service?.data?.length === 0) && <CreateService />}
+
       {isError && (
-        <div className="h-[80vh] flex items-center justify-center text-red-1">
+        <div className="flex h-[80vh] w-full items-center justify-center text-red-1">
           {error_messages.something_went_wrong}
         </div>
       )}

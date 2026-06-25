@@ -3,8 +3,6 @@
 import { useDictionary } from "@/dictionaries/DictionaryProvider";
 import React, { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
-import filterIcon from "@/assets/icons/filter-icon.svg";
-import noImageAvtar from "@/assets/images/no-image-av.png";
 import { useSearchParams } from "next/navigation";
 import crossIcon from "@/assets/icons/cross-icon.svg";
 import searchIcon from "@/assets/icons/searchIcon.svg";
@@ -13,22 +11,19 @@ import {
   useSearchProductsQuery,
   useSearchServicesQuery,
 } from "@/store/services/homeService";
-import AllProductsSkeleton from "./AllProductsSkelton";
 import { useDebounce } from "use-debounce";
-import { AvgRatingStars } from "../Ui/Reviews";
 import { useInView } from "react-intersection-observer";
 import { parsePositiveInt } from "../Updates/Notifications";
 import { getCatalogItemsFromSearchResponse } from "@/utils/catalogSearch";
+import CatalogListCard, {
+  CatalogListCardItem,
+  CatalogListCardSkeleton,
+} from "./CatalogListCard";
 
 const PRODUCTS_LIMIT = 12;
 const SERVICES_LIMIT = 12;
 
-type CatalogItem = {
-  id: string;
-  _id: string;
-  title: string;
-  price: string | number;
-  images: string[];
+type CatalogItem = CatalogListCardItem & {
   reviewCount: number;
   averageRating: number;
 };
@@ -52,7 +47,7 @@ function mergeCatalogItems(
 }
 
 function SearchList() {
-  const { placeholders, error_messages } = useDictionary();
+  const { placeholders, error_messages, currentLanguage } = useDictionary();
   const router = useRouter();
   const searchParams = useSearchParams();
   const { tab, search, categoryId } = Object.fromEntries(searchParams.entries());
@@ -104,6 +99,17 @@ function SearchList() {
 
   const activeMeta = tab === "products" ? productsData?.meta : servicesData?.meta;
   const totalCount = activeMeta?.total ?? 0;
+
+  const navigateToItem = useCallback(
+    (itemId: string) => {
+      if (tab === "services") {
+        router.push(`/book-service?id=${itemId}`);
+      } else {
+        router.push(`/buy-product?id=${itemId}`);
+      }
+    },
+    [router, tab],
+  );
 
   const loadMore = useCallback(() => {
     if (isFetching || !hasMore || items.length === 0) return;
@@ -207,63 +213,32 @@ function SearchList() {
             </h4>
           )}
         </div>
-        {/* <div className="px-[12px] h-[38px] text-[14px] rounded-full border-[1px] border-gray-9 flex items-center gap-2">
-          <Image src={filterIcon} alt="filter_icon" />
-          {placeholders.filter}
-        </div> */}
       </div>
 
       {isInitialLoading ? (
-        <AllProductsSkeleton />
+        <CatalogListCardSkeleton />
       ) : totalCount > 0 || items.length > 0 ? (
         <>
-          <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 md:gap-x-5 md:gap-y-14 mt-4">
+          <div className="mt-4 flex flex-col gap-4">
             {items.map((item) => {
               const itemId = item?.id || item?._id;
+
               return (
-                <div
+                <CatalogListCard
                   key={itemId}
-                  className="cursor-pointer"
-                  onClick={() => {
+                  item={item}
+                  buttonLabel={
+                    tab === "services"
+                      ? placeholders.book_now
+                      : placeholders.see_ad
+                  }
+                  currencyLabel={placeholders.Rs}
+                  currentLanguage={currentLanguage}
+                  onButtonClick={() => {
                     if (!itemId) return;
-                    if (tab === "services") {
-                      router.push(`/book-service?id=${itemId}`);
-                    } else {
-                      router.push(`/buy-product?id=${itemId}`);
-                    }
+                    navigateToItem(itemId);
                   }}
-                >
-                  <div className="h-[180px] sm:h-[276px] rounded-[16px] overflow-hidden">
-                    <Image
-                      src={
-                        item?.images?.length > 0
-                          ? item?.images?.[0]
-                          : noImageAvtar
-                      }
-                      alt="product_img"
-                      height={100}
-                      width={100}
-                      className="h-full w-full object-cover bg-gray-12"
-                      unoptimized
-                    />
-                  </div>
-                  <h2 className="text-black-1 font-medium text-[16px] mt-3 line-clamp-1 first-letter:capitalize">
-                    {item?.title}
-                  </h2>
-                  <div className="flex gap-2">
-                    <AvgRatingStars
-                      rating={item?.averageRating}
-                      isLoading={false}
-                      size={22}
-                    />
-                    <span className="text-gray-8 text-[14px] font-normal">
-                      ({item?.reviewCount ?? 0})
-                    </span>
-                  </div>
-                  <h2 className="text-green-1 font-normal text-[16px]">
-                    {placeholders.Rs} {item?.price}
-                  </h2>
-                </div>
+                />
               );
             })}
           </div>
