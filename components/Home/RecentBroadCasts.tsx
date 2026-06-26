@@ -37,6 +37,7 @@ type RecentBroadcastItem = {
     images?: string[];
     files?: string[];
     image?: string;
+    imageUrls?: string[];
     responders?: BroadcastResponder[];
     threads?: BroadcastThread[];
 };
@@ -74,7 +75,7 @@ function getResponseCount(item: RecentBroadcastItem): number {
 }
 
 function getBroadcastImage(item: RecentBroadcastItem): string {
-    if (item.images?.[0]) return item.images[0];
+    if (item.imageUrls?.[0]) return item.imageUrls[0];
     if (typeof item.files?.[0] === "string") return item.files[0];
     if (item.image) return item.image;
     return noImageAvtar.src;
@@ -181,6 +182,7 @@ function BroadcastCard({ item, onClick, shouldSuppressClick }: BroadcastCardProp
     const responseCount = getResponseCount(item);
     const responders = getResponders(item);
     const location = getBroadcastLocation(item);
+    console.log(item)
 
     return (
         <div
@@ -210,15 +212,15 @@ function BroadcastCard({ item, onClick, shouldSuppressClick }: BroadcastCardProp
                 />
             </div>
 
-            <div className="min-w-0 flex-1 rtl:text-right  ">
+            <div className="min-w-0 flex-1 space-y-0  rtl:text-right  ">
 
-                <p className="truncate-safe text-[14px] leading-none font-medium text-[#030303]">
+                <h1 className="truncate-safe first-letter:uppercase text-[14px] leading-none font-medium text-[#030303]">
                     {item.message}
-                </p>
+                </h1>
                 {location ? (
-                    <p className="truncate-safe leading-none  text-[13px] font-normal text-[#4B514F]">
+                    <span className="truncate-safe leading-none  text-[13px] font-normal text-[#4B514F]">
                         {location}
-                    </p>
+                    </span>
                 ) : null}
             </div>
 
