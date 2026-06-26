@@ -1,7 +1,7 @@
 export type ReelCategory =
     | string
-    | { en?: string; ur?: string }
-    | { name?: string | { en?: string; ur?: string } };
+    | { en?: string; ur?: string; icon?: string }
+    | { name?: string | { en?: string; ur?: string }; icon?: string };
 
 function pickLocalized(value: { en?: string; ur?: string } | undefined, lang: string): string {
     if (!value) return "";
@@ -18,4 +18,12 @@ export function getFeedCategoryLabel(category: ReelCategory | null | undefined, 
         return pickLocalized(category.name, lang);
     }
     return pickLocalized(category as { en?: string; ur?: string }, lang);
+}
+
+export function getFeedCategoryIcon(
+    category: ReelCategory | null | undefined,
+): string | undefined {
+    if (category == null || typeof category === "string") return undefined;
+    const icon = category.icon;
+    return typeof icon === "string" && icon.trim() ? icon : undefined;
 }

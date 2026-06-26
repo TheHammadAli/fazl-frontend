@@ -9,6 +9,7 @@ import React, {
     useState,
 } from "react";
 import { BeatLoader } from "react-spinners";
+import DoodleButton from "@/components/Ui/DoodleButton";
 import { useDictionary } from "@/dictionaries/DictionaryProvider";
 import { getCookie } from "cookies-next";
 import {
@@ -483,7 +484,7 @@ function OfferedServices() {
 
                                             {showRequestActions && (
                                                 <div className="w-full shrink-0 xl:w-[297px] lg:max-w-full">
-                                                    <button
+                                                    <DoodleButton
                                                         type="button"
                                                         disabled={isUpdating && spinnerAction === "accept"}
                                                         onClick={() => {
@@ -503,7 +504,7 @@ function OfferedServices() {
                                                         ) : (
                                                             ph("accept")
                                                         )}
-                                                    </button>
+                                                    </DoodleButton>
                                                     <div className="mt-2 flex items-center gap-[9px]">
                                                         <button
                                                             type="button"

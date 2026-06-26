@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useDictionary } from "@/dictionaries/DictionaryProvider";
+import DoodleButton from "@/components/Ui/DoodleButton";
 import chevron from "@/assets/icons/chev-down-icon.svg";
 import profileImg from "@/assets/images/dummy-profile-image.jpg";
 import tickGray from "@/assets/icons/completed-tick-gray.svg";
@@ -202,14 +203,14 @@ export default function ShopDetail() {
                 </div> */}
 
                 <div className="mt-4 space-y-2">
-                  <button
+                  <DoodleButton
                     onClick={() =>
                       router.push(`/selling/list-product?id=${shop?.data?.id}`)
                     }
                     className="px-4 w-[180px] bg-green-1 text-[14px] h-[40px] font-medium text-white flex items-center justify-center rounded-xl cursor-pointer"
                   >
                     {placeholders.list_product}
-                  </button>
+                  </DoodleButton>
                   {/* <button className="w-full max-w-[400px] bg-white border-[1px] border-green-1 text-green-1 text-[16px] h-[46px] font-medium flex items-center justify-center rounded-xl cursor-pointer">
                     {placeholders.promote_shop}
                   </button> */}

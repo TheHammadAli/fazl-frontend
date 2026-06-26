@@ -19,6 +19,7 @@ import { useRouter } from "next/navigation";
 import { useClickOutside } from "@/custom-hooks/useClickOutside";
 import { toast } from "react-hot-toast";
 import { BeatLoader } from "react-spinners";
+import DoodleButton from "@/components/Ui/DoodleButton";
 
 const PAGE_LIMIT = 15;
 
@@ -580,7 +581,7 @@ function MyOrders() {
                               chooseLabel={placeholders.choose}
                               statusLabel={statusLabel}
                             />
-                            <button
+                            <DoodleButton
                               type="button"
                               disabled={!canUpdate || isUpdatingThis}
                               onClick={(e) => {
@@ -594,7 +595,7 @@ function MyOrders() {
                               ) : (
                                 placeholders.update
                               )}
-                            </button>
+                            </DoodleButton>
                           </div>
                         ) : null}
                       </div>

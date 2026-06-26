@@ -8,6 +8,7 @@ import addIcon from "@/assets/icons/add.svg";
 import Image from "next/image";
 import { useDictionary } from "@/dictionaries/DictionaryProvider";
 import toast from "react-hot-toast";
+import DoodleButton from "@/components/Ui/DoodleButton";
 import { useClickOutside } from "@/custom-hooks/useClickOutside";
 import { useDebounce } from "use-debounce";
 import { useGetLocationsQuery } from "@/store/services/authService";
@@ -425,7 +426,7 @@ function CreateShop() {
                 </p>
               )}
             </div>
-            <button
+            <DoodleButton
               type="submit"
               disabled={isLoading}
               className="mt-6  h-[55px] w-full rounded-[12px] text-white font-medium text-[16px]  bg-green-1 cursor-pointer"
@@ -435,7 +436,7 @@ function CreateShop() {
               ) : (
                 info_messages.enter_shop
               )}
-            </button>
+            </DoodleButton>
           </form>
         )}
       </div>

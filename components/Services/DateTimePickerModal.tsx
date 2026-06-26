@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import crossIcon from "@/assets/icons/cross-icon.svg";
 import Image from "next/image";
 import ChooseDateModal from "./ChooseDate";
+import DoodleButton from "@/components/Ui/DoodleButton";
 import { BeatLoader } from "react-spinners";
 
 interface DateTimePickerProps {
@@ -111,7 +112,7 @@ function DateTimePickerModal({
           </div>
         </div>
 
-        <button
+        <DoodleButton
           onClick={handleNext}
           disabled={isLoading}
           className="h-[46px] disabled:opacity-50 disabled:pointer-events-none mt-4 border-green-1 bg-green-1 border-[1px] w-full rounded-xl flex items-center justify-center font-medium text-[16px] text-white hover:text-green-1 hover:bg-white cursor-pointer"
@@ -119,7 +120,7 @@ function DateTimePickerModal({
           {isLoading ? <BeatLoader color="white" size={8} /> : <>
             {isOfferingTime ? placeholders.offer_new_time : placeholders.next}
           </>}
-        </button>
+        </DoodleButton>
       </div>
     </div>
   );

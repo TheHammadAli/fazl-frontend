@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import Image from "next/image";
 import crossIcon from "@/assets/icons/cross-icon.svg";
 import chevron from "@/assets/icons/chev-down-icon.svg";
+import DoodleButton from "@/components/Ui/DoodleButton";
 
 export type typeModal = {
   type: string;
@@ -54,14 +55,14 @@ function TypeModal({ type, setType, setIsTypeOpen }: typeModal) {
           </div>
         </div>
         <div className="flex justify-end py-2">
-          <button
+          <DoodleButton
             disabled={type === ""}
             // type="submit"
             onClick={() => setIsTypeOpen(false)}
             className="bg-green-1 disabled:opacity-50 cursor-pointer text-white h-[34px] w-max px-4 rounded-[6px] flex items-center justify-center"
           >
             {placeholders.confirm}
-          </button>
+          </DoodleButton>
         </div>
       </div>
     </div>

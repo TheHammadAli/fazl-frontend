@@ -22,6 +22,7 @@ import { useDebounce } from "use-debounce";
 import locationIcon from "@/assets/icons/location-icon.svg";
 import { useUpdateProfileMutation } from "@/store/services/profileService";
 import Footer from "./Footer";
+import DoodleButton from "@/components/Ui/DoodleButton";
 import { useDictionary } from "@/dictionaries/DictionaryProvider";
 
 export type Body = {
@@ -362,13 +363,13 @@ function CompleteInfo() {
             </p>
           </div>
 
-          <button
+          <DoodleButton
             type="submit"
             disabled={isLoading}
             className="mt-6 h-[52px] w-full rounded-[12px] text-white font-medium text-[16px]  bg-green-1 cursor-pointer"
           >
             {isLoading ? <BeatLoader color="white" size={8} /> : "Continue"}
-          </button>
+          </DoodleButton>
 
           <div className="mt-14 w-full">
             <Footer />

@@ -1,16 +1,18 @@
 import { useRef, useEffect, useState } from "react";
 import { useInView } from "react-intersection-observer";
 import { ReelItem as ReelItemType } from "./ReelsFeed";
-import catFasionIcon from "@/assets/icons/cat-fashion-image.svg";
+import noImageIcon from "@/assets/images/new-no-image-placeholder.png";
 import Image from "next/image";
+import { User } from "lucide-react";
 import { useDictionary } from "@/dictionaries/DictionaryProvider";
-import { getFeedCategoryLabel } from "@/utils/getFeedCategoryLabel";
+import { getFeedCategoryIcon, getFeedCategoryLabel } from "@/utils/getFeedCategoryLabel";
 import { useRouter } from "next/navigation";
 import Modal from "../Ui/Modals/Modal";
 import SharePostModal from "../Ui/SharePostModal";
 import { useLikedVideoByUserQuery, useLikeVideoMutation, useUnlikeVideoMutation } from "@/store/services/feedService";
 import { getUserId } from "@/utils/getUserId";
 import shareSimpleIcon from "@/assets/icons/share-white-icon.svg";
+import DoodleButton from "@/components/Ui/DoodleButton";
 import { useRequireSignIn } from "@/custom-hooks/useRequireSignIn";
 export default function ReelItem({
     type,
@@ -211,12 +213,21 @@ export default function ReelItem({
                 </button>
             )}
 
-            <div className="absolute bottom-6 left-0 right-0 px-2 sm:px-5 w-full flex sm:gap-16 gap-8">
+            <div className="absolute bottom-6 left-0 right-0 px-2 sm:px-5 w-full items-end flex sm:gap-16 gap-8">
                 <div
                     className="text-[14px] flex-1 font-normal text-white "
                 >
                     <div className="flex overflow-hidden   bg-[#4A4A4A3D] w-max rounded-md  border-[0.5px] border-[#74747480]">
-                        <div className="py-1 px-2 flex items-center justify-center bg-[#505050C2]"><Image src={catFasionIcon} alt="cat-fasion-icon" /></div>
+                        <div className="flex items-center justify-center bg-[#505050C2] px-2 py-1">
+                            <Image
+                                src={getFeedCategoryIcon(item.category) ?? noImageIcon}
+                                alt="category"
+                                height={20}
+                                width={20}
+                                unoptimized
+                                className="h-5 w-5 object-cover"
+                            />
+                        </div>
                         <div className="text-[14px] px-2 py-1 font-light text-white">
                             {getFeedCategoryLabel(item.category, currentLanguage)}
                         </div>
@@ -224,7 +235,8 @@ export default function ReelItem({
                     <h3 className="text-[16px] font-medium mt-2 ">{item.title}</h3>
                     <p className="mt-1 text-[#00D656] font-semibold">Rs {item.price}</p>
 
-                    <button
+                    <DoodleButton
+                        type="button"
                         onClick={(e) => {
                             e.stopPropagation();
                             if (type === "products") {
@@ -233,12 +245,19 @@ export default function ReelItem({
                                 router.push(`/book-service?id=${item.id}`);
                             }
                         }}
-                        className="bg-green-1 mt-2 h-[46px] w-full cursor-pointer rounded-md px-4  text-white"
+                        className="mt-2 flex h-[46px] w-full cursor-pointer items-center justify-center rounded-md bg-green-1 px-4 text-white"
                     >
                         {type === "products" ? ph("shop_now") : ph("book_now")}
-                    </button>
+                    </DoodleButton>
                 </div>
                 <div className=" flex flex-col items-center gap-4">
+                    <div
+                        className="flex h-[54px] w-[54px] shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-white bg-[#2C2C2C]/80"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <User className="h-7 w-7 text-green-1" strokeWidth={1.75} aria-hidden />
+                    </div>
+
                     <button
                         type="button"
                         onClick={(e) => requireSignIn(() => onLikeClick(e))}

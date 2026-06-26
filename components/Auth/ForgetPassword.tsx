@@ -8,7 +8,7 @@ import { useForgotPasswordMutation } from "@/store/services/authService";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import Footer from "./Footer";
-import buttonDoodleImage from "@/assets/images/button-doodle-image.svg";
+import DoodleButton from "@/components/Ui/DoodleButton";
 
 export type Body = {
   email?: string;
@@ -97,21 +97,13 @@ function ForgetPassword() {
               <p className="text-red-1 text-[14px] font-normal">{emailError}</p>
             )}
           </div>
-          <button
+          <DoodleButton
             onClick={handleSendOtp}
             disabled={isLoading}
-            className="relative mt-6 flex h-[52px] w-full cursor-pointer items-center justify-center overflow-hidden rounded-[12px] bg-green-1 text-[16px] font-medium text-white disabled:cursor-not-allowed disabled:opacity-70"
+            className="mt-6 flex h-[52px] w-full cursor-pointer items-center justify-center rounded-[12px] bg-green-1 text-[16px] font-medium text-white disabled:cursor-not-allowed disabled:opacity-70"
           >
-            <Image
-              src={buttonDoodleImage}
-              alt=""
-              aria-hidden
-              className="pointer-events-none absolute inset-0 h-full w-full rounded-[12px] object-cover"
-            />
-            <span className="relative z-10">
-              {isLoading ? <BeatLoader color="white" size={8} /> : "Continue"}
-            </span>
-          </button>
+            {isLoading ? <BeatLoader color="white" size={8} /> : "Continue"}
+          </DoodleButton>
         </div>
         <div className="w-full h-max mb-10 ">
           <Footer />

@@ -12,6 +12,7 @@ import secureReliableIcon from "@/assets/icons/secure-reliable.svg";
 import growBusinessImage from "@/assets/icons/grow-business.svg";
 import { BeatLoader } from "react-spinners";
 import Modal from "../Ui/Modals/Modal";
+import DoodleButton from "@/components/Ui/DoodleButton";
 import CategoryModal, { categroyTypes } from "./CategoryModal";
 import PriceModal, { priceTypes } from "./PriceModal";
 import {
@@ -357,7 +358,7 @@ function CreateService() {
                     {priceError}
                   </p>
                 )}
-                <button
+                <DoodleButton
                   type="submit"
                   disabled={isLoading}
                   className="mt-3   h-[46px] w-full rounded-[12px] text-white font-medium text-[16px]  bg-green-1 cursor-pointer"
@@ -367,7 +368,7 @@ function CreateService() {
                   ) : (
                     placeholders.upload
                   )}
-                </button>
+                </DoodleButton>
               </form>
             </div>
           </div>

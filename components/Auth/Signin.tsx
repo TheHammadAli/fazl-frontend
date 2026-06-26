@@ -16,7 +16,7 @@ import {
 import { baseApi } from "@/store/baseApi";
 import { BASE_URL } from "@/assets/content/constants";
 import GoogleIcon from "@/assets/icons/google-icon.svg";
-import buttonDoodleImage from "@/assets/images/button-doodle-image.svg";
+import DoodleButton from "@/components/Ui/DoodleButton";
 import Footer from "./Footer";
 import { useDictionary } from "@/dictionaries/DictionaryProvider";
 import { setAdminRoleCookie } from "@/utils/authCookies";
@@ -222,30 +222,22 @@ function Signin() {
             </p>
           </div>
 
-          <button
+          <DoodleButton
             type="submit"
-            className="relative mt-6 flex h-[52px] w-full cursor-pointer items-center justify-center overflow-hidden rounded-[12px] bg-green-1 text-white disabled:cursor-not-allowed disabled:opacity-70"
+            className="mt-6 flex h-[52px] w-full cursor-pointer items-center justify-center rounded-[12px] bg-green-1 text-white disabled:cursor-not-allowed disabled:opacity-70"
             disabled={isLoading}
           >
-            <Image
-              src={buttonDoodleImage}
-              alt=""
-              aria-hidden
-              className="pointer-events-none absolute inset-0 h-full w-full rounded-[12px] object-cover"
-            />
-            <span className="relative z-10">
-              {isLoading ? <BeatLoader color="white" size={8} /> : "Continue"}
-            </span>
-          </button>
+            {isLoading ? <BeatLoader color="white" size={8} /> : "Continue"}
+          </DoodleButton>
 
-          <button
+          <DoodleButton
             type="button"
             onClick={() => router.push(`${BASE_URL}/auth/google`)}
-            className="mt-6 h-[52px] cursor-pointer w-full rounded-[12px] bg-blue-1 text-white flex items-center justify-center gap-2"
+            className="mt-6 flex h-[52px] w-full cursor-pointer items-center justify-center gap-2 rounded-[12px] bg-blue-1 text-white"
           >
             <Image src={GoogleIcon} alt="google_icon" />
             Continue with Google
-          </button>
+          </DoodleButton>
           <div className="text-center text-[12px] text-gray-8 mt-5">
             Don&apos;t have an account?{" "}
             <span

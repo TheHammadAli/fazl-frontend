@@ -11,7 +11,7 @@ import { useDebounce } from "use-debounce";
 import dummyProfile from "@/assets/images/profile-placehonder.png";
 import chevDown from "@/assets/icons/chev-down-icon.svg";
 import { BeatLoader } from "react-spinners";
-import buttonDoodleImage from "@/assets/images/button-doodle-image.svg";
+import DoodleButton from "@/components/Ui/DoodleButton";
 import { useAppSelector } from "@/store/store";
 
 import {
@@ -434,25 +434,17 @@ function ProfileInfo({ toggle, setToggle }: ProfileInfoTypes) {
             </p>
           </div>
           <div className="flex justify-center sm:justify-start lg:justify-end">
-            <button
+            <DoodleButton
               type="submit"
               disabled={isLoading}
-              className="relative mt-6 flex h-[55px] w-full cursor-pointer items-center justify-center overflow-hidden rounded-[12px] bg-green-1 text-[16px] font-medium text-white disabled:cursor-not-allowed disabled:opacity-70 sm:w-[222px]"
+              className="mt-6 flex h-[55px] w-full cursor-pointer items-center justify-center rounded-[12px] bg-green-1 text-[16px] font-medium text-white disabled:cursor-not-allowed disabled:opacity-70 sm:w-[222px]"
             >
-              <Image
-                src={buttonDoodleImage}
-                alt=""
-                aria-hidden
-                className="pointer-events-none absolute inset-0 h-full w-full rounded-[12px] object-cover"
-              />
-              <span className="relative z-10">
-                {isLoading ? (
-                  <BeatLoader color="white" size={8} />
-                ) : (
-                  placeholders.save
-                )}
-              </span>
-            </button>
+              {isLoading ? (
+                <BeatLoader color="white" size={8} />
+              ) : (
+                placeholders.save
+              )}
+            </DoodleButton>
           </div>
         </form>
       </div>

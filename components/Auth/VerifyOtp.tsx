@@ -13,7 +13,7 @@ import toast from "react-hot-toast";
 import { BeatLoader } from "react-spinners";
 import { useRouter } from "next/navigation";
 import Footer from "./Footer";
-import buttonDoodleImage from "@/assets/images/button-doodle-image.svg";
+import DoodleButton from "@/components/Ui/DoodleButton";
 
 function VerifyOtp() {
   const router = useRouter();
@@ -163,25 +163,17 @@ function VerifyOtp() {
                 Click to resend
               </span>
             </div>
-            <button
+            <DoodleButton
               type="submit"
               disabled={otp.length < 6 || isSendOtpLoading}
-              className="relative mt-6 flex h-[52px] w-full max-w-[500px] cursor-pointer items-center justify-center overflow-hidden rounded-[12px] bg-green-1 text-[16px] font-medium text-white disabled:cursor-not-allowed disabled:opacity-50 lg:max-w-full"
+              className="mt-6 flex h-[52px] w-full max-w-[500px] cursor-pointer items-center justify-center rounded-[12px] bg-green-1 text-[16px] font-medium text-white disabled:cursor-not-allowed disabled:opacity-50 lg:max-w-full"
             >
-              <Image
-                src={buttonDoodleImage}
-                alt=""
-                aria-hidden
-                className="pointer-events-none absolute inset-0 h-full w-full rounded-[12px] object-cover"
-              />
-              <span className="relative z-10">
-                {isVerifyLoading ? (
-                  <BeatLoader color="white" size={8} />
-                ) : (
-                  "Continue"
-                )}
-              </span>
-            </button>
+              {isVerifyLoading ? (
+                <BeatLoader color="white" size={8} />
+              ) : (
+                "Continue"
+              )}
+            </DoodleButton>
           </div>
           <div className="mt-14 w-full">
             <Footer />

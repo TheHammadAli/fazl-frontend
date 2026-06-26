@@ -9,6 +9,7 @@ import ChooseVideoTab from "../Services/ChooseVideoTab";
 import cameraIcon from "@/assets/icons/camera-icon.svg";
 import { BeatLoader } from "react-spinners";
 import Modal from "../Ui/Modals/Modal";
+import DoodleButton from "@/components/Ui/DoodleButton";
 import CategoryModal, { categroyTypes, type CategoryParameters } from "../Services/CategoryModal";
 import PriceModal, { priceTypes } from "../Services/PriceModal";
 import {
@@ -462,7 +463,7 @@ function UpdateProduct() {
                   </p>
                 )}
 
-                <button
+                <DoodleButton
                   type="submit"
                   disabled={isLoading || isDeleting}
                   className="mt-3   h-[46px] w-full rounded-[12px] text-white font-medium text-[16px]  bg-green-1 cursor-pointer"
@@ -472,7 +473,7 @@ function UpdateProduct() {
                   ) : (
                     placeholders.update
                   )}
-                </button>
+                </DoodleButton>
               </form>
             </div>
           </div>

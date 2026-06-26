@@ -6,6 +6,7 @@ import { BeatLoader } from "react-spinners";
 import { toast } from "react-hot-toast";
 import Pagination from "@/components/Ui/Pagination";
 import Modal from "@/components/Ui/Modals/Modal";
+import DoodleButton from "@/components/Ui/DoodleButton";
 import {
     useActivateUserMutation,
 
@@ -227,26 +228,45 @@ function AdminUsers() {
                         >
                             Cancel
                         </button>
-                        <button
-                            type="button"
-                            disabled={Boolean(updatingUserId)}
-                            onClick={() => {
-                                if (!pendingStatusChange) return;
-                                handleStatusChange(
-                                    pendingStatusChange.user,
-                                    pendingStatusChange.action,
-                                );
-                            }}
-                            className={`h-[40px] flex-1 cursor-pointer rounded-[8px] border text-[14px] font-medium text-white disabled:cursor-not-allowed disabled:opacity-60 ${pendingStatusChange?.action === "activate" ? "border-green-1 bg-green-1"
-                                : "border-[#E92440] bg-[#E92440]"
-                                }`}
-                        >
-                            {updatingUserId ? (
-                                <BeatLoader color="white" size={8} />
-                            ) : (
-                                "Confirm"
-                            )}
-                        </button>
+                        {pendingStatusChange?.action === "activate" ? (
+                            <DoodleButton
+                                type="button"
+                                disabled={Boolean(updatingUserId)}
+                                onClick={() => {
+                                    if (!pendingStatusChange) return;
+                                    handleStatusChange(
+                                        pendingStatusChange.user,
+                                        pendingStatusChange.action,
+                                    );
+                                }}
+                                className="h-[40px] flex-1 cursor-pointer rounded-[8px] border border-green-1 bg-green-1 text-[14px] font-medium text-white disabled:cursor-not-allowed disabled:opacity-60"
+                            >
+                                {updatingUserId ? (
+                                    <BeatLoader color="white" size={8} />
+                                ) : (
+                                    "Confirm"
+                                )}
+                            </DoodleButton>
+                        ) : (
+                            <button
+                                type="button"
+                                disabled={Boolean(updatingUserId)}
+                                onClick={() => {
+                                    if (!pendingStatusChange) return;
+                                    handleStatusChange(
+                                        pendingStatusChange.user,
+                                        pendingStatusChange.action,
+                                    );
+                                }}
+                                className="h-[40px] flex-1 cursor-pointer rounded-[8px] border border-[#E92440] bg-[#E92440] text-[14px] font-medium text-white disabled:cursor-not-allowed disabled:opacity-60"
+                            >
+                                {updatingUserId ? (
+                                    <BeatLoader color="white" size={8} />
+                                ) : (
+                                    "Confirm"
+                                )}
+                            </button>
+                        )}
                     </div>
                 </div>
             </Modal>

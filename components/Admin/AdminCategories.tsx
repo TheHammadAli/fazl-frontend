@@ -7,6 +7,7 @@ import { toast } from "react-hot-toast";
 import Pagination from "@/components/Ui/Pagination";
 import Modal from "@/components/Ui/Modals/Modal";
 import CategoryFormModal, { type CategoryParameters, type CategoryType } from "@/components/Admin/CategoryFormModal";
+import DoodleButton from "@/components/Ui/DoodleButton";
 import { useUpdateCategoryMutation } from "@/store/services/adminService";
 import threeDotsIcon from "@/assets/icons/three-dots.svg";
 import Image from "next/image";
@@ -14,6 +15,7 @@ import { useClickOutside } from "@/custom-hooks/useClickOutside";
 import { useCategoriesQuery } from "@/custom-hooks/useCategoriesQuery";
 import { getFeedCategoryLabel } from "@/utils/getFeedCategoryLabel";
 import noImageIcon from "@/assets/images/new-no-image-placeholder.png";
+import { useGetAllCategoriesForAdminQuery } from "@/store/services/adminService";
 type Status = "active" | "inactive";
 
 type CategoryName = {
@@ -148,11 +150,10 @@ function CategoryActionsMenu({
                 >
                     <button
                         type="button"
-                        disabled={true}
                         onMouseDown={handleMenuAction(onEdit)}
                         className="w-full cursor-pointer p-[10px] text-left text-[12px] leading-none hover:bg-green-3"
                     >
-                        Edit
+                        Edit Category
                     </button>
                     {/* <button
                         type="button"
@@ -181,7 +182,7 @@ function AdminCategories() {
         data: categoriesResponse,
         isLoading: isCategoriesLoading,
         isFetching: isCategoriesFetching,
-    } = useCategoriesQuery();
+    } = useGetAllCategoriesForAdminQuery("")
 
     const [updateCategory] = useUpdateCategoryMutation();
 
@@ -312,26 +313,45 @@ function AdminCategories() {
                         >
                             Cancel
                         </button>
-                        <button
-                            type="button"
-                            disabled={Boolean(updatingCategoryId)}
-                            onClick={() => {
-                                if (!pendingStatusChange) return;
-                                handleStatusChange(
-                                    pendingStatusChange.category,
-                                    pendingStatusChange.action,
-                                );
-                            }}
-                            className={`h-[40px] flex-1 cursor-pointer rounded-[8px] border text-[14px] font-medium text-white disabled:cursor-not-allowed disabled:opacity-60 ${pendingStatusChange?.action === "activate" ? "border-green-1 bg-green-1"
-                                : "border-[#E92440] bg-[#E92440]"
-                                }`}
-                        >
-                            {updatingCategoryId ? (
-                                <BeatLoader color="white" size={8} />
-                            ) : (
-                                "Confirm"
-                            )}
-                        </button>
+                        {pendingStatusChange?.action === "activate" ? (
+                            <DoodleButton
+                                type="button"
+                                disabled={Boolean(updatingCategoryId)}
+                                onClick={() => {
+                                    if (!pendingStatusChange) return;
+                                    handleStatusChange(
+                                        pendingStatusChange.category,
+                                        pendingStatusChange.action,
+                                    );
+                                }}
+                                className="h-[40px] flex-1 cursor-pointer rounded-[8px] border border-green-1 bg-green-1 text-[14px] font-medium text-white disabled:cursor-not-allowed disabled:opacity-60"
+                            >
+                                {updatingCategoryId ? (
+                                    <BeatLoader color="white" size={8} />
+                                ) : (
+                                    "Confirm"
+                                )}
+                            </DoodleButton>
+                        ) : (
+                            <button
+                                type="button"
+                                disabled={Boolean(updatingCategoryId)}
+                                onClick={() => {
+                                    if (!pendingStatusChange) return;
+                                    handleStatusChange(
+                                        pendingStatusChange.category,
+                                        pendingStatusChange.action,
+                                    );
+                                }}
+                                className="h-[40px] flex-1 cursor-pointer rounded-[8px] border border-[#E92440] bg-[#E92440] text-[14px] font-medium text-white disabled:cursor-not-allowed disabled:opacity-60"
+                            >
+                                {updatingCategoryId ? (
+                                    <BeatLoader color="white" size={8} />
+                                ) : (
+                                    "Confirm"
+                                )}
+                            </button>
+                        )}
                     </div>
                 </div>
             </Modal>
@@ -341,14 +361,14 @@ function AdminCategories() {
                     <h1 className="text-[24px] font-semibold text-[#001907] sm:text-[28px]">
                         {loading ? "..." : `${totalCategories} Categories`}
                     </h1>
-                    <button
+                    <DoodleButton
                         type="button"
                         onClick={openAddCategoryModal}
                         className="inline-flex shrink-0 items-center gap-2 rounded-[10px] bg-green-1 px-4 py-2 text-[14px] font-medium text-white"
                     >
                         <Plus className="h-4 w-4" strokeWidth={2} />
                         Category
-                    </button>
+                    </DoodleButton>
                 </div>
             </div>
 
@@ -407,7 +427,7 @@ function AdminCategories() {
                                                 <td className="py-3.5 pr-4">
                                                     <div className="flex items-center gap-2">
 
-                                                        {category?.icon ? <Image src={category?.icon} alt="category" height={20} width={20} /> :
+                                                        {category?.icon ? <Image src={category?.icon} unoptimized alt="category" height={20} width={20} /> :
                                                             < Image src={noImageIcon} alt="category" className=" object-cover w-8 -ml-[6px] " />
                                                         }
                                                         <span className="whitespace-nowrap  first-letter:capitalize  text-[14px] font-normal text-[#001907]">

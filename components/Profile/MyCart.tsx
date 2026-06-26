@@ -9,6 +9,7 @@ import crossIcon from "@/assets/icons/cross-icon.svg";
 import cartIcon from "@/assets/icons/my-cart.svg";
 import noImageAvtar from "@/assets/images/no-image-av.png";
 import { useDictionary } from "@/dictionaries/DictionaryProvider";
+import DoodleButton from "@/components/Ui/DoodleButton";
 import { useAppDispatch, useAppSelector } from "@/store/store";
 import {
   clearCart,
@@ -269,13 +270,13 @@ function MyCart() {
               </span>
             </div>
 
-            <button
+            <DoodleButton
               type="button"
               onClick={handleGoToCheckout}
               className="mt-6 h-[48px] w-full cursor-pointer rounded-xl bg-green-1 text-[16px] font-medium text-white hover:bg-green-2"
             >
               {ph("go_to_checkout")}
-            </button>
+            </DoodleButton>
           </div>
         </div>
       </div>

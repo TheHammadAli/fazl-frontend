@@ -2,6 +2,7 @@ import { useDictionary } from "@/dictionaries/DictionaryProvider";
 import React, { useState } from "react";
 import Image from "next/image";
 import crossIcon from "@/assets/icons/cross-icon.svg";
+import DoodleButton from "@/components/Ui/DoodleButton";
 import type { parameterTypes } from "./ParametersModal";
 export type { parameterTypes } from "./ParametersModal";
 export type priceTypes = {
@@ -69,13 +70,13 @@ function AddParameterModal({
         </div>
 
         <div className="flex justify-end py-6">
-          <button
+          <DoodleButton
             disabled={parameter.trim().length === 0}
             type="submit"
             className="bg-green-1 disabled:opacity-50 cursor-pointer text-white h-[34px] w-[112px] rounded-[6px] flex items-center justify-center"
           >
             {placeholders.confirm}
-          </button>
+          </DoodleButton>
         </div>
       </div>
     </form>

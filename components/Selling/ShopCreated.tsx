@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import tickIcon from "@/assets/icons/tick-circle.svg";
 import { useDictionary } from "@/dictionaries/DictionaryProvider";
+import DoodleButton from "@/components/Ui/DoodleButton";
 interface Props {
   id: string;
 }
@@ -23,13 +24,13 @@ function ShopCreated({ id }: Props) {
       </div>
 
       <div className="mt-42">
-        <button
+        <DoodleButton
           onClick={() => {
             router.push(`/selling/shop-detail?id=${id}`);
           }}
           className="mt-6  h-[55px] w-full rounded-[12px] text-white font-medium text-[16px]  bg-green-1 cursor-pointer">
           {info_messages.sell_product}
-        </button>
+        </DoodleButton>
         {/* <button className="mt-6 border-[1px] border-green-1 text-green-1   h-[55px] w-full rounded-[12px] hover:text-white font-medium text-[16px] hover:bg-green-1 cursor-pointer">
           {placeholders.promote_shop}
         </button> */}

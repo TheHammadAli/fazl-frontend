@@ -6,6 +6,7 @@ import { BeatLoader } from "react-spinners";
 import Modal from "../Ui/Modals/Modal";
 import crossIcon from "@/assets/icons/cross-icon.svg";
 import { useDictionary } from "@/dictionaries/DictionaryProvider";
+import DoodleButton from "@/components/Ui/DoodleButton";
 
 type Props = {
   open: boolean;
@@ -73,7 +74,7 @@ function JobActionConfirmModal({
             >
               {cancelLabel}
             </button>
-            <button
+            <DoodleButton
               type="button"
               onClick={onConfirm}
               className="h-[34px] min-w-[112px] rounded-[6px] bg-green-1 text-white text-[14px] font-normal cursor-pointer"
@@ -85,7 +86,7 @@ function JobActionConfirmModal({
               ) : (
                 pendingAction === "start_job" ? startTimerLabel : endServiceLabel
               )}
-            </button>
+            </DoodleButton>
           </div>
         </div>
       </div>

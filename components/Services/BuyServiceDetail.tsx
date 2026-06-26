@@ -14,7 +14,7 @@ import { useClickOutside } from "@/custom-hooks/useClickOutside";
 import Modal from "../Ui/Modals/Modal";
 import SharePostModal from "../Ui/SharePostModal";
 import detailShareIcon from "@/assets/icons/detial-share-icon.svg";
-import buttonDoodleImage from "@/assets/images/button-doodle-image.svg";
+import DoodleButton from "@/components/Ui/DoodleButton";
 import verifiedIcon from "@/assets/icons/verified.svg";
 import verifiedBlackIcon from "@/assets/icons/verified-black.svg";
 import toast from "react-hot-toast";
@@ -419,45 +419,31 @@ function BuyServiceDetail({
                 )}
 
               {mounted && allowedToBuy && (
-                <button
+                <DoodleButton
                   type="button"
                   disabled={!hasAllVariantsSelected}
                   onClick={() => requireSignIn(() => setOpenPciker?.(true))}
-                  className="relative mt-8 flex h-[46px] w-full cursor-pointer items-center justify-center overflow-hidden rounded-xl border border-green-1 bg-green-1 text-[16px] font-medium text-white hover:bg-white hover:text-green-1 disabled:pointer-events-none disabled:opacity-50"
+                  className="mt-8 flex h-[46px] w-full cursor-pointer items-center justify-center rounded-xl border border-green-1 bg-green-1 text-[16px] font-medium text-white hover:bg-white hover:text-green-1 disabled:pointer-events-none disabled:opacity-50"
                 >
-                  <Image
-                    src={buttonDoodleImage}
-                    alt=""
-                    aria-hidden
-                    className="pointer-events-none absolute inset-0 h-full w-full rounded-xl object-cover"
-                  />
-                  <span className="relative z-10">{placeholders.book_now}</span>
-                </button>
+                  {placeholders.book_now}
+                </DoodleButton>
               )}
 
               {allowMessageAndReview && (
                 <div className="mt-4">
-                  <button
+                  <DoodleButton
                     type="button"
                     disabled={isLoading}
                     onClick={handleMessageProvider}
-                    className="relative flex h-[46px] w-full cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-xl bg-green-1 text-[16px] font-medium text-white disabled:cursor-not-allowed disabled:opacity-70"
+                    className="flex h-[46px] w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-green-1 text-[16px] font-medium text-white disabled:cursor-not-allowed disabled:opacity-70"
                   >
-                    <Image
-                      src={buttonDoodleImage}
-                      alt=""
-                      aria-hidden
-                      className="pointer-events-none absolute inset-0 h-full w-full rounded-xl object-cover"
-                    />
-                    <span className="relative z-10 flex items-center gap-2">
-                      {isLoading ? (
-                        <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
-                      ) : (
-                        <ChatProviderIcon className="h-5 w-5 shrink-0" />
-                      )}
-                      {placeholders.message_provider}
-                    </span>
-                  </button>
+                    {isLoading ? (
+                      <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                    ) : (
+                      <ChatProviderIcon className="h-5 w-5 shrink-0" />
+                    )}
+                    {placeholders.message_provider}
+                  </DoodleButton>
                 </div>
               )}
 

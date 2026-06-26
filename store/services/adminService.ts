@@ -31,9 +31,19 @@ export const adminService = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["ADMIN_CATEGORIES", "CATEGORIES"],
     }),
+    getAllCategoriesForAdmin: build.query({
+      query: () => {
+        return {
+          url: `/categories/admin`,
+          method: "GET",
+        };
+      },
+      providesTags: ["CATEGORIES", "ADMIN_CATEGORIES"],
+    }),
   }),
 });
 export const {
+  useGetAllCategoriesForAdminQuery,
   useGetAllUsersFromAdminQuery,
   useActivateUserMutation,
   useCreateNewCategoryMutation,

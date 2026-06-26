@@ -18,7 +18,7 @@ import { useRouter } from "next/navigation";
 import dummyProfile from "@/assets/images/profile-placehonder.png";
 import { useDebounce } from "use-debounce";
 import Footer from "./Footer";
-import buttonDoodleImage from "@/assets/images/button-doodle-image.svg";
+import DoodleButton from "@/components/Ui/DoodleButton";
 import { useDictionary } from "@/dictionaries/DictionaryProvider";
 
 interface Location {
@@ -538,21 +538,13 @@ function FinishSignup() {
               Privacy Policy
             </span>{" "}
           </div>
-          <button
+          <DoodleButton
             type="submit"
             disabled={isLoading}
-            className="relative mt-4 flex h-[52px] w-full cursor-pointer items-center justify-center overflow-hidden rounded-[12px] bg-green-1 text-[16px] font-medium text-white disabled:cursor-not-allowed disabled:opacity-70"
+            className="mt-4 flex h-[52px] w-full cursor-pointer items-center justify-center rounded-[12px] bg-green-1 text-[16px] font-medium text-white disabled:cursor-not-allowed disabled:opacity-70"
           >
-            <Image
-              src={buttonDoodleImage}
-              alt=""
-              aria-hidden
-              className="pointer-events-none absolute inset-0 h-full w-full rounded-[12px] object-cover"
-            />
-            <span className="relative z-10">
-              {isLoading ? <BeatLoader color="white" size={8} /> : "Continue"}
-            </span>
-          </button>
+            {isLoading ? <BeatLoader color="white" size={8} /> : "Continue"}
+          </DoodleButton>
 
         </form>
         <div className="mt-14 w-full">

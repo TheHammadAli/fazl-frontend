@@ -8,6 +8,7 @@ import { useGetAvgReviewsQuery } from "@/store/services/reviewService";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { BeatLoader } from "react-spinners";
+import DoodleButton from "@/components/Ui/DoodleButton";
 import addIcon from "@/assets/icons/add.svg";
 import noImageAvtar from "@/assets/images/no-image-av.png";
 import moment from "moment";
@@ -147,7 +148,7 @@ function ServiceCart({
               {/* <Image src={penIcon} alt="pen-icon" /> */}
             </div>
 
-            <button
+            <DoodleButton
               type="submit"
               disabled={isLoading}
               className="disabled:opacity-50 disabled:cursor-not-allowed  cursor-pointer hidden md:block w-full border-green-1  bg-green-1    text-white font-medium py-3 rounded-lg  mt-5"
@@ -157,7 +158,7 @@ function ServiceCart({
               ) : (
                 placeholders.request
               )}
-            </button>
+            </DoodleButton>
           </div>
           {/* Right Section */}
           <div className="p-5 md:p-8 ">
@@ -222,7 +223,7 @@ function ServiceCart({
                   {placeholders.Rs} {totalAmount}
                 </span>
               </div>
-              <button
+              <DoodleButton
                 disabled={isLoading}
                 type="submit"
                 className="disabled:opacity-50 disabled:cursor-not-allowed  cursor-pointer md:hidden mt-5 w-full bg-green-1  hover:text-green-1  text-white font-medium py-3 rounded-lg transition"
@@ -232,7 +233,7 @@ function ServiceCart({
                 ) : (
                   placeholders.request
                 )}
-              </button>
+              </DoodleButton>
             </div>
           </div>
         </form>

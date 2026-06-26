@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { useDictionary } from "@/dictionaries/DictionaryProvider";
+import DoodleButton from "@/components/Ui/DoodleButton";
 import chevronIcon from "@/assets/icons/chevron.svg";
 import infoCircleIcon from "@/assets/icons/info-circle.svg";
 import {
@@ -304,7 +305,7 @@ function MyJobs() {
                           </button>
                         )}
                         {item.jobStatus === "not_started" && (
-                          <button
+                          <DoodleButton
                             disabled={isExpired}
                             onClick={() =>
                               openActionConfirm(item._id, "start_job")
@@ -312,7 +313,7 @@ function MyJobs() {
                             className="text-[14px] disabled:opacity-50 disabled:cursor-not-allowed min-h-[38px] font-normal w-[222px] py-[8px] rounded-[6px] cursor-pointer bg-green-1 text-white"
                           >
                             {ph("start_timer")}
-                          </button>
+                          </DoodleButton>
                         )}
                       </div>
                     </div>

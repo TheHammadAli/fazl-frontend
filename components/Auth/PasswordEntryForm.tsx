@@ -7,6 +7,7 @@ import { BeatLoader } from "react-spinners";
 import greenTick from "@/assets/icons/green-tick-icon.svg";
 import redCross from "@/assets/icons/red-cross-icon.svg";
 import { useDictionary } from "@/dictionaries/DictionaryProvider";
+import DoodleButton from "@/components/Ui/DoodleButton";
 import Footer from "./Footer";
 
 export type PasswordEntryFormVariant = "change" | "reset";
@@ -224,13 +225,13 @@ function PasswordEntryForm({
             )}
           </div>
 
-          <button
+          <DoodleButton
             type="submit"
             disabled={isLoading}
             className="mt-6  max-w-[500px] lg:max-w-full h-[52px] w-full rounded-[12px] text-white font-medium text-[16px]  bg-green-1 cursor-pointer"
           >
             {isLoading ? <BeatLoader color="white" size={8} /> : buttonLabel}
-          </button>
+          </DoodleButton>
         </div>
         <div className="mb-14 w-full">
           <Footer />

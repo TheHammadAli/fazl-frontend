@@ -30,6 +30,7 @@ import ProductCategories from "./ProductCategories";
 import ServicesCategories from "./ServicesCategories";
 import RecentBroadCasts from "./RecentBroadCasts";
 import { useCategoriesQuery } from "@/custom-hooks/useCategoriesQuery";
+import DoodleButton from "../Ui/DoodleButton";
 
 type HomeActionCardProps = {
   bgClass: string;
@@ -75,13 +76,13 @@ function HomeActionCard({
           </p>
         </div>
       </div>
-      <button
+      <DoodleButton
         type="button"
         onClick={onClick}
         className={`mt-3 flex h-[36px] w-full cursor-pointer items-center justify-center rounded-[8px] px-3 text-center text-[13px] font-medium text-white sm:mt-3.5 lg:mt-4 lg:h-[40px] lg:px-4 ${buttonClass}`}
       >
         {buttonLabel}
-      </button>
+      </DoodleButton>
     </div>
   );
 }

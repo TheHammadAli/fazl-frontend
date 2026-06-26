@@ -13,6 +13,7 @@ import { useOrderProductMutation } from "@/store/services/sellingService";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { BeatLoader } from "react-spinners";
+import DoodleButton from "@/components/Ui/DoodleButton";
 import addIcon from "@/assets/icons/add.svg";
 import { useGetAvgReviewsQuery } from "@/store/services/reviewService";
 import { useAppDispatch, useAppSelector } from "@/store/store";
@@ -360,7 +361,7 @@ function Cart({ product, shopData, selectedVariants, ownerData }: any) {
             </div>
 
             {/* Pay Button */}
-            <button
+            <DoodleButton
               type="submit"
               disabled={isLoading || paymentMethod === ""}
               className="disabled:opacity-50 disabled:cursor-not-allowed  disabled:pointer-none cursor-pointer hidden md:block w-full border-green-1  bg-green-1  text-white font-medium py-3 rounded-lg transition"
@@ -370,7 +371,7 @@ function Cart({ product, shopData, selectedVariants, ownerData }: any) {
               ) : (
                 placeholders.pay_now
               )}
-            </button>
+            </DoodleButton>
           </div>
           {/* Right Section */}
           <div className="p-5 md:p-8 ">
@@ -444,7 +445,7 @@ function Cart({ product, shopData, selectedVariants, ownerData }: any) {
                   {placeholders.Rs} {totalAmount.toLocaleString()}
                 </span>
               </div>
-              <button
+              <DoodleButton
                 disabled={isLoading || paymentMethod === ""}
                 type="submit"
                 className="disabled:opacity-50 disabled:cursor-not-allowed  cursor-pointer md:hidden mt-5 w-full border-green-1 hover:border-[1px] bg-green-1 hover:bg-white hover:text-green-1  text-white font-medium py-3 rounded-lg transition"
@@ -454,7 +455,7 @@ function Cart({ product, shopData, selectedVariants, ownerData }: any) {
                 ) : (
                   placeholders.pay_now
                 )}
-              </button>
+              </DoodleButton>
             </div>
           </div>
         </form>

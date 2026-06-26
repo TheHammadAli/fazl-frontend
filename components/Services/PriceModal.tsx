@@ -2,6 +2,7 @@ import { useDictionary } from "@/dictionaries/DictionaryProvider";
 import React, { useState } from "react";
 import Image from "next/image";
 import crossIcon from "@/assets/icons/cross-icon.svg";
+import DoodleButton from "@/components/Ui/DoodleButton";
 import chevron from "@/assets/icons/chev-down-icon.svg";
 export type priceTypes = {
   paymentType: string;
@@ -134,12 +135,12 @@ function PriceModal({
         </div>
 
         <div className="flex justify-end py-6">
-          <button
+          <DoodleButton
             type="submit"
             className="bg-green-1 cursor-pointer text-white h-[34px] w-[112px] rounded-[6px] flex items-center justify-center"
           >
             {placeholders.continue}
-          </button>
+          </DoodleButton>
         </div>
       </div>
     </form>

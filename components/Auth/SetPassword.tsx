@@ -9,7 +9,7 @@ import redCross from "@/assets/icons/red-cross-icon.svg";
 import { setConfirmPwd, setOtpInfo } from "@/store/reducers/authReducer";
 import AuthImagePanel from "./AuthImagePanel";
 import Footer from "./Footer";
-import buttonDoodleImage from "@/assets/images/button-doodle-image.svg";
+import DoodleButton from "@/components/Ui/DoodleButton";
 export type Body = {
   email?: string;
   phoneNumber?: string;
@@ -238,21 +238,13 @@ function SetPassword() {
               )}
             </div>
 
-            <button
+            <DoodleButton
               type="submit"
               disabled={false}
-              className="relative mt-6 flex h-[52px] w-full max-w-[500px] cursor-pointer items-center justify-center overflow-hidden rounded-[12px] bg-green-1 text-[16px] font-medium text-white disabled:cursor-not-allowed disabled:opacity-70 lg:max-w-full"
+              className="mt-6 flex h-[52px] w-full max-w-[500px] cursor-pointer items-center justify-center rounded-[12px] bg-green-1 text-[16px] font-medium text-white disabled:cursor-not-allowed disabled:opacity-70 lg:max-w-full"
             >
-              <Image
-                src={buttonDoodleImage}
-                alt=""
-                aria-hidden
-                className="pointer-events-none absolute inset-0 h-full w-full rounded-[12px] object-cover"
-              />
-              <span className="relative z-10">
-                {false ? <BeatLoader color="white" size={8} /> : "Continue"}
-              </span>
-            </button>
+              {false ? <BeatLoader color="white" size={8} /> : "Continue"}
+            </DoodleButton>
           </div>
           <div className="mt-14 w-full">
             <Footer />

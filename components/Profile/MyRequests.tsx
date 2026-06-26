@@ -3,6 +3,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { useDictionary } from "@/dictionaries/DictionaryProvider";
+import DoodleButton from "@/components/Ui/DoodleButton";
 import chevronIcon from "@/assets/icons/chevron.svg";
 import {
   useGetBookedServicesQuery,
@@ -380,7 +381,7 @@ function MyRequests() {
                       </p>
                       {showOfferActions ? (
                         <div className="mt-4 flex items-center gap-2">
-                          <button
+                          <DoodleButton
                             type="button"
                             disabled={isUpdating}
                             onClick={() => {
@@ -400,7 +401,7 @@ function MyRequests() {
                             ) : (
                               ph("accept")
                             )}
-                          </button>
+                          </DoodleButton>
                           <button
                             type="button"
                             disabled={isUpdating}

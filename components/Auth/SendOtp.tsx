@@ -16,7 +16,7 @@ import { setOtpInfo } from "@/store/reducers/authReducer";
 import { useRouter } from "next/navigation";
 import { BASE_URL } from "@/assets/content/constants";
 import Footer from "./Footer";
-import buttonDoodleImage from "@/assets/images/button-doodle-image.svg";
+import DoodleButton from "@/components/Ui/DoodleButton";
 
 export type Body = {
   email?: string;
@@ -248,35 +248,27 @@ function Signup() {
             </div>
           )}
 
-          <button
+          <DoodleButton
             type="submit"
             disabled={isLoading}
-            className="relative mt-6 flex h-[52px] w-full cursor-pointer items-center justify-center overflow-hidden rounded-[12px] bg-green-1 text-[16px] font-medium text-white disabled:cursor-not-allowed disabled:opacity-70"
+            className="mt-6 flex h-[52px] w-full cursor-pointer items-center justify-center rounded-[12px] bg-green-1 text-[16px] font-medium text-white disabled:cursor-not-allowed disabled:opacity-70"
           >
-            <Image
-              src={buttonDoodleImage}
-              alt=""
-              aria-hidden
-              className="pointer-events-none absolute inset-0 h-full w-full rounded-[12px] object-cover"
-            />
-            <span className="relative z-10">
-              {isLoading ? <BeatLoader color="white" size={8} /> : "Continue"}
-            </span>
-          </button>
+            {isLoading ? <BeatLoader color="white" size={8} /> : "Continue"}
+          </DoodleButton>
           <div className=" w-full flex gap-[10px] items-center text-[#19191999] text-[16px] font-normal mt-5">
             <div className="w-full h-[1px] bg-gray-2"></div>
             or
             <div className="w-full h-[1px] bg-gray-2"></div>
           </div>
 
-          <button
+          <DoodleButton
             type="button"
             onClick={() => router.push(`${BASE_URL}/auth/google`)}
-            className="mt-6 h-[52px] w-full rounded-[12px] text-white    bg-blue-1 flex items-center justify-center gap-2 text-[15px] font-normal cursor-pointer"
+            className="mt-6 flex h-[52px] w-full cursor-pointer items-center justify-center gap-2 rounded-[12px] bg-blue-1 text-[15px] font-normal text-white"
           >
             <Image src={GoogleIcon} alt="google_icon" />{" "}
             <h3>Continue with Google</h3>
-          </button>
+          </DoodleButton>
 
           <button
             disabled={isLoading}

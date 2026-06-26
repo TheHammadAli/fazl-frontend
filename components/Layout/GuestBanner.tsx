@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useDictionary } from "@/dictionaries/DictionaryProvider";
 import { useIsGuest } from "@/custom-hooks/useIsGuest";
+import DoodleButton from "@/components/Ui/DoodleButton";
 
 function GuestBanner() {
   const isGuest = useIsGuest();
@@ -19,13 +20,13 @@ function GuestBanner() {
       <p className="text-[13px] font-light leading-snug text-[#030303] sm:text-[14px]">
         {info_messages.guest_banner_message}
       </p>
-      <button
+      <DoodleButton
         type="button"
         onClick={() => router.push("/signin")}
         className="h-[36px] shrink-0 cursor-pointer rounded-lg bg-green-1 px-4 text-[14px] font-medium text-white hover:bg-green-2"
       >
         {placeholders.sign_in}
-      </button>
+      </DoodleButton>
     </div>
   );
 }

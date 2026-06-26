@@ -5,6 +5,7 @@ import Image from "next/image";
 import crossIcon from "@/assets/icons/cross-icon.svg";
 import { useDictionary } from "@/dictionaries/DictionaryProvider";
 import { BeatLoader } from "react-spinners";
+import DoodleButton from "@/components/Ui/DoodleButton";
 
 const STAR_COUNT = 5;
 
@@ -126,14 +127,14 @@ function AddReviewModal({ setOpen, onSubmit, loading }: AddReviewModalProps) {
         >
           {ph("cancel")}
         </button>
-        <button
+        <DoodleButton
           type="button"
           disabled={rating < 1 || comment.trim().length === 0 || loading}
           onClick={() => void handleSubmit()}
           className="h-[46px] sm:min-w-[100px] cursor-pointer rounded-[8px] border border-green-1 text-[15px] font-medium text-white bg-green-1 hover:opacity-95 disabled:cursor-not-allowed"
         >
           {loading ? <BeatLoader color="white" size={8} /> : ph("submit")}
-        </button>
+        </DoodleButton>
       </div>
     </div>
   );

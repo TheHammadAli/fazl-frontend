@@ -5,6 +5,7 @@ import { XMarkIcon } from "@heroicons/react/24/outline";
 import { BeatLoader } from "react-spinners";
 import Image from "next/image";
 import { toast } from "react-hot-toast";
+import DoodleButton from "@/components/Ui/DoodleButton";
 import Modal from "@/components/Ui/Modals/Modal";
 import { ChevronDown, Plus, X } from "lucide-react";
 import {
@@ -417,7 +418,7 @@ function CategoryFormModal({ open, mode, onClose }: CategoryFormModalProps) {
                     >
                         Cancel
                     </button>
-                    <button
+                    <DoodleButton
                         type="button"
                         disabled={isSubmitting}
                         onClick={handleSubmit}
@@ -430,7 +431,7 @@ function CategoryFormModal({ open, mode, onClose }: CategoryFormModalProps) {
                         ) : (
                             "Add category"
                         )}
-                    </button>
+                    </DoodleButton>
                 </div>
             </div>
         </Modal>

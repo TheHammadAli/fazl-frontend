@@ -6,6 +6,9 @@ import ReelItem from "./ReelItem";
 export type ReelItem = {
     id: string;
     shopId?: string;
+    shopImage?: string;
+    ownerId?: string;
+    ownerImage?: string;
     video: string;
     title: string;
     price: string;

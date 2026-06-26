@@ -7,6 +7,7 @@ import crossIcon from "@/assets/icons/cross-icon.svg";
 import deleteIcon from "@/assets/icons/delete-icon.svg";
 import plusIcon from "@/assets/icons/green-plus-icon.svg";
 import ParameterValueChip from "./ParameterValueChip";
+import DoodleButton from "@/components/Ui/DoodleButton";
 
 export type parameterTypes = {
   name: string;
@@ -354,14 +355,14 @@ function ParametersModal({
         >
           {placeholders.cancel}
         </button>
-        <button
+        <DoodleButton
           type="button"
           disabled={!canConfirm}
           onClick={handleConfirm}
           className="h-[32px] px-5 rounded-[6px] bg-green-1 disabled:opacity-50 text-white text-[13px] font-normal cursor-pointer"
         >
           {placeholders.confirm}
-        </button>
+        </DoodleButton>
       </div>
     </div>
   );

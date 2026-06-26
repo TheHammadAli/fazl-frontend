@@ -456,7 +456,7 @@ export default function ChatWindow({ thread, onBack, threadType }: ChatWindowPro
     };
   }, [dispatch]);
   return (
-    <section className="flex h-full min-h-0 flex-1 flex-col">
+    <section className="flex h-full min-h-0 flex-1 flex-col ">
       <header className="flex h-16 items-center gap-3 border-b border-gray-200 bg-white px-4 lg:px-8">
         {onBack ? (
           <button type="button" onClick={onBack} className="rounded-md p-1 text-gray-700 lg:hidden">

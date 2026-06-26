@@ -2,6 +2,10 @@
 import React, { useEffect, useState } from "react";
 import { useGetAllProductsFeedQuery } from "@/store/services/feedService";
 import ReelsFeed, { type ReelItem } from "./ReelsFeed";
+import {
+    resolveFeedEntityId,
+    resolveFeedEntityImage,
+} from "@/utils/feedEntity";
 
 type ProductFeedItem = {
     _id?: string;
@@ -10,7 +14,8 @@ type ProductFeedItem = {
     price?: number;
     video?: string;
     images?: string[];
-    shopId?: string;
+    shopId?: ProductFeedItem["ownerId"];
+    ownerId?: string | { _id?: string; id?: string; image?: string; images?: string[] };
     category?: ReelItem["category"];
 };
 
@@ -36,14 +41,26 @@ function ProductFeeds() {
         const mapped: ReelItem[] =
             response?.data
                 ?.filter((product: ProductFeedItem) => !!product.video)
-                .map((product: ProductFeedItem) => ({
-                    id: product._id ?? product.id ?? "",
-                    video: product.video ?? "",
-                    title: product.title ?? "",
-                    price: String(product.price ?? 0),
-                    category: product.category ?? "",
-                    shopId: product.shopId ?? "",
-                })) ?? [];
+                .map((product: ProductFeedItem) => {
+                    const shopId = resolveFeedEntityId(product.shopId);
+                    const ownerId = resolveFeedEntityId(product.ownerId);
+                    console.log(product)
+                    return {
+                        id: product._id ?? product.id ?? "",
+                        video: product.video ?? "",
+                        title: product.title ?? "",
+                        price: String(product.price ?? 0),
+                        category: product.category ?? "",
+                        shopId: shopId || undefined,
+                        shopImage: shopId
+                            ? resolveFeedEntityImage(product.shopId)
+                            : undefined,
+                        ownerId: !shopId && ownerId ? ownerId : undefined,
+                        ownerImage: !shopId
+                            ? resolveFeedEntityImage(product.ownerId)
+                            : undefined,
+                    };
+                }) ?? [];
 
         setProducts((prev) => {
             const map = new Map(prev.map((item) => [item.id, item]));

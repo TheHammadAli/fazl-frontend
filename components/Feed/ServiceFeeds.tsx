@@ -2,6 +2,10 @@
 import { useEffect, useState } from "react";
 import { useGetAllServicesFeedQuery } from "@/store/services/feedService";
 import ReelsFeed, { type ReelItem } from "./ReelsFeed";
+import {
+    resolveFeedEntityId,
+    resolveFeedEntityImage,
+} from "@/utils/feedEntity";
 
 type ServiceFeedItem = {
     _id?: string;
@@ -10,6 +14,7 @@ type ServiceFeedItem = {
     price?: number;
     video?: string;
     images?: string[];
+    ownerId?: string | { _id?: string; id?: string; image?: string; images?: string[] };
     category?: ReelItem["category"];
 };
 
@@ -35,13 +40,19 @@ function ServiceFeeds() {
         const mapped: ReelItem[] =
             response?.data
                 ?.filter((service: ServiceFeedItem) => !!service.video)
-                .map((service: ServiceFeedItem) => ({
-                    id: service._id ?? service.id ?? "",
-                    video: service.video ?? "",
-                    title: service.title ?? "",
-                    price: String(service.price ?? 0),
-                    category: service.category ?? "",
-                })) ?? [];
+                .map((service: ServiceFeedItem) => {
+                    const ownerId = resolveFeedEntityId(service.ownerId);
+
+                    return {
+                        id: service._id ?? service.id ?? "",
+                        video: service.video ?? "",
+                        title: service.title ?? "",
+                        price: String(service.price ?? 0),
+                        category: service.category ?? "",
+                        ownerId: ownerId || undefined,
+                        ownerImage: resolveFeedEntityImage(service.ownerId),
+                    };
+                }) ?? [];
 
         setServices((prev) => {
             const map = new Map(prev.map((item) => [item.id, item]));

@@ -18,7 +18,7 @@ import { useRequireSignIn } from "@/custom-hooks/useRequireSignIn";
 import Modal from "../Ui/Modals/Modal";
 import SharePostModal from "../Ui/SharePostModal";
 import detailShareIcon from "@/assets/icons/detial-share-icon.svg";
-import buttonDoodleImage from "@/assets/images/button-doodle-image.svg";
+import DoodleButton from "@/components/Ui/DoodleButton";
 import { useRouter } from "next/navigation";
 import viewShopIcon from "@/assets/icons/view-shop-icon.svg";
 import verifiedIcon from "@/assets/icons/verified.svg";
@@ -566,35 +566,23 @@ function BuyProductDetail({
                       product?.data?.parameters?.length
                     }
                     onClick={handleAddToCart}
-                    className="relative mt-8 flex h-[46px] w-full cursor-pointer items-center justify-center overflow-hidden rounded-xl border border-green-1 bg-white text-[16px] font-medium text-green-1 hover:bg-green-1 hover:text-white disabled:pointer-events-none disabled:opacity-50"
+                    className="mt-8 flex h-[46px] w-full cursor-pointer items-center justify-center rounded-xl border border-green-1 bg-white text-[16px] font-medium text-green-1 hover:bg-green-1 hover:text-white disabled:pointer-events-none disabled:opacity-50"
                   >
-                    <Image
-                      src={buttonDoodleImage}
-                      alt=""
-                      aria-hidden
-                      className="pointer-events-none absolute inset-0 h-full w-full rounded-xl object-cover"
-                    />
-                    <span className="relative z-10">{placeholders.add_cart}</span>
+                    {placeholders.add_cart}
                   </button>
                 )}
                 {mounted && showPurchaseActions && (
-                  <button
+                  <DoodleButton
                     type="button"
                     disabled={
                       Object.keys(selectedVariants).length !==
                       product?.data?.parameters?.length
                     }
                     onClick={() => requireSignIn(() => setStep?.("cart"))}
-                    className="relative mt-4 flex h-[46px] w-full cursor-pointer items-center justify-center overflow-hidden rounded-xl border border-green-1 bg-green-1 text-[16px] font-medium text-white hover:bg-white hover:text-green-1 disabled:pointer-events-none disabled:opacity-50"
+                    className="mt-4 flex h-[46px] w-full cursor-pointer items-center justify-center rounded-xl border border-green-1 bg-green-1 text-[16px] font-medium text-white hover:bg-white hover:text-green-1 disabled:pointer-events-none disabled:opacity-50"
                   >
-                    <Image
-                      src={buttonDoodleImage}
-                      alt=""
-                      aria-hidden
-                      className="pointer-events-none absolute inset-0 h-full w-full rounded-xl object-cover"
-                    />
-                    <span className="relative z-10">{placeholders.buy_now}</span>
-                  </button>
+                    {placeholders.buy_now}
+                  </DoodleButton>
                 )}
                 {/* {mounted && showWhatsAppContact && (
                   <button
@@ -609,27 +597,19 @@ function BuyProductDetail({
 
                 {showShopActions && (
                   <div className="mt-8 space-y-3">
-                    <button
+                    <DoodleButton
                       type="button"
                       disabled={isLoading}
                       onClick={handleChatStore}
-                      className="relative flex h-[46px] w-full cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-xl bg-green-1 text-[16px] font-medium text-white disabled:cursor-not-allowed disabled:opacity-70"
+                      className="flex h-[46px] w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-green-1 text-[16px] font-medium text-white disabled:cursor-not-allowed disabled:opacity-70"
                     >
-                      <Image
-                        src={buttonDoodleImage}
-                        alt=""
-                        aria-hidden
-                        className="pointer-events-none absolute inset-0 h-full w-full rounded-xl object-cover"
-                      />
-                      <span className="relative z-10 flex items-center gap-2">
-                        {isLoading ? (
-                          <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
-                        ) : (
-                          <ChatStoreIcon className="h-5 w-5 shrink-0" />
-                        )}
-                        {hasShop ? placeholders.chat_store : placeholders.message_seller}
-                      </span>
-                    </button>
+                      {isLoading ? (
+                        <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                      ) : (
+                        <ChatStoreIcon className="h-5 w-5 shrink-0" />
+                      )}
+                      {hasShop ? placeholders.chat_store : placeholders.message_seller}
+                    </DoodleButton>
                     <div className="flex gap-3">
                       <button
                         type="button"
@@ -640,22 +620,14 @@ function BuyProductDetail({
                         {placeholders.whatsapp}
                       </button>
                       {hasShop && (
-                        <button
+                        <DoodleButton
                           type="button"
                           onClick={handleViewShop}
-                          className="relative flex h-[46px] flex-1 cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-xl bg-green-1 text-[16px] font-medium text-white"
+                          className="flex h-[46px] flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl bg-green-1 text-[16px] font-medium text-white"
                         >
-                          <Image
-                            src={buttonDoodleImage}
-                            alt=""
-                            aria-hidden
-                            className="pointer-events-none absolute inset-0 h-full w-full rounded-xl object-cover"
-                          />
-                          <span className="relative z-10 flex items-center gap-2">
-                            <Image src={viewShopIcon} alt="view-shop-icon" className="h-5 w-5 shrink-0" />
-                            {placeholders.view_shop}
-                          </span>
-                        </button>
+                          <Image src={viewShopIcon} alt="view-shop-icon" className="h-5 w-5 shrink-0" />
+                          {placeholders.view_shop}
+                        </DoodleButton>
                       )}
                     </div>
                   </div>
