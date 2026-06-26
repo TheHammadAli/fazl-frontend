@@ -23,11 +23,13 @@ import { useRouter } from "next/navigation";
 import viewShopIcon from "@/assets/icons/view-shop-icon.svg";
 import verifiedIcon from "@/assets/icons/verified.svg";
 import verifiedBlackIcon from "@/assets/icons/verified-black.svg";
+import tickCircleGrayIcon from "@/assets/icons/completed-tick-gray.svg";
 import {
   useLikeVideoMutation,
   useUnlikeVideoMutation,
 } from "@/store/services/feedService";
 import ShopProductsSlider from "./ShopProductsSlider";
+import { formatJoinedDate } from "@/utils/formatJoinedDate";
 
 function buildWhatsAppUrl(phone: string, message: string) {
   const digits = phone.replace(/\D/g, "");
@@ -131,7 +133,6 @@ function BuyProductDetail({
   const showPurchaseActions = allowedToBuy && !isClassified;
   const showWhatsAppContact = allowedToBuy && isClassified && !hasShop;
   const showShopActions = allowedToBuy;
-
   const sellerPhoneFromProduct = product?.data?.shopId
     ? shopData?.ownerId?.phone
     : ownerData?.phone;
@@ -142,6 +143,11 @@ function BuyProductDetail({
     skip: !sellerUserId || Boolean(sellerPhoneFromProduct),
   });
   const sellerPhone = sellerPhoneFromProduct ?? sellerDetail?.data?.phone;
+
+  const joinedDateLabel = formatJoinedDate(
+    hasShop ? shopData?.createdAt : ownerData?.createdAt,
+    currentLanguage,
+  );
 
   const [likeVideo, { isLoading: isLikeLoading }] = useLikeVideoMutation();
   const [unlikeVideo, { isLoading: isUnlikeLoading }] = useUnlikeVideoMutation();
@@ -643,6 +649,58 @@ function BuyProductDetail({
                     {placeholders.secure_transactions}
                   </p>
                 </div>}
+                <div className="mt-8 border-t border-[#E5E5E5] pt-6">
+                  <h4 className="text-[15px] font-medium text-[#030303]">
+                    {placeholders.seller_information}
+                  </h4>
+                  <div className="mt-4 space-y-5">
+                    <div className="flex mt-4 items-center gap-2">
+                      <Image
+                        className="h-[44px] w-[44px] rounded-full object-cover "
+                        src={
+                          product?.data?.shopId && shopData?.image
+                            ? shopData.image
+                            : product?.data?.ownerId && ownerData?.image
+                              ? ownerData.image
+                              : noImageAvtar
+                        }
+                        alt="profile"
+                        height={100}
+                        width={100}
+                        unoptimized
+                      />
+                      <div>
+                        <h4 className="text-[#030303] text-[14px]">
+                          {product?.data?.shopId
+                            ? shopData?.title
+                            : product?.data?.ownerId
+                              ? ownerData?.name
+                              : ""}
+                        </h4>
+                        <h4 className="text-[#4B514F] text-[14px] font-light">
+                          {product?.data?.shopId
+                            ? shopData?.ownerId?.email
+                            : product?.data?.ownerId
+                              ? ownerData?.email
+                              : ""}
+                        </h4>
+                      </div>
+                    </div>
+                    {joinedDateLabel ? (
+                      <div className="mt-3 flex items-center gap-2">
+                        <Image
+                          src={tickCircleGrayIcon}
+                          alt=""
+                          aria-hidden
+                          className="h-5 w-5 shrink-0"
+                        />
+                        <p className="text-[14px] font-normal text-[#4B514F]">
+                          {placeholders.joined} {joinedDateLabel}
+                        </p>
+                      </div>
+                    ) : null}
+                  </div>
+                </div>
                 {showShopActions && <div className="mt-8 border-t border-[#E5E5E5] pt-6">
                   <h4 className="text-[15px] font-medium text-[#030303]">
                     {placeholders.trust_and_safety}

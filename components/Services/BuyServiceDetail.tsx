@@ -17,7 +17,9 @@ import detailShareIcon from "@/assets/icons/detial-share-icon.svg";
 import DoodleButton from "@/components/Ui/DoodleButton";
 import verifiedIcon from "@/assets/icons/verified.svg";
 import verifiedBlackIcon from "@/assets/icons/verified-black.svg";
+import completedTickGrayIcon from "@/assets/icons/completed-tick-gray.svg";
 import toast from "react-hot-toast";
+import { formatJoinedDate } from "@/utils/formatJoinedDate";
 import {
   useLikeVideoMutation,
   useUnlikeVideoMutation,
@@ -88,7 +90,7 @@ function BuyServiceDetail({
 
   const videoSrc =
     typeof service?.data?.video === "string" &&
-    service.data.video.trim() !== ""
+      service.data.video.trim() !== ""
       ? service.data.video.trim()
       : null;
 
@@ -132,10 +134,10 @@ function BuyServiceDetail({
     const req = prevIsLiked
       ? unlikeVideo({ itemId: serviceId, itemType: "service" }).unwrap()
       : likeVideo({
-          itemId: serviceId,
-          itemType: "service",
-          ownerModel: "User",
-        }).unwrap();
+        itemId: serviceId,
+        itemType: "service",
+        ownerModel: "User",
+      }).unwrap();
 
     req
       .catch(() => {
@@ -167,6 +169,8 @@ function BuyServiceDetail({
   const hasAllVariantsSelected =
     parameters.length === 0 ||
     Object.keys(selectedVariants ?? {}).length === parameters.length;
+
+  const joinedDateLabel = formatJoinedDate(ownerData?.createdAt, currentLanguage);
 
   return (
     <div>
@@ -274,11 +278,10 @@ function BuyServiceDetail({
                       setTypeIndex(index);
                       setType("image");
                     }}
-                    className={`h-[96px] w-[96px] cursor-pointer overflow-hidden rounded-[10px] border md:w-[154px] ${
-                      typeIndex === index && type === "image"
+                    className={`h-[96px] w-[96px] cursor-pointer overflow-hidden rounded-[10px] border md:w-[154px] ${typeIndex === index && type === "image"
                         ? "border-green-1"
                         : "border-transparent"
-                    }`}
+                      }`}
                   >
                     <Image
                       src={image}
@@ -295,9 +298,8 @@ function BuyServiceDetail({
                     onClick={() => setType("video")}
                     src={videoSrc}
                     controls={false}
-                    className={`h-[96px] w-[96px] cursor-pointer rounded-[10px] border object-cover md:w-[154px] ${
-                      type === "video" ? "border-green-1" : "border-transparent"
-                    }`}
+                    className={`h-[96px] w-[96px] cursor-pointer rounded-[10px] border object-cover md:w-[154px] ${type === "video" ? "border-green-1" : "border-transparent"
+                      }`}
                   />
                 ) : null}
               </div>
@@ -377,7 +379,7 @@ function BuyServiceDetail({
                           <span className="text-[15px] font-light leading-none">
                             {String(
                               selectedVariants?.[
-                                parameter?.name as keyof typeof selectedVariants
+                              parameter?.name as keyof typeof selectedVariants
                               ] ?? placeholders.choose,
                             )}
                           </span>
@@ -459,6 +461,49 @@ function BuyServiceDetail({
                     <p className="text-[14px] font-normal text-[#4B514F]">
                       {placeholders.secure_transactions}
                     </p>
+                  </div>
+
+                  <div className="mt-8 border-t border-[#E5E5E5] pt-6">
+                    <h4 className="text-[15px] font-medium text-[#030303]">
+                      {placeholders.service_provider_information}
+                    </h4>
+                    <div className="mt-4 space-y-5">
+                      <div className="mt-4 flex items-center gap-2">
+                        <Image
+                          className="h-[44px] w-[44px] rounded-full object-cover"
+                          src={
+                            service?.data?.ownerId && ownerData?.image
+                              ? ownerData.image
+                              : noImageAvtar
+                          }
+                          alt="profile"
+                          height={100}
+                          width={100}
+                          unoptimized
+                        />
+                        <div>
+                          <h4 className="text-[14px] text-[#030303]">
+                            {service?.data?.ownerId ? ownerData?.name : ""}
+                          </h4>
+                          <h4 className="text-[14px] font-light text-[#4B514F]">
+                            {service?.data?.ownerId ? ownerData?.email : ""}
+                          </h4>
+                        </div>
+                      </div>
+                      {joinedDateLabel ? (
+                        <div className="mt-3 flex items-center gap-2">
+                          <Image
+                            src={completedTickGrayIcon}
+                            alt=""
+                            aria-hidden
+                            className="h-5 w-5 shrink-0"
+                          />
+                          <p className="text-[14px] font-normal text-[#4B514F]">
+                            {placeholders.joined} {joinedDateLabel}
+                          </p>
+                        </div>
+                      ) : null}
+                    </div>
                   </div>
 
                   <div className="mt-8 border-t border-[#E5E5E5] pt-6">
