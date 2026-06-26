@@ -1,15 +1,27 @@
 "use client";
 import { useDictionary } from "@/dictionaries/DictionaryProvider";
-import React, { use } from "react";
+import React from "react";
 import Image from "next/image";
 import filterIcon from "@/assets/icons/filter-icon.svg";
-import { useGetShopProductsQuery } from "@/store/services/sellingService";
+import { useGetShopDetailQuery, useGetShopProductsQuery } from "@/store/services/sellingService";
 import noImageAvtar from "@/assets/images/no-image-av.png";
 import ratingIcons from "@/assets/icons/rating-icons.svg";
 import { useSearchParams } from "next/navigation";
 import ProductSkeleton from "./ProductsSkelton";
 import { useRouter } from "next/navigation";
+import { getUserId } from "@/utils/getUserId";
 import { AvgRatingStars } from "../Ui/Reviews";
+
+function resolveEntityId(value: unknown): string | null {
+  if (!value) return null;
+  if (typeof value === "string") return value;
+  if (typeof value === "object") {
+    const record = value as { id?: string; _id?: string };
+    return record.id ?? record._id ?? null;
+  }
+  return null;
+}
+
 interface productTypes {
   id: string;
   title: string;
@@ -23,6 +35,10 @@ function ShopProductsList() {
   const router = useRouter();
   const { placeholders, error_messages } = useDictionary();
   const id = useSearchParams().get("id");
+  const userId = getUserId() ?? "";
+  const { data: shop } = useGetShopDetailQuery(id, { skip: !id });
+  const shopOwnerId = resolveEntityId(shop?.data?.ownerId);
+  const isShopOwner = Boolean(userId && shopOwnerId && userId === shopOwnerId);
   const {
     data: products,
     isLoading: isProductsLoading,
@@ -63,7 +79,9 @@ function ShopProductsList() {
                 key={index}
                 className=" cursor-pointer"
                 onClick={() =>
-                  router.push(`/selling/product-detail?id=${product?.id}`)
+                  isShopOwner
+                    ? router.push(`/selling/product-detail?id=${product?.id}`)
+                    : router.push(`/buy-product?id=${product?.id}`)
                 }
               >
                 <div className="h-[180px] sm:h-[230px] rounded-[16px] overflow-hidden">

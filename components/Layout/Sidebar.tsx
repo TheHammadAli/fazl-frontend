@@ -49,7 +49,7 @@ function Sidebar({
   return (
     <div
       className="bg-white hidden lg:flex flex-col justify-between w-[228px] min-w-[228px] h-screen min-h-screen
-    pt-[30px] px-[10px]"
+    pt-[30px] px-[10px] gap-10"
     >
       <Dialog
         open={openSidebar}
@@ -63,7 +63,7 @@ function Sidebar({
             unreadCount={unreadCount}
           />
         </DialogPanel>
-      </Dialog>
+      </Dialog >
       <div className="space-y-[22px]">
         <Link href="/home" className="px-[14px] block">
           <Image src={logo} alt="logo" />
@@ -182,7 +182,7 @@ function Sidebar({
         </div>
       </div>
 
-    </div>
+    </div >
   );
 }
 

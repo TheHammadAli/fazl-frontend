@@ -17,6 +17,17 @@ import noImageAvtar from "@/assets/images/no-image-av.png";
 import noImageIcon from "@/assets/images/new-no-image-placeholder.png";
 import Modal from "../Ui/Modals/Modal";
 import SharePostModal from "../Ui/SharePostModal";
+import { getUserId } from "@/utils/getUserId";
+
+function resolveEntityId(value: unknown): string | null {
+  if (!value) return null;
+  if (typeof value === "string") return value;
+  if (typeof value === "object") {
+    const record = value as { id?: string; _id?: string };
+    return record.id ?? record._id ?? null;
+  }
+  return null;
+}
 
 export default function ShopDetail() {
   const router = useRouter();
@@ -28,6 +39,7 @@ export default function ShopDetail() {
       : {};
 
   const { user } = userData;
+  const userId = getUserId() ?? "";
   const [shareModal, setShareModal] = useState(false);
   const [mounted, setMounted] = useState(false);
   const sharePostRef = useRef<HTMLDivElement>(null);
@@ -39,6 +51,9 @@ export default function ShopDetail() {
   } = useGetShopDetailQuery(id, {
     skip: !id,
   });
+  const shopOwnerId = resolveEntityId(shop?.data?.ownerId);
+  const isShopOwner = Boolean(userId && shopOwnerId && userId === shopOwnerId);
+  console.log(shop)
   useEffect(() => {
     if (!id) {
       router.back();
@@ -158,14 +173,16 @@ export default function ShopDetail() {
                 </div>
                 <div className="flex justify-between text-[14px] font-normal">
                   <h3 className="text-[#4B514F]">{placeholders.about_us}</h3>
-                  <h3
-                    className="text-green-1 cursor-pointer underline "
-                    onClick={() =>
-                      router.push(`/selling/update-shop?id=${shop?.data?.id}`)
-                    }
-                  >
-                    {placeholders.edit}
-                  </h3>
+                  {isShopOwner ? (
+                    <h3
+                      className="text-green-1 cursor-pointer underline "
+                      onClick={() =>
+                        router.push(`/selling/update-shop?id=${shop?.data?.id}`)
+                      }
+                    >
+                      {placeholders.edit}
+                    </h3>
+                  ) : null}
                 </div>
 
                 <div className=" font-light text-[15px] text-black-1 -mt-3">
@@ -202,19 +219,21 @@ export default function ShopDetail() {
                   </div>
                 </div> */}
 
-                <div className="mt-4 space-y-2">
-                  <DoodleButton
-                    onClick={() =>
-                      router.push(`/selling/list-product?id=${shop?.data?.id}`)
-                    }
-                    className="px-4 w-[180px] bg-green-1 text-[14px] h-[40px] font-medium text-white flex items-center justify-center rounded-xl cursor-pointer"
-                  >
-                    {placeholders.list_product}
-                  </DoodleButton>
-                  {/* <button className="w-full max-w-[400px] bg-white border-[1px] border-green-1 text-green-1 text-[16px] h-[46px] font-medium flex items-center justify-center rounded-xl cursor-pointer">
+                {isShopOwner ? (
+                  <div className="mt-4 space-y-2">
+                    <DoodleButton
+                      onClick={() =>
+                        router.push(`/selling/list-product?id=${shop?.data?.id}`)
+                      }
+                      className="px-4 w-[180px] bg-green-1 text-[14px] h-[40px] font-medium text-white flex items-center justify-center rounded-xl cursor-pointer"
+                    >
+                      {placeholders.list_product}
+                    </DoodleButton>
+                    {/* <button className="w-full max-w-[400px] bg-white border-[1px] border-green-1 text-green-1 text-[16px] h-[46px] font-medium flex items-center justify-center rounded-xl cursor-pointer">
                     {placeholders.promote_shop}
                   </button> */}
-                </div>
+                  </div>
+                ) : null}
               </div>
             )}
           </div>

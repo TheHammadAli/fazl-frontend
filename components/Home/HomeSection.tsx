@@ -1,5 +1,5 @@
 "use client";
-import React, { useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import searchIcon from "@/assets/icons/searchIcon.svg";
 import Image from "next/image";
 import Tabs from "../Ui/Tabs";
@@ -138,10 +138,12 @@ function HomeSection() {
   const {
     data: categories,
   } = useCategoriesQuery({ type: "product" });
-  const productCategoryList = useMemo(
-    () => ((categories?.data ?? []) as ProductCategoryItem[]).slice(0, 3),
-    [categories?.data],
-  );
+  const [mobilePhoneCategory, setMobilePhoneCategory] = useState<any>(null);
+  useEffect(() => {
+    const mobilePhoneCategory = categories?.data?.find((category: any) => category._id === "6a3bb9aa72c2912ed05247f2");
+    setMobilePhoneCategory(mobilePhoneCategory);
+  }, [categories]);
+
   useClickOutside(catRef, () => {
     setOpenCat(false);
   });
@@ -313,14 +315,19 @@ function HomeSection() {
       <ProductCategories />
       <RecentBroadCasts />
       <ServicesCategories />
-      {productCategoryList.map((category) => (
-        <AllProductsAndServices
-          key={category._id}
-          tab="products"
-          categoryId={category._id}
-          title={category.name as string}
-        />
-      ))}
+      {/* Recent Ads */}
+      <AllProductsAndServices
+        tab="products"
+      />
+      {/*Mobile phone category  */}
+      <AllProductsAndServices
+        tab="products"
+        categoryId={"6a3bb9aa72c2912ed05247f2"}
+        title={mobilePhoneCategory?.name as string}
+      />
+      <AllProductsAndServices
+        tab="services"
+      />
       <DownloadAppBanner />
       <HomeFooter />
 

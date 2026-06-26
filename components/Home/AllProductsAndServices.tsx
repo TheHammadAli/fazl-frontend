@@ -421,8 +421,8 @@ function AllProductsAndServices({
         const sectionTitle =
             title ??
             (activeTab === "products"
-                ? info_messages.recent_products
-                : info_messages.recent_services);
+                ? info_messages.recent_product_ads
+                : info_messages.recent_service_ads);
         const emptyMessage =
             activeTab === "products"
                 ? error_messages.no_product_data
@@ -460,8 +460,8 @@ function AllProductsAndServices({
                 <h2 className="text-[18px] font-medium text-[#001907]">
                     {title ??
                         (activeTab === "products"
-                            ? info_messages.recent_products
-                            : info_messages.recent_services)}
+                            ? info_messages.recent_product_ads
+                            : info_messages.recent_service_ads)}
                 </h2>
                 <button
                     onClick={() => {

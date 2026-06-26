@@ -2,7 +2,7 @@
 
 import Image, { type StaticImageData } from "next/image";
 import FindProdBannerBg from "@/assets/icons/find_prod_bg.svg";
-import SectionImage from "@/assets/icons/new-banner-image.svg";
+import SectionImage from "@/assets/icons/home-page-banner-sec.svg";
 import { useDictionary } from "@/dictionaries/DictionaryProvider";
 
 function getAssetSrc(asset: string | StaticImageData): string {
@@ -20,7 +20,7 @@ function FindProdBanner() {
                 style={{ backgroundImage: `url(${getAssetSrc(FindProdBannerBg)})` }}
             />
 
-            <div className="relative z-10 flex  flex-col items-center gap-3 pl-3 rtl:pr-3  sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:pl-6  rtl:sm:pr-6 lg:pl-8 rtl:lg:pr-8 py-4 sm:py-0">
+            <div className="relative z-10 flex  flex-col items-center gap-3 px-3  sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:px-6 lg:px-8  py-4 sm:py-0">
                 <div className="min-w-0 w-full max-w-full sm:max-w-[52%]">
                     <h2 className="text-[24px] font-medium rtl:text-right text-center sm:text-left  text-white sm:text-[36px] leading-tight">
                         {info_messages.find_products_services}
@@ -31,7 +31,7 @@ function FindProdBanner() {
                     </p>
                 </div>
 
-                <div className=" h-[160px] sm:h-[228px] w-full sm:w-[350px] lg:w-[400px] xl:w-[496px]  relative">
+                <div className=" h-[160px] sm:h-[228px] w-full sm:w-[250px] lg:w-[300px] xl:w-[368px]   relative">
                     <Image
                         src={SectionImage}
                         alt=""

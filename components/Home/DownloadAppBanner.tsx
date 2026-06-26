@@ -10,7 +10,7 @@ function DownloadAppBanner() {
     const { info_messages } = useDictionary();
 
     return (
-        <section className="mt-6 overflow-hidden rounded-[16px] bg-green-1 sm:mt-8 sm:rounded-[24px]">
+        <section className="mt-8 overflow-hidden rounded-[16px] bg-green-1 sm:mt-14 sm:rounded-[24px]">
             <div className="flex flex-col items-center  sm:flex-row px-5 gap-5  md:px-10 md:gap-8  xl:px-16 xl:gap-16  pt-5 md:pb-0 pb-5">
                 <div className="relative h-[150px] w-full max-w-[280px] shrink-0 sm:h-[190px] sm:max-w-[320px] md:h-[220px] md:max-w-[300px] lg:h-[240px] xl:max-w-[405px]">
                     <Image
