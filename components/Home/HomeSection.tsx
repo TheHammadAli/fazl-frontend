@@ -31,6 +31,9 @@ import ServicesCategories from "./ServicesCategories";
 import RecentBroadCasts from "./RecentBroadCasts";
 import { useCategoriesQuery } from "@/custom-hooks/useCategoriesQuery";
 import DoodleButton from "../Ui/DoodleButton";
+import locationGrayIcon from "@/assets/icons/location-gray.svg";
+import { useAppSelector } from "@/store/store";
+import { useGetUserDetailQuery } from "@/store/services/profileService";
 
 type HomeActionCardProps = {
   bgClass: string;
@@ -92,10 +95,33 @@ type ProductCategoryItem = {
   name?: string | { en?: string; ur?: string };
 };
 
+function UserLocationBadge({ locationName }: { locationName: string }) {
+  return (
+    <div className="flex h-[40px] min-w-0 flex-1 items-center gap-1.5 rounded-[8px] bg-[#EEF2F3] px-2.5 sm:h-[46px] sm:flex-none sm:w-[180px] sm:gap-2 sm:px-3">
+      <Image
+        src={locationGrayIcon}
+        alt=""
+        aria-hidden
+        className="h-4 w-4 shrink-0 sm:h-5 sm:w-5"
+      />
+      <div className="min-w-0 flex-1 overflow-x-auto hide-scrollbar">
+        <p className="whitespace-nowrap text-[13px] font-normal text-[#4B514F] sm:text-[14px]">
+          {locationName}
+        </p>
+      </div>
+    </div>
+  );
+}
+
 function HomeSection() {
   const isGuest = useIsGuest();
   const isLoggedIn = useCanInteractAsUser();
   const dispatch = useAppDispatch();
+  const { userId } = useAppSelector((state) => state.authReducer);
+  const { data: profileData } = useGetUserDetailQuery(userId, {
+    skip: !userId || isGuest,
+  });
+  const locationName = profileData?.data?.address?.trim() ?? "";
   const [openBroadcast, setOpenBroadcast] = useState(false);
   const broadcastRef = useRef<HTMLDivElement>(null);
   const tabsComponents: { [key: string]: React.ReactNode } = {
@@ -154,12 +180,15 @@ function HomeSection() {
       : isServicesLoading || isServicesFetching);
 
   return (
-    <div className="p-5 pb-0">
+    <div className="p-4 pb-0 sm:p-5 sm:pb-0">
       {/* Search */}
-      <div className="flex items-center gap-4">
-        <div className="relative min-w-0 flex-1" onClick={() => setOpenCat(true)}>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+        <div
+          className="relative min-w-0 w-full sm:flex-1"
+          onClick={() => setOpenCat(true)}
+        >
           <Image
-            className="absolute left-3 top-1/2 -translate-y-1/2"
+            className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 sm:h-auto sm:w-auto"
             src={searchIcon}
             alt="search_icon"
           />
@@ -170,39 +199,48 @@ function HomeSection() {
             onChange={(e) => setSearch(e.target.value)}
             placeholder={`${placeholders.search_for} ${placeholders?.[activeTab as keyof typeof placeholders]
               }`}
-            className=" h-[46px] pl-8 text-[14px] placeholder:text-[14px] text-[#727272] placeholder:text-[#727272] font-normal w-full bg-[#EEF2F3] focus:outline-0 rounded-[8px]"
+            className="h-[40px] w-full rounded-[8px] bg-[#EEF2F3] pl-8 text-[13px] font-normal text-[#727272] placeholder:text-[13px] placeholder:text-[#727272] focus:outline-0 sm:h-[46px] sm:text-[14px] sm:placeholder:text-[14px]"
           />
         </div>
 
-        {isGuest ? (
-          <div className="flex shrink-0 items-center gap-3">
+        <div
+          className={`flex w-full min-w-0 items-center gap-2 sm:contents ${
+            isLoggedIn && locationName ? "justify-between" : "justify-end"
+          }`}
+        >
+          {isLoggedIn && locationName ? (
+            <UserLocationBadge locationName={locationName} />
+          ) : null}
+          {isGuest ? (
+            <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+              <button
+                type="button"
+                onClick={() => router.push("/signin")}
+                className="cursor-pointer text-[14px] font-semibold text-[#001907] underline sm:text-[15px]"
+              >
+                {placeholders.login}
+              </button>
+              <button
+                type="button"
+                onClick={() => router.push("/signup")}
+                className="cursor-pointer text-[14px] font-semibold text-[#001907] underline sm:text-[15px]"
+              >
+                {placeholders.sign_up}
+              </button>
+            </div>
+          ) : isLoggedIn ? (
             <button
               type="button"
-              onClick={() => router.push("/signin")}
-              className="cursor-pointer text-[15px] font-semibold text-[#001907] underline"
+              onClick={() => {
+                dispatch(logout());
+                router.push("/signin");
+              }}
+              className="shrink-0 cursor-pointer text-[14px] font-semibold text-[#001907] underline sm:text-[15px]"
             >
-              {placeholders.login}
+              {placeholders.logout}
             </button>
-            <button
-              type="button"
-              onClick={() => router.push("/signup")}
-              className="cursor-pointer text-[15px] font-semibold text-[#001907] underline"
-            >
-              {placeholders.sign_up}
-            </button>
-          </div>
-        ) : isLoggedIn ? (
-          <button
-            type="button"
-            onClick={() => {
-              dispatch(logout());
-              router.push("/signin");
-            }}
-            className="shrink-0 cursor-pointer text-[15px] font-semibold text-[#001907] underline"
-          >
-            {placeholders.logout}
-          </button>
-        ) : null}
+          ) : null}
+        </div>
       </div>
       <div ref={catRef}>
         {openCat && (

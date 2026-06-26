@@ -32,6 +32,7 @@ function ProductFeeds() {
     const LIMIT = 10;
     const [page, setPage] = useState(1);
     const [products, setProducts] = useState<ReelItem[]>([]);
+    console.log(products)
     const [hasMore, setHasMore] = useState(true);
     const { data: productsFeed, isLoading, isFetching } = useGetAllProductsFeedQuery({ page, limit: LIMIT });
     const isInitialLoading = products.length === 0 && (isLoading || isFetching);
