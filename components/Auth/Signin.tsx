@@ -146,14 +146,14 @@ function Signin() {
   };
 
   return (
-    <div className="w-screen h-screen flex min-h-[818px] ">
+    <div className="flex h-screen min-h-[818px] w-full max-w-full overflow-x-hidden">
       {/* Left section */}
       <AuthImagePanel />
 
       {/* Right section */}
       <form
         onSubmit={handleSignin}
-        className="w-full lg:w-[50%] px-5 sm:px-[50px] xl:px-[150px] pt-[80px] flex flex-col  items-center lg:justify-between"
+        className="flex w-full min-w-0 flex-col items-center px-5 pt-[80px] sm:px-[50px] lg:w-1/2 lg:justify-between xl:px-[150px]"
       >
         <div className="max-w-[500px] w-full">
           <h1 className="text-black-1 font-medium text-[22px] text-center">

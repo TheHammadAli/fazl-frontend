@@ -86,13 +86,13 @@ function HomeFooter() {
     ];
 
     return (
-        <footer className="mt-8 bg-[#EEF2F3] -mx-5 px-4 py-8 sm:mt-20 sm:px-6 sm:py-10 lg:px-8 xl:px-[80px]">
-            <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-start lg:gap-10 xl:gap-[130px]">
-                <div className="max-w-[320px]  shrink-0">
+        <footer className="mt-8 bg-[#EEF2F3] -mx-4 px-4 py-8 sm:mt-20 sm:-mx-5 sm:px-5 sm:py-10">
+            <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between lg:gap-10 xl:gap-16">
+                <div className="max-w-[320px] shrink-0">
                     <Image
                         src={FazalLogo}
                         alt={placeholders.market}
-                        className="ml-3 h-[38px] w-auto rtl:mr-3"
+                        className="h-[38px] w-auto"
                     />
                     <p className="mt-3 max-w-[244px] text-[14px] font-light leading-tight text-gray-8">
                         {info_messages.footer_tagline}
@@ -116,7 +116,7 @@ function HomeFooter() {
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 gap-8 xs:grid-cols-2 sm:gap-10 lg:flex lg:shrink-0 lg:gap-8 xl:gap-[100px]">
+                <div className="grid grid-cols-1 gap-8 xs:grid-cols-2 sm:gap-10 lg:flex lg:shrink-0 lg:gap-10 xl:gap-16">
                     <FooterColumn title={info_messages.popular_categories}>
                         <ul className="">
                             {popularCategories.map((item) => (

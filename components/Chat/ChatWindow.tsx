@@ -17,6 +17,7 @@ import baseApi from "@/store/baseApi";
 import { useAppDispatch } from "@/store/store";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import noImageAvtar from "@/assets/images/profile-placehonder.png";
+import chatDoodleBackground from "@/assets/images/chat-doodle-background-image.png";
 import noMessagesIcon from "@/assets/icons/no-message.svg";
 import AvatarUi from "../Ui/AvatarUi";
 import Lightbox from "yet-another-react-lightbox";
@@ -108,6 +109,7 @@ export default function ChatWindow({ thread, onBack, threadType }: ChatWindowPro
   const [markMessagesAsRead] = useMarkMessagesAsReadMutation();
   const [sendMessage, { isLoading: isSendingMessage }] = useSendMessageMutation();
   const [sendBroadcastMessage, { isLoading: isSendingBroadcastMessage }] = useSendBroadcastMessageMutation();
+  
   const messagesQueryArgs = useMemo(
     () => ({
       conversationId,
@@ -116,10 +118,12 @@ export default function ChatWindow({ thread, onBack, threadType }: ChatWindowPro
     }),
     [conversationId, page],
   );
+
   const { data: messages, isFetching, refetch } = useGetConversationMessagesQuery(messagesQueryArgs, {
     skip: !conversationId || threadType === "broadcast_messages",
     refetchOnMountOrArgChange: true,
   });
+
   const broadcastQueryArgs = useMemo(
     () => ({
       id: broadcastRequestId,
@@ -140,15 +144,18 @@ export default function ChatWindow({ thread, onBack, threadType }: ChatWindowPro
     () => parsePositiveInt(messages?.meta?.totalPages),
     [messages?.meta?.totalPages],
   );
+
   const incomingMessages = useMemo(
     () => (messages?.data as ChatMessage[] | undefined) ?? undefined,
     [messages?.data],
   );
+
   const canLoadMore = useMemo(
     () =>
       totalPages != null ? page < totalPages : (messages?.meta?.total ?? 0) >= PAGE_LIMIT,
     [totalPages, page, messages?.meta?.total],
   );
+
   const isMessagesLoading = useMemo(
     () =>
       threadType === "broadcast_messages"
@@ -353,6 +360,7 @@ export default function ChatWindow({ thread, onBack, threadType }: ChatWindowPro
     refetch,
     scrollToBottom,
   ]);
+  
   useEffect(() => {
     if (threadType !== "broadcast_messages" || !broadcastRequestId || !broadcastThreadId) return;
     refetchBroadcastMessages();
@@ -375,6 +383,7 @@ export default function ChatWindow({ thread, onBack, threadType }: ChatWindowPro
       }
     }
   }, [threadType, incomingMessages, page]);
+
   useEffect(() => {
     const socket = initializeSocket();
     if (!socket) return;
@@ -396,9 +405,7 @@ export default function ChatWindow({ thread, onBack, threadType }: ChatWindowPro
       threadId: broadcastThreadId,
       broadcastId: isBroadcastReceived ? thread?._id : thread?.broadcastId,
     });
-
-
-    if (conversationId && userId && threadType === "direct_messages") {
+ if (conversationId && userId && threadType === "direct_messages") {
       markMessagesAsRead({ conversationId, userId }).unwrap().catch(() => {
         // Keep chat usable even if marking read fails.
       });
@@ -456,7 +463,10 @@ export default function ChatWindow({ thread, onBack, threadType }: ChatWindowPro
     };
   }, [dispatch]);
   return (
-    <section className="flex h-full min-h-0 flex-1 flex-col ">
+    <section
+      className="flex h-full min-h-0 flex-1 flex-col bg-no-repeat bg-cover bg-center"
+      style={{ backgroundImage: `url(${chatDoodleBackground.src})` }}
+    >
       <header className="flex h-16 items-center gap-3 border-b border-gray-200 bg-white px-4 lg:px-8">
         {onBack ? (
           <button type="button" onClick={onBack} className="rounded-md p-1 text-gray-700 lg:hidden">

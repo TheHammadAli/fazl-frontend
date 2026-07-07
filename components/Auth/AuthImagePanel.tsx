@@ -7,7 +7,7 @@ type AuthImagePanelProps = {
 };
 
 export default function AuthImagePanel({
-  className = "relative hidden h-full overflow-hidden lg:block lg:w-[60%] ltr:lg:pl-8 ltr:xl:pl-24 rtl:lg:pr-8 rtl:xl:pr-24",
+  className = "relative hidden h-full shrink-0 overflow-hidden lg:block lg:w-1/2 ltr:lg:pl-8 ltr:xl:pl-24 rtl:lg:pr-8 rtl:xl:pr-24",
   imageClassName = "h-full w-full object-cover",
 }: AuthImagePanelProps) {
   return (

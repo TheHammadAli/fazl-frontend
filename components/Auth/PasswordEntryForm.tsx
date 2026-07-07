@@ -109,11 +109,11 @@ function PasswordEntryForm({
   };
 
   return (
-    <div className="w-screen h-screen lg:flex min-h-[818px] hide-scrollbar pt-[50px] lg:pt-0">
+    <div className="flex h-screen min-h-[818px] w-full max-w-full overflow-x-hidden pt-[50px] hide-scrollbar lg:flex lg:pt-0">
       <AuthImagePanel />
       <form
         onSubmit={handleSubmit}
-        className="w-full lg:w-[50%] flex flex-col lg:justify-between px-5 sm:px-[50px] xl:px-[150px] pt-[80px]"
+        className="flex w-full min-w-0 flex-col px-5 pt-[80px] sm:px-[50px] lg:w-1/2 lg:justify-between xl:px-[150px]"
       >
         <div className="w-full flex flex-col items-center lg:ltr:items-start lg:rtl:items-end">
           <h1 className="text-black-1 font-medium text-[22px] w-full leading-[30px] text-center lg:ltr:text-left lg:rtl:text-right">

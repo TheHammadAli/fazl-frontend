@@ -105,15 +105,15 @@ function SetPassword() {
   };
   if (isClient) {
     return (
-      <div className="flex  justify-center w-screen min-h-[818px] hide-scrollbar">
+      <div className="flex min-h-[818px] w-full max-w-full justify-center overflow-x-hidden hide-scrollbar">
         <AuthImagePanel />
 
         <form
           onSubmit={handleSubmit}
-          className="w-full lg:w-[50%] flex flex-col lg:justify-between px-5 sm:px-[50px] xl:px-[150px] pt-[80px]"
+          className="flex w-full min-w-0 flex-col px-5 pt-[80px] sm:px-[50px] lg:w-1/2 lg:justify-between xl:px-[150px]"
         >
           <div className="w-full flex flex-col items-center lg:items-start">
-            <h1 className="text-black-1 font-medium text-[22px] w-[334px]  leading-[30px] text-center lg:text-left">
+            <h1 className="text-black-1 font-medium text-[22px] w-full max-w-[334px]  leading-[30px] text-center lg:text-left">
               Create password{" "}
             </h1>
             <p className="font-normal text-[16px] text-gray-8 text-center lg:text-left">

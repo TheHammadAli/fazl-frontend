@@ -16,7 +16,7 @@ function Signup() {
   }, []);
   if (otpInfo?.password !== "" && otpInfo?.type !== "") {
     return (
-      <div className="flex  justify-center w-screen min-h-[818px] hide-scrollbar">
+      <div className="flex min-h-[818px] w-full max-w-full justify-center overflow-x-hidden hide-scrollbar">
         <AuthImagePanel />
 
         <FinishSignup />

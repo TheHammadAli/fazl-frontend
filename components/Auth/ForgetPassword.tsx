@@ -65,11 +65,11 @@ function ForgetPassword() {
     }
   }, [isSuccess, isError, data, error]);
   return (
-    <div className="w-screen h-screen lg:flex lg:min-h-[818px] hide-scrollbar pt-[50px] lg:pt-0">
+    <div className="flex h-screen min-h-[818px] w-full max-w-full overflow-x-hidden pt-[50px] hide-scrollbar lg:flex lg:pt-0">
       {/* Left section */}
       <AuthImagePanel />
       {/* Right section */}
-      <div className="w-full h-full  flex flex-col items-center lg:items-start  justify-between  lg:w-[50%] px-5  sm:px-[50px] xl:px-[150px] lg:pt-[80px] ">
+      <div className="flex h-full w-full min-w-0 flex-col items-center justify-between px-5 sm:px-[50px] lg:w-1/2 lg:items-start lg:pt-[80px] xl:px-[150px]">
         <div className=" w-full flex flex-col   items-center  lg:items-start max-w-[500px] lg:max-w-full">
           <h1 className="text-black-1   font-medium text-[22px] text-center lg:text-start  leading-[30px] ">
             Forgot password

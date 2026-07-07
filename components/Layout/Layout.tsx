@@ -49,8 +49,7 @@ function Layout({ children }: { children: React.ReactNode }) {
       <MobileHeader unreadMessages={unreadMessages} unreadCount={readCount} openSidebar={openSidebar} setOpenSidebar={setOpenSidebar} />
       <Sidebar unreadMessages={unreadMessages} unreadCount={readCount} setUnreadMessages={setUnreadMessages} setReadCount={setReadCount} openSidebar={openSidebar} setOpenSidebar={setOpenSidebar} />
       <div className="flex min-h-0 w-full flex-col lg:h-screen lg:overflow-y-auto">
-        {/* <GuestBanner /> */}
-        <div className="min-h-0 flex-1">{children}</div>
+       {children}
       </div>
     </div>
   );

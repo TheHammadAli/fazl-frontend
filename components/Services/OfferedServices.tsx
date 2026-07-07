@@ -12,6 +12,7 @@ import { BeatLoader } from "react-spinners";
 import DoodleButton from "@/components/Ui/DoodleButton";
 import { useDictionary } from "@/dictionaries/DictionaryProvider";
 import { getCookie } from "cookies-next";
+import { useRouter } from "next/navigation";
 import {
     useGetServicesRequestsQuery,
     useUpdateServiceRequestMutation,
@@ -113,6 +114,7 @@ function isSentinelVisible(sentinel: HTMLDivElement | null): boolean {
 }
 
 function OfferedServices() {
+    const router = useRouter();
     const { placeholders, currentLanguage } = useDictionary();
     const modalRef = React.useRef<HTMLDivElement>(null);
     const [date, setDate] = useState<Date>(
@@ -301,6 +303,22 @@ function OfferedServices() {
         return () => scrollRoot.removeEventListener("scroll", onScroll);
     }, [tryLoadFromScroll, hasMore, sentinelReady]);
 
+    const showRequestActions =
+        (activeRequestTab === "service_request" &&
+            activeStatusTab === "incoming") ||
+        activeRequestTab === "my_offers";
+
+    const handleRequestClick = (request: ServiceRequestItem) => {
+        if (showRequestActions && request.status === "pending") return;
+
+        if (request.status === "accepted") {
+            router.push("/profile?tab=my_jobs");
+            return;
+        }
+
+        router.push("/services/my-service");
+    };
+
     const handleUpdateServiceRequest = async ({
         requestId,
         date,
@@ -311,16 +329,13 @@ function OfferedServices() {
         action: ServiceAction;
     }) => {
         try {
-            await updateServiceRequest({
+            const res = await updateServiceRequest({
                 requestId,
                 ...(action === "propose" && { proposedDateTime: date?.toISOString() }),
                 action,
-            }).unwrap().then((res) => {
-                toast.success(res.message);
-            }).catch((err) => {
-                const errorData = err as { data?: { message?: string } };
-                toast.error(errorData?.data?.message ?? "Something went wrong");
-            });
+            }).unwrap();
+
+            toast.success(res.message);
 
             setOfferForId(null);
             setSpinnerIndex(-1);
@@ -336,11 +351,6 @@ function OfferedServices() {
             toast.error(errorData?.data?.message ?? "Something went wrong");
         }
     };
-
-    const showRequestActions =
-        (activeRequestTab === "service_request" &&
-            activeStatusTab === "incoming") ||
-        activeRequestTab === "my_offers";
 
     return (
         <>
@@ -428,7 +438,16 @@ function OfferedServices() {
                                     return (
                                         <div
                                             key={requestId || index}
-                                            className="py-4 border-b border-gray-9 flex flex-col xl:flex-row lg:items-start lg:justify-between gap-4 lg:gap-4 w-full min-w-0"
+                                            role="button"
+                                            tabIndex={0}
+                                            onClick={() => handleRequestClick(request)}
+                                            onKeyDown={(e) => {
+                                                if (e.key === "Enter" || e.key === " ") {
+                                                    e.preventDefault();
+                                                    handleRequestClick(request);
+                                                }
+                                            }}
+                                            className="py-4 cursor-pointer border-b border-gray-9 flex flex-col xl:flex-row lg:items-start lg:justify-between gap-4 lg:gap-4 w-full min-w-0"
                                         >
                                             <div className="min-w-0 flex-1">
                                                 <div className="flex items-start gap-3 min-w-0">
@@ -483,7 +502,11 @@ function OfferedServices() {
                                             </div>
 
                                             {showRequestActions && (
-                                                <div className="w-full shrink-0 xl:w-[297px] lg:max-w-full">
+                                                <div
+                                                    className="w-full shrink-0 xl:w-[297px] lg:max-w-full"
+                                                    onClick={(e) => e.stopPropagation()}
+                                                    onKeyDown={(e) => e.stopPropagation()}
+                                                >
                                                     <DoodleButton
                                                         type="button"
                                                         disabled={isUpdating && spinnerAction === "accept"}

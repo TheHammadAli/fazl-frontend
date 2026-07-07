@@ -156,16 +156,16 @@ function CompleteInfo() {
   }, [isSuccess, isError, data, error]);
 
   return (
-    <div className="w-screen h-screen lg:flex min-h-[818px] hide-scrollbar  pt-[50px] lg:pt-0">
+    <div className="flex h-screen min-h-[818px] w-full max-w-full overflow-x-hidden pt-[50px] hide-scrollbar lg:flex lg:pt-0">
       {/* Left section */}
-      <AuthImagePanel className="relative hidden h-full overflow-hidden lg:block lg:w-[55%] ltr:lg:pl-8 ltr:xl:pl-16 rtl:lg:pr-8 rtl:xl:pr-16" />
+      <AuthImagePanel className="relative hidden h-full shrink-0 overflow-hidden lg:block lg:w-1/2 ltr:lg:pl-8 ltr:xl:pl-16 rtl:lg:pr-8 rtl:xl:pr-16" />
       {/* Right section */}
       <form
         onSubmit={handleCompleteInfo}
-        className="w-full flex  justify-center lg:justify-start   lg:w-[45%] px-5  sm:px-[50px] xl:px-[140px] lg:pt-[80px] "
+        className="flex w-full min-w-0 justify-center px-5 sm:px-[50px] lg:w-1/2 lg:justify-start lg:pt-[80px] xl:px-[140px]"
       >
         <div className=" w-full flex flex-col  items-center  lg:items-start max-w-[500px] lg:max-w-full">
-          <h1 className="text-black-1   font-medium text-[22px] text-center lg:text-start w-[334px]  leading-[30px] ">
+          <h1 className="text-black-1   font-medium text-[22px] text-center lg:text-start w-full max-w-[334px]  leading-[30px] ">
             Complete Your Information
           </h1>
           <p className="font-normal text-[16px] text-gray-8">

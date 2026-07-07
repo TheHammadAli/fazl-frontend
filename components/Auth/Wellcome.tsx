@@ -11,12 +11,12 @@ function Wellcome() {
   const router = useRouter();
   const { info_messages, placeholders } = useDictionary();
   return (
-    <div className="w-screen h-screen lg:flex lg:min-h-[100vh]">
+    <div className="flex h-screen min-h-[100vh] w-full max-w-full overflow-x-hidden lg:flex">
       <AuthImagePanel
-        className="relative w-full overflow-hidden lg:w-[60%] ltr:lg:pl-8 ltr:xl:pl-24 rtl:lg:pr-8 rtl:xl:pr-24"
+        className="relative w-full shrink-0 overflow-hidden lg:w-1/2 ltr:lg:pl-8 ltr:xl:pl-24 rtl:lg:pr-8 rtl:xl:pr-24"
         imageClassName="h-[360px] lg:h-full w-full object-cover"
       />
-      <div className="w-ful px-5  lg:w-[50%] sm:px-[50px] xl:px-[150px] pt-5 lg:pt-[80px] lg:flex lg:flex-col justify-between">
+      <div className="flex w-full min-w-0 flex-col justify-between px-5 pt-5 sm:px-[50px] lg:w-1/2 lg:pt-[80px] xl:px-[150px] lg:flex">
         <div className="w-full flex flex-col items-center lg:items-start">
           <div className="w-full flex justify-between">
             <div className="mb-5">

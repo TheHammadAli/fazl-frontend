@@ -119,17 +119,17 @@ function VerifyOtp() {
 
   if (mounted) {
     return (
-      <div className="w-screen h-screen flex min-h-[100vh]">
+      <div className="flex h-screen min-h-[100vh] w-full max-w-full overflow-x-hidden">
         {/* Left section */}
         <AuthImagePanel />
         {/* Right section */}
         <form
           onSubmit={handleSubmit}
-          className="w-full lg:w-[50%] px-5 sm:px-[50px] xl:px-[150px] pt-[80px] flex flex-col justify-between"
+          className="flex w-full min-w-0 flex-col justify-between px-5 pt-[80px] sm:px-[50px] lg:w-1/2 xl:px-[150px]"
         >
           <div className="w-full flex flex-col items-center lg:items-start">
             {" "}
-            <h1 className="text-black-1 text-center lg:text-left font-medium text-[22px] w-[334px]  leading-[30px] ">
+            <h1 className="text-black-1 text-center lg:text-left font-medium text-[22px] w-full max-w-[334px]  leading-[30px] ">
               OTP Verification{" "}
             </h1>
             <p className="font-light text-[16px] text-gray-8 text-center lg:text-left">

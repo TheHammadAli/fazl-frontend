@@ -15,6 +15,7 @@ import Modal from "../Ui/Modals/Modal";
 import toast from "react-hot-toast";
 import { BeatLoader } from "react-spinners";
 import { getFeedCategoryLabel } from "@/utils/getFeedCategoryLabel";
+import MyServiceRequests from "./MyServiceRequests";
 
 export type ServiceDetailType = {
   id: string;
@@ -326,6 +327,8 @@ function ServiceDetail({ serviceData }: { serviceData: ServiceDetailType }) {
               )}
             </div>
           </div>
+
+          <MyServiceRequests />
 
           <Reviews
             type="service"

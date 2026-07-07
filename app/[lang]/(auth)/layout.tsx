@@ -8,6 +8,8 @@ export default async function RootLayout({
   const { lang } = await params;
 
   return (
-    <div dir={lang === "en" ? "ltr" : "rtl"}>{children}</div>
+    <div dir={lang === "en" ? "ltr" : "rtl"} className="w-full overflow-x-hidden">
+      {children}
+    </div>
   );
 }

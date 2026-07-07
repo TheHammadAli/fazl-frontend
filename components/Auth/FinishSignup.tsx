@@ -208,7 +208,7 @@ function FinishSignup() {
 
   if (mounted) {
     return (
-      <div className="lg:w-[50%] px-5 sm:px-[50px] xl:px-[140px] pt-[70px]  ">
+      <div className="w-full min-w-0 px-5 pt-[70px] sm:px-[50px] lg:w-1/2 xl:px-[140px]">
         <form
           onSubmit={handleSubmit}
           className="max-w-[500px] flex flex-col items-center lg:items-start lg:max-w-full"
