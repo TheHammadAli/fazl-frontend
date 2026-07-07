@@ -15,10 +15,14 @@ import { useDictionary } from "@/dictionaries/DictionaryProvider";
 import { useCategoriesQuery } from "@/custom-hooks/useCategoriesQuery";
 import { getFeedCategoryLabel } from "@/utils/getFeedCategoryLabel";
 import "swiper/css";
+import Image from "next/image";
+import noImageIcon from "@/assets/images/new-no-image-placeholder.png";
+import AllCategoriesModal from "./AllCategoriesModal";
 
 type CategoryItem = {
     _id: string;
     name?: string | { en?: string; ur?: string };
+    icon?: string;
     productsCount?: number;
     listingsCount?: number;
 };
@@ -97,10 +101,23 @@ type CategoryCardProps = {
     name: string;
     theme: CategoryTheme;
     onClick: () => void;
-    subtitle: number | string;
+    subtitle?: number | string;
+    icon?: string;
+    showThemeIcon?: boolean;
 };
 
-function CategoryCard({ name, subtitle, theme, onClick }: CategoryCardProps) {
+function hasCategoryIcon(icon?: string): boolean {
+    return typeof icon === "string" && icon.trim().length > 0;
+}
+
+function CategoryCard({
+    name,
+    subtitle,
+    theme,
+    onClick,
+    icon,
+    showThemeIcon = false,
+}: CategoryCardProps) {
     const { Icon, bgClass, iconColor } = theme;
     const { info_messages } = useDictionary();
 
@@ -117,11 +134,34 @@ function CategoryCard({ name, subtitle, theme, onClick }: CategoryCardProps) {
             }}
             className="w-full cursor-pointer rounded-[16px] border border-[#E5E5E5] bg-white p-2.5 text-left transition-colors hover:border-[#C9D1D3]"
         >
-            <div className="flex items-start gap-2.5">
+            <div className="flex items-center gap-2.5">
                 <div
                     className={`flex h-15 w-15 shrink-0 items-center justify-center rounded-[14px] ${bgClass}`}
                 >
-                    <Icon className="min-h-[26px] h-[26px] w-[26px] min-w-[26px]" style={{ color: iconColor }} strokeWidth={1.75} />
+                    {hasCategoryIcon(icon) ? (
+                        <Image
+                            src={icon}
+                            alt={name}
+                            width={26}
+                            height={26}
+                            unoptimized
+                            className="h-[26px] w-[26px] min-h-[26px] min-w-[26px] object-contain"
+                        />
+                    ) : showThemeIcon ? (
+                        <Icon
+                            className="h-[26px] w-[26px]"
+                            style={{ color: iconColor }}
+                            strokeWidth={1.75}
+                        />
+                    ) : (
+                        <Image
+                            src={noImageIcon}
+                            alt={name}
+                            width={26}
+                            height={26}
+                            className="h-[26px] w-[26px] min-h-[26px] min-w-[26px] object-contain"
+                        />
+                    )}
                 </div>
                 <div className="min-w-0 flex-1">
                     <p className="truncate-safe w-full min-w-0 text-[14px] font-medium text-[#333333] rtl:text-right">
@@ -143,7 +183,7 @@ function CategoryCard({ name, subtitle, theme, onClick }: CategoryCardProps) {
 function ProductCategories() {
     const router = useRouter();
     const { info_messages, placeholders, currentLanguage } = useDictionary();
-    const [showAllCategories, setShowAllCategories] = useState(false);
+    const [isCategoriesModalOpen, setIsCategoriesModalOpen] = useState(false);
     const {
         data: categories,
         isLoading,
@@ -156,11 +196,8 @@ function ProductCategories() {
         [categories?.data],
     );
     const visibleCategories = useMemo(
-        () =>
-            showAllCategories
-                ? categoryList
-                : categoryList.slice(0, INITIAL_CATEGORY_COUNT),
-        [categoryList, showAllCategories],
+        () => categoryList.slice(0, INITIAL_CATEGORY_COUNT),
+        [categoryList],
     );
     const hasMoreCategories = categoryList.length > INITIAL_CATEGORY_COUNT;
 
@@ -189,22 +226,24 @@ function ProductCategories() {
                 <SwiperSlide key={category._id} className="!h-auto !overflow-visible">
                     <CategoryCard
                         name={getFeedCategoryLabel(category.name, currentLanguage)}
-                        subtitle={listingsCount ?? info_messages.explore_more}
+                        //subtitle={listingsCount ?? info_messages.explore_more}
                         theme={theme}
+                        icon={category.icon}
                         onClick={() => handleCategorySelect(category._id)}
                     />
                 </SwiperSlide>
             );
         });
 
-        if (!showAllCategories && hasMoreCategories) {
+        if (hasMoreCategories) {
             slides.push(
                 <SwiperSlide key="category-see-more" className="!h-auto !overflow-visible">
                     <CategoryCard
                         name={placeholders.show_more}
                         theme={MORE_THEME}
                         subtitle={info_messages.explore_more}
-                        onClick={() => setShowAllCategories(true)}
+                        showThemeIcon
+                        onClick={() => setIsCategoriesModalOpen(true)}
                     />
                 </SwiperSlide>,
             );
@@ -218,7 +257,6 @@ function ProductCategories() {
         info_messages.explore_more,
         placeholders.show_more,
         isLoadingCategories,
-        showAllCategories,
         visibleCategories,
     ]);
 
@@ -236,7 +274,6 @@ function ProductCategories() {
 
             <div className="mt-4 w-full">
                 <Swiper
-                    key={showAllCategories ? "all-categories" : "initial-categories"}
                     modules={[FreeMode]}
                     className="category-swiper w-full"
                     spaceBetween={12}
@@ -252,6 +289,15 @@ function ProductCategories() {
                     {swiperSlides}
                 </Swiper>
             </div>
+
+            <AllCategoriesModal
+                open={isCategoriesModalOpen}
+                setOpen={setIsCategoriesModalOpen}
+                title={info_messages.product_categories}
+                categories={categoryList}
+                themes={CATEGORY_STYLES}
+                onSelect={handleCategorySelect}
+            />
         </section>
     );
 }

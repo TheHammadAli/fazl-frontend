@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useCallback, useMemo } from "react";
-import { Plug, Wind, Wrench, type LucideIcon } from "lucide-react";
+import React, { useCallback, useMemo, useState } from "react";
+import { MoreHorizontal, Plug, Wind, Wrench, type LucideIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { FreeMode } from "swiper/modules";
@@ -9,10 +9,16 @@ import { useDictionary } from "@/dictionaries/DictionaryProvider";
 import { useCategoriesQuery } from "@/custom-hooks/useCategoriesQuery";
 import { getFeedCategoryLabel } from "@/utils/getFeedCategoryLabel";
 import "swiper/css";
+import Image from "next/image";
+import noImageIcon from "@/assets/images/new-no-image-placeholder.png";
+import AllCategoriesModal from "./AllCategoriesModal";
+
+const INITIAL_SERVICE_CATEGORY_COUNT = 7;
 
 type CategoryItem = {
     _id: string;
     name?: string | { en?: string; ur?: string };
+    icon?: string;
 };
 
 type ServiceCategoryStyle = {
@@ -25,6 +31,11 @@ const SERVICE_CATEGORY_STYLES: ServiceCategoryStyle[] = [
     { bgClass: "bg-[#FBF3EA]", Icon: Plug },
     { bgClass: "bg-[#DFF4F4]", Icon: Wrench },
 ];
+
+const SERVICE_MORE_STYLE: ServiceCategoryStyle = {
+    bgClass: "bg-[#EEF2F3]",
+    Icon: MoreHorizontal,
+};
 
 const SERVICE_SWIPER_BREAKPOINTS = {
     0: {
@@ -45,7 +56,7 @@ const SERVICE_SWIPER_BREAKPOINTS = {
         freeMode: false,
     },
     1280: {
-        slidesPerView: 8,
+        slidesPerView: 7,
         spaceBetween: 16,
         slidesOffsetBefore: 0,
         slidesOffsetAfter: 0,
@@ -70,9 +81,21 @@ type ServiceCategoryCardProps = {
     name: string;
     style: ServiceCategoryStyle;
     onClick: () => void;
+    icon?: string;
+    showStyleIcon?: boolean;
 };
 
-function ServiceCategoryCard({ name, style, onClick }: ServiceCategoryCardProps) {
+function hasCategoryIcon(icon?: string): boolean {
+    return typeof icon === "string" && icon.trim().length > 0;
+}
+
+function ServiceCategoryCard({
+    name,
+    style,
+    onClick,
+    icon,
+    showStyleIcon = false,
+}: ServiceCategoryCardProps) {
     const { bgClass, Icon } = style;
 
     return (
@@ -88,7 +111,18 @@ function ServiceCategoryCard({ name, style, onClick }: ServiceCategoryCardProps)
             }}
             className={`flex min-h-[100px] w-full cursor-pointer flex-col justify-between rounded-[14px] border-1 border-transparent px-3 py-[14px] transition-opacity hover:opacity-95 ${bgClass}`}
         >
-            <Icon className="h-6 w-6 shrink-0 text-[#001907]" strokeWidth={1.75} />
+            {showStyleIcon ? (
+                <Icon className="h-6 w-6 shrink-0 text-[#4B514F]" strokeWidth={1.75} />
+            ) : (
+                <Image
+                    src={hasCategoryIcon(icon) ? (icon as string) : noImageIcon}
+                    alt={name}
+                    width={24}
+                    height={24}
+                    unoptimized={hasCategoryIcon(icon)}
+                    className="h-6 w-6 shrink-0 object-contain"
+                />
+            )}
             <p className="truncate-safe mt-3 w-full min-w-0 text-[13px] font-medium text-[#030303] rtl:text-right">
                 {name}
             </p>
@@ -98,7 +132,8 @@ function ServiceCategoryCard({ name, style, onClick }: ServiceCategoryCardProps)
 
 export default function ServicesCategories() {
     const router = useRouter();
-    const { info_messages, currentLanguage } = useDictionary();
+    const { info_messages, currentLanguage, placeholders } = useDictionary();
+    const [isCategoriesModalOpen, setIsCategoriesModalOpen] = useState(false);
     const {
         data: categories,
         isLoading,
@@ -110,6 +145,12 @@ export default function ServicesCategories() {
         () => (categories?.data ?? []) as CategoryItem[],
         [categories?.data],
     );
+    const visibleCategories = useMemo(
+        () => categoryList.slice(0, INITIAL_SERVICE_CATEGORY_COUNT),
+        [categoryList],
+    );
+    const hasMoreCategories =
+        categoryList.length > INITIAL_SERVICE_CATEGORY_COUNT;
 
     const handleCategorySelect = useCallback(
         (categoryId: string) => {
@@ -131,7 +172,7 @@ export default function ServicesCategories() {
             ));
         }
 
-        return categoryList.map((category, index) => {
+        const slides = visibleCategories.map((category, index) => {
             const style = getServiceCategoryStyle(index);
             const name = getFeedCategoryLabel(category.name, currentLanguage);
 
@@ -141,6 +182,7 @@ export default function ServicesCategories() {
                     className="!h-auto !overflow-visible"
                 >
                     <ServiceCategoryCard
+                        icon={category.icon}
                         name={name}
                         style={style}
                         onClick={() => handleCategorySelect(category._id)}
@@ -148,7 +190,32 @@ export default function ServicesCategories() {
                 </SwiperSlide>
             );
         });
-    }, [categoryList, currentLanguage, handleCategorySelect, isLoadingCategories]);
+
+        if (hasMoreCategories) {
+            slides.push(
+                <SwiperSlide
+                    key="service-category-see-more"
+                    className="!h-auto !overflow-visible"
+                >
+                    <ServiceCategoryCard
+                        name={placeholders.show_more}
+                        style={SERVICE_MORE_STYLE}
+                        showStyleIcon
+                        onClick={() => setIsCategoriesModalOpen(true)}
+                    />
+                </SwiperSlide>,
+            );
+        }
+
+        return slides;
+    }, [
+        visibleCategories,
+        currentLanguage,
+        handleCategorySelect,
+        hasMoreCategories,
+        info_messages.see_more_categories,
+        isLoadingCategories,
+    ]);
 
     if (!isLoadingCategories && categoryList.length === 0) {
         return null;
@@ -177,6 +244,15 @@ export default function ServicesCategories() {
                     {swiperSlides}
                 </Swiper>
             </div>
+
+            <AllCategoriesModal
+                open={isCategoriesModalOpen}
+                setOpen={setIsCategoriesModalOpen}
+                title={info_messages.services_categories}
+                categories={categoryList}
+                themes={SERVICE_CATEGORY_STYLES}
+                onSelect={handleCategorySelect}
+            />
         </section>
     );
 }
