@@ -12,6 +12,7 @@ import AvatarUi from "@/components/Ui/AvatarUi";
 import noImageAvtar from "@/assets/images/no-image-av.png";
 import noImageAvatar from "@/assets/images/profile-placehonder.png";
 import "swiper/css";
+import { Radio } from "lucide-react";
 
 type BroadcastResponder = {
     image?: string;
@@ -74,11 +75,11 @@ function getResponseCount(item: RecentBroadcastItem): number {
     return item.responses ?? item.responseCount ?? item.recipients ?? item.threadsCount ?? 0;
 }
 
-function getBroadcastImage(item: RecentBroadcastItem): string {
+function getBroadcastImage(item: RecentBroadcastItem): string | null {
     if (item.imageUrls?.[0]) return item.imageUrls[0];
     if (typeof item.files?.[0] === "string") return item.files[0];
     if (item.image) return item.image;
-    return noImageAvtar.src;
+    return null;
 }
 
 function getBroadcastLocation(item: RecentBroadcastItem): string {
@@ -182,7 +183,7 @@ function BroadcastCard({ item, onClick, shouldSuppressClick }: BroadcastCardProp
     const responseCount = getResponseCount(item);
     const responders = getResponders(item);
     const location = getBroadcastLocation(item);
-    console.log(item)
+    const imageUrl = getBroadcastImage(item);
 
     return (
         <div
@@ -201,15 +202,22 @@ function BroadcastCard({ item, onClick, shouldSuppressClick }: BroadcastCardProp
             className="flex w-full cursor-pointer items-center gap-3 rounded-[14px] border border-[#E5E5E5] bg-white p-3 text-left transition-colors hover:border-[#C9D1D3]"
         >
             <div className="pointer-events-none flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-[10px] bg-[#FBF3EA]">
-                <Image
-                    src={getBroadcastImage(item)}
-                    alt={item.message ?? "broadcast"}
-                    width={48}
-                    height={48}
-                    draggable={false}
-                    unoptimized
-                    className="h-full w-full select-none object-cover"
-                />
+                {imageUrl ? (
+                    <Image
+                        src={imageUrl}
+                        alt={item.message ?? "broadcast"}
+                        width={48}
+                        height={48}
+                        draggable={false}
+                        unoptimized
+                        className="h-full w-full select-none object-cover"
+                    />
+                ) : (
+                    <Radio
+                        className="h-6 w-6 text-[#4B514F]"
+                        strokeWidth={1.75}
+                    />
+                )}
             </div>
 
             <div className="min-w-0 flex-1 space-y-0  rtl:text-right  ">
