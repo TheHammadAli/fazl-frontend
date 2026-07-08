@@ -4,7 +4,6 @@ import Image from "next/image";
 import chevron from "@/assets/icons/chev-down-icon.svg";
 import { useDictionary } from "@/dictionaries/DictionaryProvider";
 import noImageAvtar from "@/assets/images/no-image-av.png";
-import { useClickOutside } from "@/custom-hooks/useClickOutside";
 import useInitiateChat from "@/custom-hooks/useInitiateChat";
 import { getUserId } from "@/utils/getUserId";
 import Reviews from "../Ui/Reviews";
@@ -101,18 +100,33 @@ function BuyProductDetail({
   const { onInitiateChat, isLoading } = useInitiateChat();
   const dispatch = useAppDispatch();
   const { pages, placeholders, currentLanguage, info_messages, error_messages } = useDictionary();
-  const ref = React.useRef<HTMLDivElement>(null);
   const sharePostRef = React.useRef<HTMLDivElement>(null);
-  const [toggle, setToggle] = useState(-1);
   const [type, setType] = useState("image");
   const [typeIndex, setTypeIndex] = useState(0);
   const [shareModal, setShareModal] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
   const isLikePendingRef = React.useRef(false);
   const productId = product?.data?.id ?? product?.data?._id ?? "";
-  useClickOutside(ref, () => {
-    setToggle(-1);
-  });
+
+  useEffect(() => {
+    if (!product?.data?.parameters?.length || !setSelectedVariants) return;
+
+    setSelectedVariants((prev: Record<string, string>) => {
+      const next = { ...prev };
+      let changed = false;
+
+      for (const parameter of product.data.parameters) {
+        const firstVariant = parameter?.variants?.[0];
+        if (firstVariant && !next[parameter.name]) {
+          next[parameter.name] = firstVariant;
+          changed = true;
+        }
+      }
+
+      return changed ? next : prev;
+    });
+  }, [product?.data?.parameters, setSelectedVariants]);
+
   const isClassified = product?.data?.type === "classified";
   const { data: avgReview } = useGetAvgReviewsQuery(
     { type: "product", id: product?.data?.id ?? "" },
@@ -516,51 +530,9 @@ function BuyProductDetail({
                         <span className="text-[15px] font-medium leading-none">
                           {parameter?.name}
                         </span>
-                        <div className="relative">
-                          <div
-                            className="flex gap-2 cursor-pointer "
-                            onClick={() => setToggle(index)}
-                          >
-                            <span className="font-light text-[15px] leading-none">
-                              {String(
-                                selectedVariants[
-                                parameter?.name as keyof typeof selectedVariants
-                                ] ?? placeholders.choose,
-                              )}
-                            </span>
-                            <Image
-                              src={chevron}
-                              alt="chevron"
-                              className="h-4 w-3"
-                            />
-                          </div>
-                          {toggle === index && (
-                            <div
-                              ref={ref}
-                              className=" z-50 right-0 w-[130px] bg-white shadow-xl rounded-lg border-[1px] border-gray-4 mt-2 absolute"
-                            >
-                              {parameter?.variants?.map(
-                                (variant: string, index: number) => (
-                                  <div
-                                    key={index}
-                                    onClick={() => {
-                                      if (setSelectedVariants) {
-                                        setSelectedVariants((prev) => ({
-                                          ...prev,
-                                          [parameter?.name]: variant,
-                                        }));
-                                      }
-                                      setToggle(-1);
-                                    }}
-                                    className="hover:bg-green-4 cursor-pointer px-2 py-1 border-b-[1px] border-gray-4"
-                                  >
-                                    {variant}
-                                  </div>
-                                ),
-                              )}
-                            </div>
-                          )}
-                        </div>
+                        <span className="max-w-[55%] text-right text-[15px] font-light leading-none">
+                          {parameter?.variants?.join(", ")}
+                        </span>
                       </div>
                     ),
                   )}
