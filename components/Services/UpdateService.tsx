@@ -168,7 +168,10 @@ function UpdateService() {
       setTitle(serviceData?.title ?? "");
       setDescription(serviceData?.description ?? "");
       setSelectedCategory(serviceData?.category ?? null);
-      setSelectedPrice({ ...selectedPrice, price: serviceData?.price ?? "" });
+      setSelectedPrice({
+        ...selectedPrice,
+        price: serviceData?.price != null ? String(serviceData.price) : "",
+      });
       setVideo(serviceData?.video ?? null);
       setImages(serviceData?.images ?? []);
     }

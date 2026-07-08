@@ -13,8 +13,11 @@ import growBusinessImage from "@/assets/icons/grow-business.svg";
 import { BeatLoader } from "react-spinners";
 import Modal from "../Ui/Modals/Modal";
 import DoodleButton from "@/components/Ui/DoodleButton";
-import CategoryModal, { categroyTypes } from "./CategoryModal";
+import CategoryModal, { categroyTypes, type CategoryParameters } from "./CategoryModal";
 import PriceModal, { priceTypes } from "./PriceModal";
+import { parameterTypes, hasDuplicateParameterNames } from "../Selling/ParametersModal";
+import ParametersModal from "../Selling/ParametersModal";
+import ParameterTags from "../Selling/ParameterTags";
 import {
   useAddServiceMutation,
   useGetUserServiceQuery,
@@ -24,8 +27,24 @@ import ServiceCreated from "./ServiceCreated";
 import { getCookie } from "cookies-next";
 import { getFeedCategoryLabel } from "@/utils/getFeedCategoryLabel";
 
+function mapCategoryParametersToServiceParameters(
+  parameters: CategoryParameters | undefined,
+  lang: string,
+): parameterTypes[] {
+  if (!parameters) return [];
+
+  const names =
+    (lang === "ur" ? parameters.ur : parameters.en) ?? parameters.en ?? parameters.ur ?? [];
+
+  return names
+    .map((name) => name.trim())
+    .filter(Boolean)
+    .map((name) => ({ name, variants: [] }));
+}
+
 function CreateService() {
   const categoryRef = useRef<HTMLDivElement | null>(null);
+  const isInitialCategoryRender = useRef(true);
 
   const { pages, placeholders, info_messages, error_messages, currentLanguage } =
     useDictionary();
@@ -50,6 +69,7 @@ function CreateService() {
   const [descriptionError, setDescriptionError] = useState("");
   const [isCatOpen, setIsCatOpen] = useState(false);
   const [isPriceOpen, setIsPriceOpen] = useState(false);
+  const [isParametersModalOpen, setIsParametersModalOpen] = useState(false);
   const [priceError, setPriceError] = useState("");
   const [selectedCategory, setSelectedCategory] =
     useState<categroyTypes | null>(null);
@@ -58,6 +78,29 @@ function CreateService() {
     paymentType: "fixed",
     price: "",
   });
+  const [parameters, setParameters] = useState<parameterTypes[]>([]);
+  const [parameterError, setParameterError] = useState("");
+
+  useEffect(() => {
+    if (isInitialCategoryRender.current) {
+      isInitialCategoryRender.current = false;
+      return;
+    }
+
+    if (!selectedCategory) {
+      setParameters([]);
+      setParameterError("");
+      return;
+    }
+
+    setParameters(
+      mapCategoryParametersToServiceParameters(
+        selectedCategory.parameters,
+        currentLanguage,
+      ),
+    );
+    setParameterError("");
+  }, [selectedCategory, currentLanguage]);
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -65,6 +108,7 @@ function CreateService() {
     setDescriptionError("");
     setCategoryError("");
     setPriceError("");
+    setParameterError("");
 
     if (title === "") {
       setTitleError(error_messages.title_required);
@@ -77,6 +121,15 @@ function CreateService() {
     }
     if (selectedPrice.price === "") {
       setPriceError(error_messages.price_required);
+    }
+    if (parameters.length === 0) {
+      setParameterError(error_messages.parameter_required);
+    }
+    if (parameters.some((parameter) => parameter.variants.length === 0)) {
+      setParameterError(error_messages.parameter_value_required);
+    }
+    if (hasDuplicateParameterNames(parameters)) {
+      setParameterError(error_messages.parameter_name_duplicate);
     }
     // if (video === null || video === "") {
     //   toast.error(error_messages.video_required);
@@ -92,7 +145,10 @@ function CreateService() {
       description !== "" &&
       selectedCategory !== null &&
       selectedPrice.price !== "" &&
-      images.length > 0
+      images.length > 0 &&
+      parameters.length > 0 &&
+      parameters.some((parameter) => parameter.variants.length > 0) &&
+      !hasDuplicateParameterNames(parameters)
       //  &&
       // video !== null &&
       // video !== ""
@@ -103,6 +159,9 @@ function CreateService() {
       formData.append("category", selectedCategory._id);
       formData.append("price", selectedPrice.price);
       formData.append("paymentType", selectedPrice.paymentType);
+      if (parameters.length > 0) {
+        formData.append("parameters", JSON.stringify(parameters));
+      }
       if (video !== null) {
         formData.append("video", video);
       }
@@ -131,6 +190,7 @@ function CreateService() {
       setVideo(null);
       setTitle("");
       setDescription("");
+      setParameters([]);
       toast.error(
         (error?.data as { message?: string })?.message ||
         "something went wrong!"
@@ -170,6 +230,21 @@ function CreateService() {
           // setIsCatOpen={setIsCatOpen}
           // selectedCategory={selectedCategory}
           // setSelectedCategory={setSelectedCategory}
+          />
+        </div>
+      </Modal>
+      <Modal
+        editModalRef={categoryRef}
+        open={isParametersModalOpen}
+        setOpen={setIsParametersModalOpen}
+        centered={false}
+      >
+        <div className="h-full w-full flex justify-center pt-[80px]">
+          <ParametersModal
+            open={isParametersModalOpen}
+            parameters={parameters}
+            setParameters={setParameters}
+            setOpen={setIsParametersModalOpen}
           />
         </div>
       </Modal>
@@ -331,6 +406,16 @@ function CreateService() {
                 {categoryError && (
                   <p className="text-red-1 text-[14px] font-normal">
                     {categoryError}
+                  </p>
+                )}
+                <ParameterTags
+                  label={parameters.length > 0 ? placeholders.add_more : placeholders.add_parameter}
+                  parameters={parameters}
+                  onClick={() => setIsParametersModalOpen(true)}
+                />
+                {parameterError && (
+                  <p className="text-red-1 text-[14px] font-normal">
+                    {parameterError}
                   </p>
                 )}
                 <div className="bg-gray-12 border-t-[1px] border-gray-9   h-[27px] "></div>

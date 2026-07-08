@@ -15,11 +15,16 @@ export type PriceModalTypes = {
   type?: string;
 };
 
-function stripPriceFormatting(value: string): string {
-  return value.replace(/,/g, "");
+function normalizePriceValue(value: unknown): string {
+  if (value == null || value === "") return "";
+  return String(value);
 }
 
-function formatPriceInput(value: string): string {
+function stripPriceFormatting(value: unknown): string {
+  return normalizePriceValue(value).replace(/,/g, "");
+}
+
+function formatPriceInput(value: unknown): string {
   const rawValue = stripPriceFormatting(value).replace(/\D/g, "");
   if (!rawValue) return "";
   return Number(rawValue).toLocaleString("en-US");

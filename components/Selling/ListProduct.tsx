@@ -251,12 +251,12 @@ function ListProduct() {
         centered={false}
       >
         <div className="h-full w-full flex justify-center pt-[80px]">
-          <ParametersModal
+          {/* <ParametersModal
             open={isParametersModalOpen}
             parameters={parameters}
             setParameters={setParameters}
             setOpen={setIsParametersModalOpen}
-          />
+          /> */}
         </div>
       </Modal>
       <div className="h-full min-h-screen flex flex-col items-center">
