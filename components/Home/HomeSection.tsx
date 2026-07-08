@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import searchIcon from "@/assets/icons/searchIcon.svg";
 import Image from "next/image";
 import Tabs from "../Ui/Tabs";
@@ -30,6 +30,7 @@ import ProductCategories from "./ProductCategories";
 import ServicesCategories from "./ServicesCategories";
 import RecentBroadCasts from "./RecentBroadCasts";
 import { useCategoriesQuery } from "@/custom-hooks/useCategoriesQuery";
+import { getFeedCategoryLabel } from "@/utils/getFeedCategoryLabel";
 import DoodleButton from "../Ui/DoodleButton";
 import locationGrayIcon from "@/assets/icons/location-gray.svg";
 import { useAppSelector } from "@/store/store";
@@ -95,6 +96,12 @@ type ProductCategoryItem = {
   name?: string | { en?: string; ur?: string };
 };
 
+const FEATURED_PRODUCT_CATEGORY_IDS = [
+  "6a3bb9aa72c2912ed05247f2",
+  "68b40b33401f4ee662f12a6d",
+  "6a4bbc2da60825502cafe903"
+] as const;
+
 function UserLocationBadge({ locationName }: { locationName: string }) {
   return (
     <div className="flex h-[40px] min-w-0 flex-1 items-center gap-1.5 rounded-[8px] bg-[#EEF2F3] px-2.5 sm:h-[46px] sm:flex-none sm:w-[180px] sm:gap-2 sm:px-3">
@@ -136,7 +143,7 @@ function HomeSection() {
   const catRef = useRef<HTMLDivElement>(null);
   const tabs = ["products", "services"];
   const [activeTab, setActiveTab] = useState<string>(tabs[0]);
-  const { placeholders, info_messages, error_messages } = useDictionary();
+  const { placeholders, info_messages, error_messages, currentLanguage } = useDictionary();
   const [openCat, setOpenCat] = useState(false);
   const { data: productsData, isLoading: isProductsLoading, isFetching: isProductsFetching } = useSearchProductsQuery(
     {
@@ -164,11 +171,14 @@ function HomeSection() {
   const {
     data: categories,
   } = useCategoriesQuery({ type: "product" });
-  const [mobilePhoneCategory, setMobilePhoneCategory] = useState<any>(null);
-  useEffect(() => {
-    const mobilePhoneCategory = categories?.data?.find((category: any) => category._id === "6a3bb9aa72c2912ed05247f2");
-    setMobilePhoneCategory(mobilePhoneCategory);
-  }, [categories]);
+
+  const featuredProductCategories = useMemo(() => {
+    const categoryList = (categories?.data ?? []) as ProductCategoryItem[];
+
+    return FEATURED_PRODUCT_CATEGORY_IDS.map((categoryId) =>
+      categoryList.find((category) => category._id === categoryId),
+    ).filter((category): category is ProductCategoryItem => Boolean(category));
+  }, [categories?.data]);
 
   useClickOutside(catRef, () => {
     setOpenCat(false);
@@ -357,12 +367,15 @@ function HomeSection() {
       <AllProductsAndServices
         tab="products"
       />
-      {/*Mobile phone category  */}
-      <AllProductsAndServices
-        tab="products"
-        categoryId={"6a3bb9aa72c2912ed05247f2"}
-        title={mobilePhoneCategory?.name as string}
-      />
+      {/* Featured product categories */}
+      {featuredProductCategories.map((category) => (
+        <AllProductsAndServices
+          key={category._id}
+          tab="products"
+          categoryId={category._id}
+          title={getFeedCategoryLabel(category.name, currentLanguage)}
+        />
+      ))}
       <AllProductsAndServices
         tab="services"
       />
