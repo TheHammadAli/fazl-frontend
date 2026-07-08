@@ -226,7 +226,7 @@ function ParametersModal({
     <div className="w-[min(400px,92vw)] max-h-[80vh] flex flex-col bg-white rounded-[10px] overflow-hidden shadow-lg">
       <div className="shrink-0 px-4 py-3 flex justify-between items-center border-b border-gray-9">
         <h2 className="text-[15px] font-medium text-black-1">
-          {placeholders.add_parameter}
+          {placeholders.add_detail}
         </h2>
         <button
           type="button"
@@ -249,7 +249,7 @@ function ParametersModal({
                 <input
                   type="text"
                   value={parameter.name}
-                  placeholder={placeholders.parameter_name}
+                  placeholder={placeholders.detail_name}
                   onChange={(e) =>
                     handleParameterNameChange(paramIndex, e.target.value)
                   }
@@ -261,7 +261,7 @@ function ParametersModal({
                 />
                 {duplicateNameIndexes.has(paramIndex) && (
                   <p className="mt-1 text-[12px] font-normal text-red-1">
-                    {error_messages.parameter_name_duplicate}
+                    {error_messages.detail_name_duplicate}
                   </p>
                 )}
               </div>
@@ -277,7 +277,7 @@ function ParametersModal({
 
             <div>
               <p className="mb-2 text-[12px] font-normal text-gray-8">
-                {placeholders.parameter_value}
+                {placeholders.detail_value}
               </p>
               <div className="flex flex-wrap gap-2 items-center">
                 {parameter.variants.map((variant, variantIndex) => (
@@ -300,7 +300,7 @@ function ParametersModal({
                 <input
                   type="text"
                   value={newVariantByParam[paramIndex] ?? ""}
-                  placeholder={placeholders.add_value}
+                  placeholder={placeholders.add_information}
                   onChange={(e) => {
                     setNewVariantByParam((prev) => ({
                       ...prev,
@@ -330,7 +330,7 @@ function ParametersModal({
                   {editingVariantByParam[paramIndex] !== undefined &&
                   editingVariantByParam[paramIndex] !== null
                     ? placeholders.update
-                    : placeholders.add_value}
+                    : placeholders.add_information}
                 </button>
               </div>
             </div>
@@ -343,7 +343,7 @@ function ParametersModal({
           className="w-full flex items-center justify-center gap-1.5 h-[36px] rounded-[6px] border border-dashed border-green-1/60 text-green-1 text-[13px] font-normal cursor-pointer hover:bg-green-4/50"
         >
           <Image src={plusIcon} className="w-3.5 h-3.5" alt="" />
-          {placeholders.add_parameter}
+          {placeholders.add_detail}
         </button>
       </div>
 

@@ -15,6 +15,16 @@ export type PriceModalTypes = {
   type?: string;
 };
 
+function stripPriceFormatting(value: string): string {
+  return value.replace(/,/g, "");
+}
+
+function formatPriceInput(value: string): string {
+  const rawValue = stripPriceFormatting(value).replace(/\D/g, "");
+  if (!rawValue) return "";
+  return Number(rawValue).toLocaleString("en-US");
+}
+
 function PriceModal({
   selectedPrice,
   setSelectedPrice,
@@ -22,15 +32,16 @@ function PriceModal({
   type,
 }: PriceModalTypes) {
   const { placeholders, error_messages, info_messages } = useDictionary();
-  const [price, setPrice] = useState(selectedPrice.price);
+  const [price, setPrice] = useState(() => formatPriceInput(selectedPrice.price));
   const [priceError, setPriceError] = useState("");
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (price === "") {
+    const rawPrice = stripPriceFormatting(price);
+    if (rawPrice === "") {
       setPriceError(error_messages.price_required);
     } else {
-      setSelectedPrice({ ...selectedPrice, price: price });
+      setSelectedPrice({ ...selectedPrice, price: rawPrice });
       setIsPriceOpen(false);
     }
   };
@@ -104,15 +115,12 @@ function PriceModal({
           </p>
           <div className="relative border-gray-9 border-b-[1px] pb-1">
             <input
-              type="number"
+              type="text"
+              inputMode="numeric"
               value={price}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                setPrice(e.target.value)
-              }
-              onKeyDown={(e) => {
-                if (["e", "E", "+", "-"].includes(e.key)) {
-                  e.preventDefault(); // block scientific notation and +/-
-                }
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                setPrice(formatPriceInput(e.target.value));
+                if (priceError) setPriceError("");
               }}
               placeholder={`${placeholders.Rs}0.00`}
               className="h-[28px] rtl:pl-12 ltr:pr-14 text-[15px] text-black-1 placeholder:text-black-1 font-normal focus:outline-none w-full [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none "
