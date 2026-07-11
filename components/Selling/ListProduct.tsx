@@ -41,6 +41,10 @@ function mapCategoryParametersToProductParameters(
     .map((name) => ({ name, variants: [] }));
 }
 
+function hasMissingParameterValues(parameters: parameterTypes[]): boolean {
+  return parameters.some((parameter) => parameter.variants.length === 0);
+}
+
 function ListProduct() {
   const categoryRef = useRef<HTMLDivElement | null>(null);
   const { pages, placeholders, info_messages, error_messages, currentLanguage } =
@@ -139,7 +143,7 @@ function ListProduct() {
     if (parameters.length === 0) {
       setParameterError(error_messages.parameter_required);
     }
-    if (parameters.some((parameter) => parameter.variants.length === 0)) {
+    if (hasMissingParameterValues(parameters)) {
       setParameterError(error_messages.parameter_value_required);
     }
     if (hasDuplicateParameterNames(parameters)) {
@@ -159,7 +163,7 @@ function ListProduct() {
       // video !== "" &&
       images?.length > 0 &&
       parameters.length > 0 &&
-      parameters.some((parameter) => parameter.variants.length > 0) &&
+      !hasMissingParameterValues(parameters) &&
       !hasDuplicateParameterNames(parameters)
     ) {
       const formData = new FormData();
@@ -251,12 +255,12 @@ function ListProduct() {
         centered={false}
       >
         <div className="h-full w-full flex justify-center pt-[80px]">
-          {/* <ParametersModal
+          <ParametersModal
             open={isParametersModalOpen}
             parameters={parameters}
             setParameters={setParameters}
             setOpen={setIsParametersModalOpen}
-          /> */}
+          />
         </div>
       </Modal>
       <div className="h-full min-h-screen flex flex-col items-center">

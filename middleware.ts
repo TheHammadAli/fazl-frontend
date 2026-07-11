@@ -145,6 +145,6 @@ export function middleware(request: NextRequest) {
   return NextResponse.next();
 }
 export const config = {
-  // Matcher ignoring `/_next/` and `/api/`
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
+  // Matcher ignoring static assets, `/_next/`, and `/api/`
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|notifications/).*)"],
 };

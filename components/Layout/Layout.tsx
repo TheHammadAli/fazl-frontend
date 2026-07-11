@@ -9,6 +9,7 @@ import { useAppDispatch } from "@/store/store";
 import { baseApi } from "@/store/baseApi";
 import { initializeSocket } from "@/utils/socket";
 import { useUnreadMessagesCountQuery } from "@/store/services/chatService";
+import { playNotificationSound } from "@/utils/playNotificationSound";
 
 function Layout({ children }: { children: React.ReactNode }) {
   const [openSidebar, setOpenSidebar] = useState(false);
@@ -34,18 +35,27 @@ function Layout({ children }: { children: React.ReactNode }) {
     const socket = initializeSocket();
     if (!socket) return;
     socket.on("notification", (data) => {
+      if(data?.type === "SERVICE_REQUEST"){
+      playNotificationSound(data?.type);}
+      else{
+        playNotificationSound("REST");
+      }
       dispatch(baseApi.util.invalidateTags(["NOTIFICATIONS"]));
     });
     socket.on("receiveMessage", (data) => {
+      playNotificationSound("REST");
       dispatch(baseApi.util.invalidateTags(["Chat"]));
     });
     socket.on("receiveBroadcastMessage", (data) => {
+            playNotificationSound("SERVICE_REQUEST");
+
       dispatch(baseApi.util.invalidateTags(["BROADCAST"]));
     });
   }, [dispatch]);
 
   return (
     <div className="lg:flex">
+      
       <MobileHeader unreadMessages={unreadMessages} unreadCount={readCount} openSidebar={openSidebar} setOpenSidebar={setOpenSidebar} />
       <Sidebar unreadMessages={unreadMessages} unreadCount={readCount} setUnreadMessages={setUnreadMessages} setReadCount={setReadCount} openSidebar={openSidebar} setOpenSidebar={setOpenSidebar} />
       <div className="flex min-h-0 w-full flex-col lg:h-screen lg:overflow-y-auto">
