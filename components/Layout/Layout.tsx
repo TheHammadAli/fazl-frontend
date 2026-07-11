@@ -11,6 +11,24 @@ import { initializeSocket } from "@/utils/socket";
 import { useUnreadMessagesCountQuery } from "@/store/services/chatService";
 import { playNotificationSound } from "@/utils/playNotificationSound";
 
+function getSocketSenderId(data: unknown): string | undefined {
+  if (!data || typeof data !== "object") return undefined;
+  const payload = data as Record<string, unknown>;
+  if (payload.senderId != null) return String(payload.senderId);
+  if (typeof payload.sender === "string") return payload.sender;
+  if (payload.sender && typeof payload.sender === "object") {
+    const sender = payload.sender as { id?: string; _id?: string };
+    return sender.id ?? sender._id;
+  }
+  return undefined;
+}
+
+function isFromCurrentUser(data: unknown, currentUserId?: string | null): boolean {
+  if (!currentUserId) return false;
+  const senderId = getSocketSenderId(data);
+  return senderId != null && senderId === String(currentUserId);
+}
+
 function Layout({ children }: { children: React.ReactNode }) {
   const [openSidebar, setOpenSidebar] = useState(false);
   const userId = getUserId();
@@ -43,15 +61,18 @@ function Layout({ children }: { children: React.ReactNode }) {
       dispatch(baseApi.util.invalidateTags(["NOTIFICATIONS"]));
     });
     socket.on("receiveMessage", (data) => {
-      playNotificationSound("REST");
+      if (!isFromCurrentUser(data, userId)) {
+        playNotificationSound("REST");
+      }
       dispatch(baseApi.util.invalidateTags(["Chat"]));
     });
     socket.on("receiveBroadcastMessage", (data) => {
-            playNotificationSound("SERVICE_REQUEST");
-
+      if (!isFromCurrentUser(data, userId)) {
+        playNotificationSound("SERVICE_REQUEST");
+      }
       dispatch(baseApi.util.invalidateTags(["BROADCAST"]));
     });
-  }, [dispatch]);
+  }, [dispatch, userId]);
 
   return (
     <div className="lg:flex">
