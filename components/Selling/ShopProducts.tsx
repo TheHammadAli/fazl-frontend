@@ -11,7 +11,6 @@ function ShopProducts() {
     // "orders"
   ];
   const [activeTab, setActiveTab] = useState<string>(tabs[0]);
-  const { placeholders } = useDictionary();
   const router = useRouter();
   const id = useSearchParams().get("id");
 
