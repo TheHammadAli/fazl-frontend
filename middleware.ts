@@ -1,10 +1,32 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { i18n } from "./i18n.config";
-import {
-  isGuestAllowedPathname,
-  isGuestRestrictedPathname,
-} from "./utils/guestAccess";
+
+/** Keep Edge-safe: no local project imports (Vercel Edge rejects them). */
+const LOCALES = ["en", "ur"] as const;
+
+const GUEST_RESTRICTED_PATH_SEGMENTS = [
+  "/selling",
+  "/services",
+  "/chat",
+  "/profile",
+] as const;
+
+const GUEST_ALLOWED_PATH_SEGMENTS = [
+  "/book-service",
+  "/buy-product",
+] as const;
+
+function isGuestRestrictedPathname(pathname: string): boolean {
+  return GUEST_RESTRICTED_PATH_SEGMENTS.some((segment) =>
+    pathname.includes(segment),
+  );
+}
+
+function isGuestAllowedPathname(pathname: string): boolean {
+  return GUEST_ALLOWED_PATH_SEGMENTS.some((segment) =>
+    pathname.includes(segment),
+  );
+}
 
 function isAdminPath(path: string) {
   return path === "/admin" || path.startsWith("/admin/");
@@ -28,9 +50,8 @@ export function middleware(request: NextRequest) {
   const urlParams = "?" + new URLSearchParams(params);
   let pathname = request.nextUrl.pathname;
   const locale = request.cookies.get("lang")?.value || "en";
-  const pathnameIsMissingLocale = i18n.locales.every(
-    (locale) =>
-      !pathname.startsWith(`/${locale}/`) && pathname !== `/${locale}`,
+  const pathnameIsMissingLocale = LOCALES.every(
+    (loc) => !pathname.startsWith(`/${loc}/`) && pathname !== `/${loc}`,
   );
 
   const localizedAdminPath = getLocalizedAdminPath(pathname);
@@ -66,7 +87,6 @@ export function middleware(request: NextRequest) {
     `/${locale}/verify-email`,
     `/${locale}/reset-password`,
     `/${locale}/set-password`,
-    // `/${locale}/complete-info`,
   ];
   const publicInfoRoutes: string[] = [
     `/${locale}/contact-us`,
@@ -75,14 +95,12 @@ export function middleware(request: NextRequest) {
   ];
 
   function checkPathStartsWith(path: string) {
-    // if (path === "/" || path === `/${locale}`) return true;
     return authRoutes.some((p: string) => path.startsWith(p));
   }
   function isPublicInfoRoute(path: string) {
     return publicInfoRoutes.some((p: string) => path.startsWith(p));
   }
 
-  // Add locale if there is no locale
   if (pathnameIsMissingLocale) {
     pathname = `/${locale}${
       pathname.startsWith("/") ? "" : "/"
@@ -122,7 +140,6 @@ export function middleware(request: NextRequest) {
   }
 
   if (token && !completeProfile) {
-    // Allow access if already on /complete-info
     if (pathname !== `/${locale}/complete-info`) {
       return NextResponse.redirect(
         new URL(`/${locale}/complete-info`, request.url),
@@ -144,7 +161,7 @@ export function middleware(request: NextRequest) {
 
   return NextResponse.next();
 }
+
 export const config = {
-  // Matcher ignoring static assets, `/_next/`, and `/api/`
   matcher: ["/((?!api|_next/static|_next/image|favicon.ico|notifications/).*)"],
 };
