@@ -8,7 +8,7 @@ import { useDictionary } from "@/dictionaries/DictionaryProvider";
 
 interface Props {
   setStatus: (val: string) => void;
-  createdData: any
+  createdData?: any
 }
 
 function ProductListed({ setStatus, createdData}: Props) {
