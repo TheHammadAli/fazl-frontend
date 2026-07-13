@@ -7,68 +7,74 @@ import { useDictionary } from "@/dictionaries/DictionaryProvider";
 import { useRouter } from "next/navigation";
 import LangSwitcher from "../Ui/LangSwitcher";
 import Footer from "./Footer";
+
 function Wellcome() {
   const router = useRouter();
   const { info_messages, placeholders } = useDictionary();
+
   return (
-    <div className="flex h-screen min-h-[100vh] w-full max-w-full overflow-x-hidden lg:flex">
+    <div className="flex min-h-dvh w-full max-w-full flex-col overflow-x-hidden lg:h-screen lg:flex-row">
       <AuthImagePanel
-        className="relative w-full shrink-0 overflow-hidden lg:w-1/2 ltr:lg:pl-8 ltr:xl:pl-24 rtl:lg:pr-8 rtl:xl:pr-24"
-        imageClassName="h-[360px] lg:h-full w-full object-cover"
+        className="relative w-full shrink-0 overflow-hidden lg:h-full lg:w-1/2 ltr:lg:pl-8 ltr:xl:pl-24 rtl:lg:pr-8 rtl:xl:pr-24"
+        imageClassName="h-[220px] sm:h-[300px] lg:h-full w-full object-cover object-top"
       />
-      <div className="flex w-full min-w-0 flex-col justify-between px-5 pt-5 sm:px-[50px] lg:w-1/2 lg:pt-[80px] xl:px-[150px] lg:flex">
-        <div className="w-full flex flex-col items-center lg:items-start">
-          <div className="w-full flex justify-between">
-            <div className="mb-5">
-              <LangSwitcher />
-            </div>
-            <div
+      <div className="flex w-full min-w-0 flex-1 flex-col justify-between px-5 pb-6 pt-5 sm:px-[50px] lg:w-1/2 lg:overflow-y-auto lg:pb-14 lg:pt-[80px] xl:px-[150px]">
+        <div className="flex w-full flex-col">
+          <div className="mb-5 flex w-full items-center justify-between">
+            <LangSwitcher />
+            <button
+              type="button"
               onClick={() => router.push("/home")}
-              className="font-normal text-[14px] text-black-1 cursor-pointer hover:underline"
+              className="cursor-pointer text-[14px] font-normal text-black-1 hover:underline"
             >
               {placeholders["skip" as keyof typeof placeholders] ?? "Skip"}
-            </div>
+            </button>
           </div>
-          <h1 className="text-black-1 font-medium text-[22px] w-full  leading-[30px] rtl:text-right ltr:text-left ">
+
+          <h1 className="w-full text-[22px] font-medium leading-[30px] text-black-1 ltr:text-left rtl:text-right">
             {info_messages.welcome_market}
           </h1>
-          <p className="font-light text-[16px] text-gray-8 rtl:text-right ltr:text-left">
+          <p className="text-[16px] font-light text-gray-8 ltr:text-left rtl:text-right">
             {info_messages.discover_market}
           </p>
-          <p className=" text-[16px] font-light text-gray-8 rtl:text-right ltr:text-left w-full  ">
+          <p className="w-full text-[16px] font-light text-gray-8 ltr:text-left rtl:text-right">
             {info_messages.locally_globally}
           </p>
-          <div
+
+          <button
+            type="button"
             onClick={() => router.push("/selling")}
-            className=" max-w-[500px] lg:max-w-full cursor-pointer mt-12 w-full bg-[#C7F1EE80]  flex rtl:flex-row-reverse gap-[10px] justify-between items-start lg:h-[102px] rounded-[12px] p-5"
+            className="mt-8 flex w-full cursor-pointer items-start justify-between gap-[10px] rounded-[12px] bg-[#C7F1EE80] p-5 rtl:flex-row-reverse lg:mt-12 lg:h-[102px]"
           >
-            <div>
-              <h2 className="text-[16px] rtl:text-right ltr:text-left leading-tight font-medium text-black-1">
+            <div className="min-w-0 flex-1">
+              <h2 className="text-[16px] font-medium leading-tight text-black-1 ltr:text-left rtl:text-right">
                 {info_messages.list_product}
               </h2>
-              <p className="text-[14px] rtl:text-right ltr:text-left font-light text-[#4B514F] leading-[20px] mt-1">
+              <p className="mt-1 text-[14px] font-light leading-[20px] text-[#4B514F] ltr:text-left rtl:text-right">
                 {info_messages.sell_physical}
               </p>
             </div>
-            <Image src={Arrow} alt="arrow" className="rtl:-rotate-90" />
-          </div>
+            <Image src={Arrow} alt="arrow" className="mt-1 shrink-0 rtl:-rotate-90" />
+          </button>
 
-          <div
+          <button
+            type="button"
             onClick={() => router.push("/services")}
-            className="max-w-[500px] lg:max-w-full cursor-pointer w-full mt-3 bg-[#C7F1EE80] flex rtl:flex-row-reverse gap-[10px] justify-between items-start lg:h-[102px] rounded-[12px] p-5"
+            className="mt-3 flex w-full cursor-pointer items-start justify-between gap-[10px] rounded-[12px] bg-[#C7F1EE80] p-5 rtl:flex-row-reverse lg:h-[102px]"
           >
-            <div>
-              <h2 className="text-[16px] rtl:text-right ltr:text-left leading-tight font-medium text-black-1">
+            <div className="min-w-0 flex-1">
+              <h2 className="text-[16px] font-medium leading-tight text-black-1 ltr:text-left rtl:text-right">
                 {info_messages.list_service}
               </h2>
-              <p className="text-[14px] rtl:text-right ltr:text-left font-light text-[#4B514F] leading-[20px] mt-1">
+              <p className="mt-1 text-[14px] font-light leading-[20px] text-[#4B514F] ltr:text-left rtl:text-right">
                 {info_messages.offer_expertise}
               </p>
             </div>
-            <Image src={Arrow} alt="arrow" className="rtl:-rotate-90 " />
-          </div>
+            <Image src={Arrow} alt="arrow" className="mt-1 shrink-0 rtl:-rotate-90" />
+          </button>
         </div>
-        <div className="mt-14 lg:mt-0 lg:mb-14  w-full">
+
+        <div className="mt-10 w-full lg:mt-8">
           <Footer />
         </div>
       </div>

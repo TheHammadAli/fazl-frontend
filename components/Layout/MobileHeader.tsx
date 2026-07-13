@@ -33,7 +33,7 @@ export default function MobileHeader({ unreadMessages, unreadCount, openSidebar,
     refetch,
   } = useGetUserDetailQuery(userId, { skip: userId === "" || isGuest });
   return (
-    <header className="bg-white  h-[80px] flex items-center  lg:hidden border-b-[1px] border-gray-9 ">
+    <header className="bg-white   h-[60px] flex items-center  lg:hidden border-b-[1px] border-gray-9 ">
       <div className="px-5 w-full max-w-7xl mx-auto  ">
         <nav
           aria-label="Global"
@@ -85,7 +85,14 @@ export default function MobileHeader({ unreadMessages, unreadCount, openSidebar,
                     return (
                       <div
                         key={index}
-                        onClick={() => { if (link.href !== "/updates") { router.push(link.href) } else { setOpenSidebar(true) } }}
+                        onClick={() => {
+                          setMobileMenuOpen(false);
+                          if (link.href !== "/updates") {
+                            router.push(link.href);
+                          } else {
+                            setOpenSidebar(true);
+                          }
+                        }}
                         className={` flex items-center gap-3 py-3 cursor-pointer`}
                       >
                         <Image

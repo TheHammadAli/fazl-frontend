@@ -194,7 +194,7 @@ function ListProduct() {
       toast.success(data?.message);
       const timer = setTimeout(() => {
         setStatus("success");
-        setCreatedData(data?.data);
+        setCreatedData(data?.data?.product);
       }, 800);
 
       return () => clearTimeout(timer);
@@ -282,7 +282,7 @@ function ListProduct() {
           </div>
         </div>
         {status === "success" ? (
-          <ProductListed setStatus={setStatus} />
+          <ProductListed setStatus={setStatus} createdData={createdData}/>
         ) : (
           <div className="md:flex w-full flex-1">
             <div className="md:w-[46%] p-4 md:p-6 border-b md:border-r border-gray-9 ">
