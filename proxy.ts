@@ -1,32 +1,10 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-
-/** Keep Edge-safe: no local project imports (Vercel Edge rejects them). */
-const LOCALES = ["en", "ur"] as const;
-
-const GUEST_RESTRICTED_PATH_SEGMENTS = [
-  "/selling",
-  "/services",
-  "/chat",
-  "/profile",
-] as const;
-
-const GUEST_ALLOWED_PATH_SEGMENTS = [
-  "/book-service",
-  "/buy-product",
-] as const;
-
-function isGuestRestrictedPathname(pathname: string): boolean {
-  return GUEST_RESTRICTED_PATH_SEGMENTS.some((segment) =>
-    pathname.includes(segment),
-  );
-}
-
-function isGuestAllowedPathname(pathname: string): boolean {
-  return GUEST_ALLOWED_PATH_SEGMENTS.some((segment) =>
-    pathname.includes(segment),
-  );
-}
+import { i18n } from "@/i18n.config";
+import {
+  isGuestAllowedPathname,
+  isGuestRestrictedPathname,
+} from "@/utils/guestAccess";
 
 function isAdminPath(path: string) {
   return path === "/admin" || path.startsWith("/admin/");
@@ -37,7 +15,11 @@ function getLocalizedAdminPath(pathname: string) {
   return match ? match[2] : null;
 }
 
-export function middleware(request: NextRequest) {
+/**
+ * Next.js 16+: `proxy.ts` replaces deprecated `middleware.ts`.
+ * Runs on Node.js (not Edge), so local @/ imports are safe on Vercel.
+ */
+export function proxy(request: NextRequest) {
   const {
     nextUrl: { search },
   } = request;
@@ -50,7 +32,7 @@ export function middleware(request: NextRequest) {
   const urlParams = "?" + new URLSearchParams(params);
   let pathname = request.nextUrl.pathname;
   const locale = request.cookies.get("lang")?.value || "en";
-  const pathnameIsMissingLocale = LOCALES.every(
+  const pathnameIsMissingLocale = i18n.locales.every(
     (loc) => !pathname.startsWith(`/${loc}/`) && pathname !== `/${loc}`,
   );
 
