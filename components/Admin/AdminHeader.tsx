@@ -10,6 +10,7 @@ const ADMIN_NAV = [
     { label: "Categories", href: "/admin/categories" },
     // { label: "Promotion Settings", href: "/admin/promotion-settings" },
 ];
+// test to deploy
 
 function AdminHeader() {
     const pathname = usePathname();
