@@ -3,10 +3,8 @@ import React, { useState } from "react";
 import Tabs from "../Ui/Tabs";
 import { useDictionary } from "@/dictionaries/DictionaryProvider";
 import { useRouter, useSearchParams } from "next/navigation";
-import PrivateListings from "./PrivateListings";
 import ShopProductsList from "./ShopProductsList";
-import { useGetShopProductsQuery } from "@/store/services/sellingService";
-import ShopOrders from "./ShopOrders";
+
 
 function ShopProducts() {
   const tabs = ["shop",
