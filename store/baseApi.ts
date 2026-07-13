@@ -11,7 +11,7 @@ import { getRefreshToken, getToken } from "@/utils/getToken";
 import { extractAuthTokens } from "@/utils/authCookies";
 import { logout, setToken } from "./reducers/authReducer";
 import { getCookie } from "cookies-next";
-import { isGuestSession } from "@/utils/guestAccess";
+import { isGuestSession } from "@/utils/isGuestSession";
 import { i18n } from "@/i18n.config";
 
 /** Login/signup failures must not trigger refresh/logout redirects. */

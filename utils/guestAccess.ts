@@ -1,5 +1,3 @@
-import { getCookie } from "cookies-next";
-
 /** Nav hrefs hidden and blocked for guest users (no auth token). */
 export const GUEST_RESTRICTED_HREFS = [
   "/services",
@@ -35,10 +33,6 @@ export const GUEST_ALLOWED_PATH_SEGMENTS = [
   "/book-service",
   "/buy-product",
 ] as const;
-
-export function isGuestSession(): boolean {
-  return getCookie("isGuest") === "true";
-}
 
 export function isGuestAllowedPathname(pathname: string): boolean {
   return GUEST_ALLOWED_PATH_SEGMENTS.some((segment) =>

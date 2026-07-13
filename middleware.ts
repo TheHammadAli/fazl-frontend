@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { i18n } from "@/i18n.config";
+import { i18n } from "./i18n.config";
 import {
   isGuestAllowedPathname,
   isGuestRestrictedPathname,
-} from "@/utils/guestAccess";
+} from "./utils/guestAccess";
 
 function isAdminPath(path: string) {
   return path === "/admin" || path.startsWith("/admin/");
