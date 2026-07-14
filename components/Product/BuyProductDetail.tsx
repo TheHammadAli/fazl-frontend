@@ -29,6 +29,8 @@ import {
 } from "@/store/services/feedService";
 import ShopProductsSlider from "./ShopProductsSlider";
 import { formatJoinedDate } from "@/utils/formatJoinedDate";
+import Lightbox from "yet-another-react-lightbox";
+import "yet-another-react-lightbox/styles.css";
 
 function buildWhatsAppUrl(phone: string, message: string) {
   const digits = phone.replace(/\D/g, "");
@@ -105,6 +107,7 @@ function BuyProductDetail({
   const [typeIndex, setTypeIndex] = useState(0);
   const [shareModal, setShareModal] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
+  const [imageLightboxOpen, setImageLightboxOpen] = useState(false);
   const isLikePendingRef = React.useRef(false);
   const productId = product?.data?.id ?? product?.data?._id ?? "";
 
@@ -227,6 +230,17 @@ function BuyProductDetail({
       : "";
 
   const imageCount = product?.data?.images?.length ?? 0;
+  const imageSlides =
+    (product?.data?.images as string[] | undefined)?.map((src: string) => ({
+      src,
+    })) ?? [];
+
+  const openImageLightbox = (index: number) => {
+    if (!imageSlides.length) return;
+    setType("image");
+    setTypeIndex(index);
+    setImageLightboxOpen(true);
+  };
   const showImageCounter =
     (type === "image" || !videoSrc) && imageCount > 0;
 
@@ -328,18 +342,29 @@ function BuyProductDetail({
               <div className="space-y-2 w-full md:w-[52%]">
                 <div className="relative   h-[220px]  sm:h-[320px] md:h-[500px] overflow-hidden rounded-[10px]">
                   {type === "image" || !videoSrc ? (
-                    <Image
-                      src={
-                        product?.data?.images?.length > 0
-                          ? product?.data?.images?.[typeIndex]
-                          : noImageAvtar
-                      }
-                      height={100}
-                      width={100}
-                      unoptimized
-                      alt="product"
-                      className="h-full w-full object-cover"
-                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (product?.data?.images?.length > 0) {
+                          openImageLightbox(typeIndex);
+                        }
+                      }}
+                      className="h-full w-full cursor-zoom-in border-0 bg-transparent p-0"
+                      aria-label="View image fullscreen"
+                    >
+                      <Image
+                        src={
+                          product?.data?.images?.length > 0
+                            ? product?.data?.images?.[typeIndex]
+                            : noImageAvtar
+                        }
+                        height={100}
+                        width={100}
+                        unoptimized
+                        alt="product"
+                        className="h-full w-full object-cover"
+                      />
+                    </button>
                   ) : (
                     <video
                       src={`${videoSrc}?t=${Date.now()}`}
@@ -723,6 +748,18 @@ function BuyProductDetail({
           </div>
         </div>
       </div>
+
+      {imageSlides.length > 0 ? (
+        <Lightbox
+          open={imageLightboxOpen}
+          close={() => setImageLightboxOpen(false)}
+          index={typeIndex}
+          slides={imageSlides}
+          on={{
+            view: ({ index: nextIndex }) => setTypeIndex(nextIndex),
+          }}
+        />
+      ) : null}
     </div>
   );
 }
