@@ -53,7 +53,7 @@ function CreateService() {
     useAddServiceMutation();
 
   const [status, setStatus] = useState("form");
-  const [createdData, setCreatedData] = useState<{ id: string }>({ id: "" });
+  const [createdData, setCreatedData] = useState<any>(null);
   const tabs = ["photos_tab", "video_tab"];
   const [activeTab, setActiveTab] = useState<string>(tabs[0]);
   const [images, setImages] = useState<(File | string)[]>([]);
@@ -178,7 +178,8 @@ function CreateService() {
       toast.success(data?.message);
       const timer = setTimeout(() => {
         setStatus("success");
-        setCreatedData(data?.data);
+        console.log(data,"data");
+        setCreatedData({title:title,price:selectedPrice.price,image:images[0]});
       }, 500);
 
       return () => clearTimeout(timer);
@@ -261,7 +262,7 @@ function CreateService() {
           </div>
         </div>
         {status === "success" ? (
-          <ServiceCreated id={createdData?.id} />
+          <ServiceCreated createData={createdData} />
         ) : (
           <div className="md:flex w-full flex-1">
             <div className="md:w-[46%] p-4 md:p-6 border-b md:border-r border-gray-9 ">

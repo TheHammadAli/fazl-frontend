@@ -47,6 +47,7 @@ function UpdateProduct() {
   const categoryRef = useRef<HTMLDivElement | null>(null);
   const { pages, placeholders, info_messages, error_messages, currentLanguage } =
     useDictionary();
+    const [setUpdatedData, setSetUpdatedData] = useState<{ id: string }>({ id: "" });
   const userId = getUserId() ?? "";
   const [updateProduct, { data, isLoading, isError, isSuccess, error }] =
     useUpdateProductMutation();
