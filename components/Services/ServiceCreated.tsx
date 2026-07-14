@@ -1,5 +1,4 @@
 "use client";
-import React from "react";
 import Image from "next/image";
 import tickIcon from "@/assets/icons/tick-circle.svg";
 import listAnotherImage from "@/assets/icons/list-another-icon.svg";
