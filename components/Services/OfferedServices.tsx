@@ -15,6 +15,7 @@ import { getCookie } from "cookies-next";
 import { useRouter } from "next/navigation";
 import {
     useGetServicesRequestsQuery,
+    useGetUserServiceQuery,
     useUpdateServiceRequestMutation,
 } from "@/store/services/sellingService";
 import { formatRequestedDateTime } from "@/utils/formatRequestedDateTime";
@@ -22,23 +23,75 @@ import noImageAvtar from "@/assets/images/no-image-av.png";
 import Modal from "../Ui/Modals/Modal";
 import DateTimePickerModal from "./DateTimePickerModal";
 import { toast } from "react-hot-toast";
-import ServiceRequestSkeleton from "@/components/Services/ServiceRequestSkeleton";
+import ServiceRequestSkeleton, {
+    OfferedServicesPageSkeleton,
+} from "@/components/Services/ServiceRequestSkeleton";
 import { parsePositiveInt } from "../Updates/Notifications";
+import MyOfferedServiceCard from "./MyOfferedServiceCard";
+import type { ServiceDetailType } from "./ServiceDetail";
+import myOffersIcon from "@/assets/icons/my-requests.svg";
+import serviceRequestIcon from "@/assets/icons/total-products-icon.svg";
+import chevronRightIcon from "@/assets/icons/chevron-right-icon.svg";
 
 const ONE_HOUR_MS = 60 * 60 * 1000;
 const PAGE_LIMIT = 10;
 const SCROLL_LOAD_MARGIN_PX = 200;
 
 const REQUEST_TAB_KEYS = [
+    "my_offers",
     "service_request",
     "service_history",
-    "my_offers",
 ] as const;
-const STATUS_TAB_KEYS = ["incoming", "accepted", "rejected"] as const;
+const STATUS_TAB_KEYS = ["pending", "accepted", "rejected"] as const;
 
 type RequestTabKey = (typeof REQUEST_TAB_KEYS)[number];
 type StatusTabKey = (typeof STATUS_TAB_KEYS)[number];
 
+const ServiceHistoryIcon = () => (
+    <svg
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+        strokeWidth="2"
+        stroke="#007781"
+        className="h-6 w-6 text-[#4B514F]"
+        aria-hidden
+    >
+        <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+        />
+    </svg>
+);
+
+const REQUEST_TAB_META: Record<
+    RequestTabKey,
+    {
+        icon: React.ReactNode;
+        descriptionKey:
+            | "my_offers_desc"
+            | "service_request_desc"
+            | "service_history_desc";
+    }
+> = {
+    my_offers: {
+        icon: (
+            <Image src={myOffersIcon} alt="" className="h-6 w-6" />
+        ),
+        descriptionKey: "my_offers_desc",
+    },
+    service_request: {
+        icon: (
+            <Image src={serviceRequestIcon} alt="" className="h-6 w-6" />
+        ),
+        descriptionKey: "service_request_desc",
+    },
+    service_history: {
+        icon: <ServiceHistoryIcon />,
+        descriptionKey: "service_history_desc",
+    },
+};
 type ServiceRequestItem = {
     id?: string;
     _id?: string;
@@ -66,10 +119,12 @@ const REQUEST_FILTER_QUERY: Record<
     StatusTabKey,
     { status: string; jobStatus?: string }
 > = {
-    incoming: { status: "pending" },
+    pending: { status: "pending" },
     accepted: { status: "accepted" },
     rejected: { status: "rejected" },
 };
+
+const EMPTY_REQUEST_QUERY = {} as const;
 
 function getRequestId(request: ServiceRequestItem): string | undefined {
     return request.id ?? request._id;
@@ -124,9 +179,10 @@ function OfferedServices() {
     const [userId, setUserId] = useState<string | undefined>(undefined);
     const [isHydrated, setIsHydrated] = useState(false);
     const [activeRequestTab, setActiveRequestTab] =
-        useState<RequestTabKey>("service_request");
+        useState<RequestTabKey>("my_offers");
     const [activeStatusTab, setActiveStatusTab] =
-        useState<StatusTabKey>("incoming");
+        useState<StatusTabKey>("pending");
+    const [serviceRequestMenuOpen, setServiceRequestMenuOpen] = useState(false);
     const [page, setPage] = useState(1);
     const [requestItems, setRequestItems] = useState<ServiceRequestItem[]>([]);
     const [hasMore, setHasMore] = useState(true);
@@ -134,6 +190,7 @@ function OfferedServices() {
     const [offerForId, setOfferForId] = useState<string | null>(null);
 
     const sentinelRef = useRef<HTMLDivElement>(null);
+    const resultsPanelRef = useRef<HTMLDivElement>(null);
     const [sentinelReady, setSentinelReady] = useState(false);
     const lastMergedKeyRef = useRef("");
     const maxRequestedPageRef = useRef(1);
@@ -144,17 +201,26 @@ function OfferedServices() {
         setIsHydrated(true);
     }, []);
 
+    // Only include status filter when Service request is active — avoids
+    // refetch/reset when status state is irrelevant on other left tabs.
+    const listFilterKey = useMemo(() => {
+        if (activeRequestTab === "service_request") {
+            return `service_request:${activeStatusTab}` as const;
+        }
+        return activeRequestTab;
+    }, [activeRequestTab, activeStatusTab]);
+
     const requestQueryParams = useMemo(() => {
         if (activeRequestTab === "service_history") {
-            return {};
+            return EMPTY_REQUEST_QUERY;
         }
         if (activeRequestTab === "my_offers") {
-            return REQUEST_FILTER_QUERY.incoming;
+            return REQUEST_FILTER_QUERY.pending;
         }
         return REQUEST_FILTER_QUERY[activeStatusTab];
     }, [activeRequestTab, activeStatusTab]);
 
-    const listKey = `${activeRequestTab}-${activeStatusTab}`;
+    const listKey = listFilterKey;
 
     const {
         currentData: servicesRequests,
@@ -174,6 +240,31 @@ function OfferedServices() {
         { skip: !userId, refetchOnMountOrArgChange: true },
     );
 
+    const { data: offersCountData } = useGetServicesRequestsQuery(
+        {
+            id: userId,
+            role: "provider",
+            page: 1,
+            limit: 1,
+            status: "pending",
+        },
+        { skip: !userId },
+    );
+    const { data: historyCountData } = useGetServicesRequestsQuery(
+        {
+            id: userId,
+            role: "provider",
+            page: 1,
+            limit: 1,
+        },
+        { skip: !userId },
+    );
+
+    const tabBadges: Partial<Record<RequestTabKey, number>> = {
+        my_offers: parsePositiveInt(offersCountData?.meta?.total) ?? 0,
+        service_history: parsePositiveInt(historyCountData?.meta?.total) ?? 0,
+    };
+
     const [spinnerIndex, setSpinnerIndex] = useState<number>(-1);
     const [spinnerAction, setSpinnerAction] = useState<ServiceAction | null>(
         null,
@@ -181,15 +272,55 @@ function OfferedServices() {
     const [updateServiceRequest, { isLoading: isUpdating }] =
         useUpdateServiceRequestMutation();
 
+    const {
+        data: userServiceData,
+        isLoading: isUserServiceLoading,
+        isFetching: isUserServiceFetching,
+    } = useGetUserServiceQuery(userId, {
+        skip: !userId,
+    });
+    const myService = userServiceData?.data?.[0] as
+        | ServiceDetailType
+        | undefined;
+    const hasMyService = Boolean(myService?.id || myService?._id);
+
     const hasResolvedData = servicesRequests !== undefined;
 
-    const isInitialLoading =
+    const hasLoadedOnceRef = useRef(false);
+
+    const isListInitialLoading =
+        Boolean(userId) &&
+        requestItems.length === 0 &&
+        !hasResolvedData &&
+        (isLoading || isFetching);
+
+    const isUserServicePending =
+        Boolean(userId) &&
+        !userServiceData &&
+        (isUserServiceLoading || isUserServiceFetching);
+
+    if (
+        userId &&
+        !isUserServicePending &&
+        !isListInitialLoading &&
+        !hasLoadedOnceRef.current
+    ) {
+        hasLoadedOnceRef.current = true;
+    }
+
+    // Full-page skeleton until the first successful load; later filters use list skeleton.
+    const isPageLoading =
         !isHydrated ||
-        (requestItems.length === 0 &&
-            !hasResolvedData &&
-            (isLoading || isFetching));
+        !userId ||
+        (!hasLoadedOnceRef.current &&
+            (isUserServicePending || isListInitialLoading));
+
     const isLoadingMore = isFetching && page > 1;
-    const showEmpty = isHydrated && !isInitialLoading && requestItems.length === 0;
+    const showEmpty =
+        isHydrated &&
+        !isPageLoading &&
+        !isListInitialLoading &&
+        requestItems.length === 0;
 
     const resetPagination = useCallback(() => {
         setPage(1);
@@ -201,7 +332,7 @@ function OfferedServices() {
 
     useEffect(() => {
         resetPagination();
-    }, [activeRequestTab, activeStatusTab, resetPagination]);
+    }, [listFilterKey, resetPagination]);
 
     useEffect(() => {
         if (!userId || !isError) return;
@@ -305,8 +436,48 @@ function OfferedServices() {
 
     const showRequestActions =
         (activeRequestTab === "service_request" &&
-            activeStatusTab === "incoming") ||
+            activeStatusTab === "pending") ||
         activeRequestTab === "my_offers";
+
+    const scrollToResultsOnMobile = useCallback(() => {
+        if (typeof window === "undefined") return;
+        if (!window.matchMedia("(max-width: 1023px)").matches) return;
+
+        window.requestAnimationFrame(() => {
+            resultsPanelRef.current?.scrollIntoView({
+                behavior: "smooth",
+                block: "start",
+            });
+        });
+    }, []);
+
+    const selectRequestTab = useCallback(
+        (tab: RequestTabKey) => {
+            if (tab === "service_request") {
+                if (activeRequestTab === "service_request") {
+                    // Toggle Pending/Accepted/Rejected without changing list filter.
+                    setServiceRequestMenuOpen((open) => !open);
+                    return;
+                }
+                setActiveRequestTab("service_request");
+                setServiceRequestMenuOpen(true);
+                return;
+            }
+
+            setServiceRequestMenuOpen(false);
+            setActiveRequestTab((prev) => (prev === tab ? prev : tab));
+            scrollToResultsOnMobile();
+        },
+        [activeRequestTab, scrollToResultsOnMobile],
+    );
+
+    const selectStatusTab = useCallback(
+        (tab: StatusTabKey) => {
+            setActiveStatusTab((prev) => (prev === tab ? prev : tab));
+            scrollToResultsOnMobile();
+        },
+        [scrollToResultsOnMobile],
+    );
 
     const handleRequestClick = (request: ServiceRequestItem) => {
         if (showRequestActions && request.status === "pending") return;
@@ -380,52 +551,110 @@ function OfferedServices() {
                 />
             </Modal>
 
-            <div className="flex flex-col lg:flex-row flex-1 min-h-0 w-full min-w-0 lg:max-h-[calc(115dvh-210px)]">
-                <div className="w-full shrink-0 lg:w-[min(340px,100%)] lg:max-w-full lg:border-r border-gray-9 bg-white pt-3 sm:pt-4 border-b lg:border-b-0 flex flex-col lg:min-h-0 lg:overflow-y-auto">
-                    <div className="py-3 sm:py-4 flex gap-2 overflow-x-auto hide-scrollbar min-w-0">
-                        {REQUEST_TAB_KEYS.map((tab) => (
-                            <button
-                                key={tab}
-                                type="button"
-                                onClick={() => {
-                                    if (tab === activeRequestTab) return;
-                                    resetPagination();
-                                    setActiveRequestTab(tab);
-                                }}
-                                className={`h-[34px] px-3 rounded-full border border-gray-2 text-[13px] font-normal text-black-1 cursor-pointer whitespace-nowrap ${activeRequestTab === tab
-                                    ? "border-green-1 bg-green-4"
-                                    : "bg-white"
-                                    }`}
-                            >
-                                {ph(tab)}
-                            </button>
-                        ))}
+            {isPageLoading ? (
+                <OfferedServicesPageSkeleton />
+            ) : (
+            <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col">
+                {hasMyService && myService &&
+                    <div className="w-full shrink-0 px-0 pb-4 pt-3 sm:pt-4">
+                        <MyOfferedServiceCard serviceData={myService} />
                     </div>
+               
+                }
+                <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col lg:max-h-[calc(115dvh-210px)] lg:flex-row">
+                <div className="flex w-full shrink-0 flex-col border-b border-gray-9 bg-white px-3 pb-3 pt-3 sm:px-4 sm:pt-4 lg:min-h-0 lg:w-[min(340px,100%)] lg:max-w-full lg:overflow-y-auto lg:border-b-0 lg:border-r">
+                    <div className="flex flex-col gap-3">
+                        {REQUEST_TAB_KEYS.map((tab) => {
+                            const meta = REQUEST_TAB_META[tab];
+                            const badge = tabBadges[tab];
+                            const isActive = activeRequestTab === tab;
+                            const showStatusTabs =
+                                tab === "service_request" &&
+                                isActive &&
+                                serviceRequestMenuOpen;
 
-                    {activeRequestTab === "service_request" && (
-                        <div className="pt-2">
-                            {STATUS_TAB_KEYS.map((tab) => (
-                                <button
-                                    key={tab}
-                                    type="button"
-                                    onClick={() => {
-                                        if (tab === activeStatusTab) return;
-                                        resetPagination();
-                                        setActiveStatusTab(tab);
-                                    }}
-                                    className={`w-full h-[48px] px-5 ltr:text-left rtl:text-right text-[15px] font-medium text-black-1 leading-none cursor-pointer ${activeStatusTab === tab ? "bg-green-4" : ""
+                            return (
+                                <div key={tab} className="flex flex-col gap-2 ">
+                                    <button
+                                        type="button"
+                                        onClick={() => selectRequestTab(tab)}
+                                        className={`flex w-full items-center cursor-pointer gap-3 rounded-[14px] border px-3 py-3 text-start transition-colors ${
+                                            isActive
+                                                ? "border-green-1 bg-green-4"
+                                                : "border-gray-9 bg-white"
                                         }`}
-                                >
-                                    {ph(tab)}
-                                </button>
-                            ))}
-                        </div>
-                    )}
+                                    >
+                                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[10px] bg-green-4">
+                                            {meta.icon}
+                                        </div>
+                                        <div className="min-w-0 flex-1">
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-[15px] font-semibold text-black-1">
+                                                    {ph(tab)}
+                                                </span>
+                                                {badge != null && badge > 0 ? (
+                                                    <span className="inline-flex min-w-[22px] items-center justify-center rounded-full bg-gray-5 px-1.5 py-0.5 text-[11px] font-medium text-black-1">
+                                                        {badge}
+                                                    </span>
+                                                ) : null}
+                                            </div>
+                                            <p className="mt-0.5 truncate text-[12px] font-normal text-gray-8">
+                                                {ph(meta.descriptionKey)}
+                                            </p>
+                                        </div>
+                                        <Image
+                                            src={chevronRightIcon}
+                                            alt=""
+                                            className={`h-3.5 w-2.5 shrink-0 transition-transform rtl:rotate-180 ${
+                                                showStatusTabs
+                                                    ? "rotate-90 rtl:-rotate-90"
+                                                    : ""
+                                            }`}
+                                        />
+                                    </button>
+
+                                    {showStatusTabs ? (
+                                        <div
+                                            className=" overflow-hidden rounded-[12px] border border-gray-9"
+                                            role="tablist"
+                                            aria-label={ph("service_request")}
+                                        >
+                                            {STATUS_TAB_KEYS.map((statusTab) => {
+                                                const isStatusActive =
+                                                    activeStatusTab === statusTab;
+                                                return (
+                                                    <button
+                                                        key={statusTab}
+                                                        type="button"
+                                                        role="tab"
+                                                        aria-selected={isStatusActive}
+                                                        onClick={() =>
+                                                            selectStatusTab(statusTab)
+                                                        }
+                                                        className={`h-[44px] w-full cursor-pointer border-b border-gray-9 px-4 text-[14px] font-medium leading-none text-black-1 last:border-b-0 ltr:text-left rtl:text-right ${
+                                                            isStatusActive
+                                                                ? "bg-green-4"
+                                                                : "bg-white"
+                                                        }`}
+                                                    >
+                                                        {ph(statusTab)}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    ) : null}
+                                </div>
+                            );
+                        })}
+                    </div>
                 </div>
 
-                <div className="flex-1 min-w-0 bg-white flex flex-col lg:min-h-0">
+                <div
+                    ref={resultsPanelRef}
+                    className="flex min-w-0 flex-1 flex-col scroll-mt-[72px] bg-white lg:min-h-0"
+                >
                     <div className="px-3 sm:px-4 lg:px-6 pt-3 sm:pt-4 flex-1 min-h-0 overflow-y-auto">
-                        {isInitialLoading ? (
+                        {isListInitialLoading ? (
                             <ServiceRequestSkeleton count={4} />
                         ) : showEmpty ? (
                             <p className="py-8 text-center text-[15px] font-medium text-gray-8">
@@ -584,7 +813,9 @@ function OfferedServices() {
                         )}
                     </div>
                 </div>
+                </div>
             </div>
+            )}
         </>
     );
 }
