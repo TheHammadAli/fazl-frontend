@@ -29,7 +29,7 @@ export type ServiceDetailType = {
   video: string;
   description: string;
   parameters: { name: string; variants: string[] }[];
-  category: { name: string };
+  category: { name: string; icon?: string };
   updatedAt: string;
 };
 
