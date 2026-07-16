@@ -20,6 +20,7 @@ import DoodleButton from "@/components/Ui/DoodleButton";
 import Footer from "./Footer";
 import { useDictionary } from "@/dictionaries/DictionaryProvider";
 import { setAdminRoleCookie } from "@/utils/authCookies";
+import { requestBrowserNotificationPermission } from "@/utils/showDesktopNotification";
 
 export type Body = {
   email?: string;
@@ -85,6 +86,10 @@ function Signin() {
 
     try {
       toast.dismiss(SIGNIN_ERROR_TOAST_ID);
+
+      // Chrome native Allow/Block dialog (only appears if permission is still "default").
+      await requestBrowserNotificationPermission();
+
       const body: Body = { email, password };
 
       const res = await signin(body).unwrap();
