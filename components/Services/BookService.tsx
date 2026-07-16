@@ -31,6 +31,7 @@ function BookService() {
   });
 
   const loading = isLoading || isFetching;
+
   const isServiceNotFound =
     !id ||
     (isError &&
