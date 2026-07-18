@@ -118,9 +118,12 @@ function Notifications({ setOpenSidebar, unreadCount = 0, setReadCount }: Notifi
         );
     function handleNavigation(item: any) {
         setOpenSidebar?.(false);
+        if (item.type === "PROMOTION") {
+            router.push(`/chat?tab=broadcast_messages&type=received`);
+            return;
+        }
         const targetId = getPayloadTargetId(getNotificationPayload(item));
         if (!targetId) return;
-
         switch (item.type) {
             case "SERVICE_REQUEST":
                 if (item.payload.action === "accept" || item.payload.action === "reject" || item.payload.action === "propose") {
@@ -133,6 +136,7 @@ function Notifications({ setOpenSidebar, unreadCount = 0, setReadCount }: Notifi
             case "ORDER":
                 router.push(`/profile?tab=my_orders`);
                 break;
+
             default:
                 break;
         }

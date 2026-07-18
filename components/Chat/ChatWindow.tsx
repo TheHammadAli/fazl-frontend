@@ -17,7 +17,7 @@ import baseApi from "@/store/baseApi";
 import { useAppDispatch } from "@/store/store";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import noImageAvtar from "@/assets/images/profile-placehonder.png";
-import chatDoodleBackground from "@/assets/images/chat-doodle-background-image.png";
+import chatDoodleBackground from "@/assets/images/new-chat-doodle.svg";
 import noMessagesIcon from "@/assets/icons/no-message.svg";
 import AvatarUi from "../Ui/AvatarUi";
 import Lightbox from "yet-another-react-lightbox";
@@ -109,7 +109,7 @@ export default function ChatWindow({ thread, onBack, threadType }: ChatWindowPro
   const [markMessagesAsRead] = useMarkMessagesAsReadMutation();
   const [sendMessage, { isLoading: isSendingMessage }] = useSendMessageMutation();
   const [sendBroadcastMessage, { isLoading: isSendingBroadcastMessage }] = useSendBroadcastMessageMutation();
-  
+
   const messagesQueryArgs = useMemo(
     () => ({
       conversationId,
@@ -360,7 +360,7 @@ export default function ChatWindow({ thread, onBack, threadType }: ChatWindowPro
     refetch,
     scrollToBottom,
   ]);
-  
+
   useEffect(() => {
     if (threadType !== "broadcast_messages" || !broadcastRequestId || !broadcastThreadId) return;
     refetchBroadcastMessages();
@@ -405,7 +405,7 @@ export default function ChatWindow({ thread, onBack, threadType }: ChatWindowPro
       threadId: broadcastThreadId,
       broadcastId: isBroadcastReceived ? thread?._id : thread?.broadcastId,
     });
- if (conversationId && userId && threadType === "direct_messages") {
+    if (conversationId && userId && threadType === "direct_messages") {
       markMessagesAsRead({ conversationId, userId }).unwrap().catch(() => {
         // Keep chat usable even if marking read fails.
       });
@@ -464,7 +464,7 @@ export default function ChatWindow({ thread, onBack, threadType }: ChatWindowPro
   }, [dispatch]);
   return (
     <section
-      className="flex h-full min-h-0 flex-1 flex-col bg-no-repeat bg-cover bg-center"
+      className="flex h-full min-h-0 flex-1 flex-col bg-no-repeat bg-cover md:bg-contain bg-center"
       style={{ backgroundImage: `url(${chatDoodleBackground.src})` }}
     >
       <header className="flex h-16 items-center gap-3 border-b border-gray-200 bg-white px-4 lg:px-8">
@@ -473,15 +473,25 @@ export default function ChatWindow({ thread, onBack, threadType }: ChatWindowPro
             <ArrowLeftIcon className="h-5 w-5" />
           </button>
         ) : null}
-        <AvatarUi
-          image={headerAvatar || noImageAvtar.src}
-          name={headerName}
-          className="h-11 w-11 rounded-full bg-[#e7f4f5] !text-green-1"
-        />
-        <div className="min-w-0">
-          <p className="truncate text-[15px] font-semibold text-gray-900 first-letter:uppercase">{headerName}</p>
-          <p className="truncate text-xs text-gray-500">{headerEmail}</p>
-        </div>
+        {!(threadType === "broadcast_messages" && isBroadcastReceived) ? (
+          <>
+            <AvatarUi
+              image={headerAvatar || noImageAvtar.src}
+              name={headerName}
+              className="h-11 w-11 rounded-full bg-[#e7f4f5] !text-green-1"
+            />
+            <div className="min-w-0">
+              <p className="truncate text-[15px] font-semibold text-gray-900 first-letter:uppercase">{headerName}</p>
+              <p className="truncate text-xs text-gray-500">{headerEmail}</p>
+            </div>
+          </>
+        ) : (
+          <div className="min-w-0">
+            <p className="truncate text-[15px] font-semibold text-gray-900">
+              {placeholders.broadcast_messages}
+            </p>
+          </div>
+        )}
       </header>
 
       <div ref={messagesContainerRef} onScroll={handleScrollNearBottom} className="flex-1 overflow-y-auto px-4 py-4 lg:px-8 lg:py-6">
@@ -489,7 +499,9 @@ export default function ChatWindow({ thread, onBack, threadType }: ChatWindowPro
           <div className="flex min-h-full flex-col justify-end gap-6">
             {Array.from({ length: 6 }).map((_, idx) => (
               <div key={`msg-skeleton-${idx}`} className={`flex gap-2 items-end ${idx % 2 === 0 ? "justify-start" : "justify-end"}`}>
-                {idx % 2 === 0 && <div className="h-[32px] w-[32px] rounded-full bg-gray-200 animate-pulse" />}
+                {idx % 2 === 0 && !(threadType === "broadcast_messages" && isBroadcastReceived) && (
+                  <div className="h-[32px] w-[32px] rounded-full bg-gray-200 animate-pulse" />
+                )}
                 <div className="max-w-[85%] lg:max-w-[60%]">
                   <div className="h-10 w-[180px] rounded-2xl bg-gray-200 animate-pulse" />
                 </div>
@@ -528,7 +540,13 @@ export default function ChatWindow({ thread, onBack, threadType }: ChatWindowPro
                     <p className="mb-2 text-center text-xs text-gray-400">{currentDateLabel}</p>
                   ) : null}
                   <div className={`flex gap-2 items-end ${mine ? "justify-end" : "justify-start"}`}>
-                    {!mine && <AvatarUi image={headerAvatar ?? noImageAvtar.src} name={headerName} className="h-8 w-8 rounded-full bg-[#e7f4f5] !text-green-1" />}
+                    {!mine && !(threadType === "broadcast_messages" && isBroadcastReceived) ? (
+                      <AvatarUi
+                        image={headerAvatar ?? noImageAvtar.src}
+                        name={headerName}
+                        className="h-8 w-8 rounded-full bg-[#e7f4f5] !text-green-1"
+                      />
+                    ) : null}
                     {(hasImages || showText) ? (
                       <div
                         className={`w-fit max-w-[85%] overflow-hidden rounded-xl lg:max-w-[60%] ${mine ? "bg-[#EEF2F3]" : "bg-[#F6F6F6]"}`}
