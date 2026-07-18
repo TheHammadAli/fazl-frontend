@@ -12,7 +12,7 @@ import { useEffect, useLayoutEffect, useRef, useState, type Dispatch, type SetSt
 import noNotificationIcon from "@/assets/icons/no-notification.svg";
 import { useRouter } from "next/navigation";
 import { formatRequestedDateTime } from "@/utils/formatRequestedDateTime";
-
+import NotificationIcon from "@/assets/icons/new-notification-icon.png";
 /** Must match what the notifications API expects (see `data.limit` in the response). */
 const PAGE_LIMIT = 15;
 
@@ -292,9 +292,9 @@ function Notifications({ setOpenSidebar, unreadCount = 0, setReadCount }: Notifi
                                 }}
                                 className="flex px-5 items-center gap-3 py-2 first:pt-2 hover:bg-green-4 cursor-pointer"
                             >
-                                <div className="relative h-[42px] w-[42px] shrink-0 overflow-hidden rounded-[10px] bg-gray-5">
+                                <div className="relative h-[42px] w-[42px] shrink-0 overflow-hidden rounded-[10px] bg-gray-5 p-1">
                                     <Image
-                                        src={item.image ?? demoThumb}
+                                        src={NotificationIcon}
                                         alt=""
                                         width={42}
                                         height={42}

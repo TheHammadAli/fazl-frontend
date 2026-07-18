@@ -9,13 +9,14 @@ import { baseApi } from "@/store/baseApi";
 import { initializeSocket } from "@/utils/socket";
 import { useUnreadMessagesCountQuery } from "@/store/services/chatService";
 import { playNotificationSound } from "@/utils/playNotificationSound";
+import inAppChatIcon from "@/assets/icons/in-app-icon-chat.png"
 import {
   isDesktopBrowser,
   requestBrowserNotificationPermission,
   showDesktopOsNotification,
 } from "@/utils/showDesktopNotification";
 import { useDictionary } from "@/dictionaries/DictionaryProvider";
-
+import NotificationIcon from "@/assets/icons/new-notification-icon.png"
 function getSocketSenderId(data: unknown): string | undefined {
   if (!data || typeof data !== "object") return undefined;
   const payload = data as Record<string, unknown>;
@@ -118,9 +119,9 @@ function Layout({ children }: { children: React.ReactNode }) {
       dispatch(baseApi.util.invalidateTags(["NOTIFICATIONS"]));
 
       showDesktopOsNotification({
-        title: placeholders.notifications_title,
-        body: getPreviewText(data ?? {}) || placeholders.notifications_title,
-        icon: typeof data?.image === "string" ? data.image : undefined,
+        title: placeholders.new_notification,
+        body: getPreviewText(data ?? {}) || placeholders.new_notification,
+        icon: typeof data?.image === "string" ? data.image : NotificationIcon.src as string,
         tag: "app-notification",
         onClick: () => setOpenSidebar(true),
       });
@@ -133,9 +134,9 @@ function Layout({ children }: { children: React.ReactNode }) {
           const payload = data as Record<string, unknown>;
           const { name, image } = getSenderMeta(payload);
           showDesktopOsNotification({
-            title: name || placeholders.chat_title,
-            body: getPreviewText(payload) || placeholders.chat_title,
-            icon: image,
+            title: placeholders.new_notification,
+            body: `${placeholders.new_message_from} ${name}`,
+            icon: inAppChatIcon.src as string,
             tag: "chat-message",
           });
         }
@@ -169,7 +170,7 @@ function Layout({ children }: { children: React.ReactNode }) {
       socket.off("receiveMessage", onReceiveMessage);
       socket.off("receiveBroadcastMessage", onReceiveBroadcastMessage);
     };
-  }, [dispatch, userId, placeholders.notifications_title, placeholders.chat_title]);
+  }, [dispatch, userId, placeholders.new_notification, placeholders.chat_title]);
 
   return (
     <div className="lg:flex">
