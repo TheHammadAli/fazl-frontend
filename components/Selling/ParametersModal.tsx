@@ -19,6 +19,8 @@ type ParametersModalProps = {
   parameters: parameterTypes[];
   setParameters: React.Dispatch<React.SetStateAction<parameterTypes[]>>;
   setOpen: (open: boolean) => void;
+  /** When set, modal edits only this parameter. `null` = add/edit all. */
+  editIndex?: number | null;
 };
 
 const emptyParameter = (): parameterTypes => ({
@@ -75,10 +77,17 @@ function ParametersModal({
   parameters,
   setParameters,
   setOpen,
+  editIndex = null,
 }: ParametersModalProps) {
   const { placeholders, error_messages } = useDictionary();
+  const isSingleEdit = editIndex !== null && editIndex !== undefined;
+
   const [draft, setDraft] = useState<parameterTypes[]>(() =>
-    normalizeDraft(parameters),
+    normalizeDraft(
+      isSingleEdit && parameters[editIndex]
+        ? [parameters[editIndex]]
+        : parameters,
+    ),
   );
   const [newVariantByParam, setNewVariantByParam] = useState<
     Record<number, string>
@@ -91,14 +100,19 @@ function ParametersModal({
 
   useEffect(() => {
     if (open && !wasOpenRef.current) {
-      setDraft(normalizeDraft(parameters));
+      if (isSingleEdit && parameters[editIndex]) {
+        setDraft(normalizeDraft([parameters[editIndex]]));
+      } else {
+        setDraft(normalizeDraft(parameters));
+      }
       setNewVariantByParam({});
       setEditingVariantByParam({});
     }
     wasOpenRef.current = open;
-  }, [open, parameters]);
+  }, [open, parameters, editIndex, isSingleEdit]);
 
   const handleAddParameter = () => {
+    if (isSingleEdit) return;
     setDraft((prev) => [...prev, emptyParameter()]);
   };
 
@@ -207,8 +221,42 @@ function ParametersModal({
     setEditingVariantByParam((prev) => ({ ...prev, [paramIndex]: null }));
   };
 
+  const applyPendingVariants = (items: parameterTypes[]): parameterTypes[] =>
+    items.map((parameter, paramIndex) => {
+      const value = newVariantByParam[paramIndex]?.trim();
+      if (!value) return parameter;
+
+      const editingIndex = editingVariantByParam[paramIndex];
+      const existing = parameter.variants;
+
+      if (editingIndex !== undefined && editingIndex !== null) {
+        if (existing.some((v, i) => i !== editingIndex && v === value)) {
+          return parameter;
+        }
+        const updatedVariants = [...existing];
+        updatedVariants[editingIndex] = value;
+        return { ...parameter, variants: updatedVariants };
+      }
+
+      if (existing.includes(value)) return parameter;
+      return { ...parameter, variants: [...existing, value] };
+    });
+
   const handleConfirm = () => {
-    setParameters(sanitizeParameters(draft));
+    const cleaned = sanitizeParameters(applyPendingVariants(draft));
+
+    if (isSingleEdit) {
+      setParameters((prev) => {
+        if (cleaned.length === 0) {
+          return prev.filter((_, i) => i !== editIndex);
+        }
+        return prev.map((parameter, i) =>
+          i === editIndex ? cleaned[0] : parameter,
+        );
+      });
+    } else {
+      setParameters(cleaned);
+    }
     setOpen(false);
   };
 
@@ -219,8 +267,9 @@ function ParametersModal({
   const hasDuplicateNames = duplicateNameIndexes.size > 0;
 
   const canConfirm =
-    draft.some((p) => p.name.trim() !== "" && p.variants.length > 0) &&
-    !hasDuplicateNames;
+    applyPendingVariants(draft).some(
+      (p) => p.name.trim() !== "" && p.variants.length > 0,
+    ) && !hasDuplicateNames;
 
   return (
     <div className="w-[min(400px,92vw)] max-h-[80vh] flex flex-col bg-white rounded-[10px] overflow-hidden shadow-lg">
@@ -296,7 +345,7 @@ function ParametersModal({
                   />
                 ))}
               </div>
-              <div className="mt-2 flex items-center gap-2">
+              <div className="mt-2">
                 <input
                   type="text"
                   value={newVariantByParam[paramIndex] ?? ""}
@@ -319,32 +368,23 @@ function ParametersModal({
                       handleAddVariant(paramIndex);
                     }
                   }}
-                  className="min-w-0 flex-1 h-[30px] px-1 text-[14px] text-black-1 bg-transparent border-b border-gray-9 focus:outline-none focus:border-green-1 placeholder:text-gray-8"
+                  className="w-full h-[30px] px-1 text-[14px] text-black-1 bg-transparent border-b border-gray-9 focus:outline-none focus:border-green-1 placeholder:text-gray-8"
                 />
-                <button
-                  type="button"
-                  disabled={!newVariantByParam[paramIndex]?.trim()}
-                  onClick={() => handleAddVariant(paramIndex)}
-                  className="shrink-0 h-[30px] px-3 rounded-[6px] border border-green-1 text-green-1 text-[13px] font-normal cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {editingVariantByParam[paramIndex] !== undefined &&
-                  editingVariantByParam[paramIndex] !== null
-                    ? placeholders.update
-                    : placeholders.add_information}
-                </button>
               </div>
             </div>
           </div>
         ))}
 
-        <button
-          type="button"
-          onClick={handleAddParameter}
-          className="w-full flex items-center justify-center gap-1.5 h-[36px] rounded-[6px] border border-dashed border-green-1/60 text-green-1 text-[13px] font-normal cursor-pointer hover:bg-green-4/50"
-        >
-          <Image src={plusIcon} className="w-3.5 h-3.5" alt="" />
-          {placeholders.add_detail}
-        </button>
+        {!isSingleEdit ? (
+          <button
+            type="button"
+            onClick={handleAddParameter}
+            className="w-full flex items-center justify-center gap-1.5 h-[36px] rounded-[6px] border border-dashed border-green-1/60 text-green-1 text-[13px] font-normal cursor-pointer hover:bg-green-4/50"
+          >
+            <Image src={plusIcon} className="w-3.5 h-3.5" alt="" />
+            {placeholders.add_detail}
+          </button>
+        ) : null}
       </div>
 
       <div className="shrink-0 px-4 py-3 flex justify-end gap-2 border-t border-gray-9">
