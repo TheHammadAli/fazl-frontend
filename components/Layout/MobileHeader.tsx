@@ -1,6 +1,6 @@
 "use client";
 
-import { act, useState } from "react";
+import { useState } from "react";
 import { Dialog, DialogPanel } from "@headlessui/react";
 import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
 import Image from "next/image";
@@ -16,7 +16,25 @@ import { useAppSelector } from "@/store/store";
 import { getLinksForGuest } from "@/utils/guestAccess";
 import { useIsGuest } from "@/custom-hooks/useIsGuest";
 import GuestAuthNav from "./GuestAuthNav";
-export default function MobileHeader({ unreadMessages, unreadCount, openSidebar, setOpenSidebar }: { unreadMessages: number, unreadCount: number, openSidebar: boolean, setOpenSidebar: (open: boolean) => void }) {
+import notificationMobileIcon from "@/assets/icons/notification-mobile-icon.svg";
+import messageMobileIcon from "@/assets/icons/message-mobile icon.svg";
+
+function formatBadgeCount(count: number) {
+  if (count <= 0) return null;
+  return count > 99 ? "99+" : String(count);
+}
+
+export default function MobileHeader({
+  unreadMessages,
+  unreadCount,
+  openSidebar,
+  setOpenSidebar,
+}: {
+  unreadMessages: number;
+  unreadCount: number;
+  openSidebar: boolean;
+  setOpenSidebar: (open: boolean) => void;
+}) {
   const { userId } = useAppSelector((state) => state.authReducer);
   const isGuest = useIsGuest();
   const navLinks = isGuest ? getLinksForGuest(links) : links;
@@ -25,25 +43,62 @@ export default function MobileHeader({ unreadMessages, unreadCount, openSidebar,
   const router = useRouter();
   const path = usePathname();
   const { pages, placeholders, info_messages } = useDictionary();
-  const {
-    data: profileData,
-    isLoading: profileLoading,
-    isFetching: profileFetching,
-    isError: profileError,
-    refetch,
-  } = useGetUserDetailQuery(userId, { skip: userId === "" || isGuest });
+  const { data: profileData } = useGetUserDetailQuery(userId, {
+    skip: userId === "" || isGuest,
+  });
+
+  const chatBadge = formatBadgeCount(unreadMessages);
+  const notificationBadge = formatBadgeCount(unreadCount);
+
   return (
-    <header className="bg-white   h-[60px] flex items-center  lg:hidden border-b-[1px] border-gray-9 ">
-      <div className="px-5 w-full max-w-7xl mx-auto  ">
+    <header className="bg-white h-[60px] flex items-center lg:hidden border-b-[1px] border-gray-9">
+      <div className="px-5 w-full max-w-7xl mx-auto">
         <nav
           aria-label="Global"
-          className=" flex  items-center gap-5 justify-between w-full "
+          className="flex items-center gap-3 justify-between w-full"
         >
-          <div onClick={() => router.push("/home")}>
+          <div onClick={() => router.push("/home")} className="cursor-pointer">
             <Image src={logo} alt="logo" />
           </div>
 
-          <div className="flex lg:hidden">
+          <div className="flex items-center gap-3">
+            {!isGuest && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => router.push("/chat")}
+                  className="relative inline-flex h-9 w-9 items-center justify-center rounded-full"
+                  aria-label="Messages"
+                >
+                  <Image src={messageMobileIcon} alt="messages" width={20} height={19} />
+                  {chatBadge ? (
+                    <span className="absolute -right-1 -top-0.5 flex min-h-[16px] min-w-[16px] items-center justify-center rounded-full bg-[#E53935] px-1 text-[9px] font-medium leading-none text-white">
+                      {chatBadge}
+                    </span>
+                  ) : null}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setOpenSidebar(true)}
+                  className="relative inline-flex h-9 w-9 items-center justify-center rounded-full"
+                  aria-label="Notifications"
+                >
+                  <Image
+                    src={notificationMobileIcon}
+                    alt="notifications"
+                    width={20}
+                    height={20}
+                  />
+                  {notificationBadge ? (
+                    <span className="absolute -right-1 -top-0.5 flex min-h-[16px] min-w-[16px] items-center justify-center rounded-full bg-[#E53935] px-1 text-[9px] font-medium leading-none text-white">
+                      {notificationBadge}
+                    </span>
+                  ) : null}
+                </button>
+              </>
+            )}
+
             <button
               type="button"
               onClick={() => setMobileMenuOpen(true)}
@@ -53,17 +108,17 @@ export default function MobileHeader({ unreadMessages, unreadCount, openSidebar,
             </button>
           </div>
         </nav>
+
         <Dialog
           open={mobileMenuOpen}
           onClose={setMobileMenuOpen}
           className="lg:hidden"
         >
           <div className="fixed inset-0 z-50" />
-          <DialogPanel className="fixed inset-y-0  z-50 w-full ltr:right-0  overflow-y-auto bg-white p-6 sm:max-w-sm sm:ring-1 sm:ring-gray-900/10">
+          <DialogPanel className="fixed inset-y-0 z-50 w-full ltr:right-0 overflow-y-auto bg-white p-6 sm:max-w-sm sm:ring-1 sm:ring-gray-900/10">
             <div className="flex items-center justify-between">
               <a href="#" className="-m-1.5 p-1.5">
                 <span className="sr-only">Your Company</span>
-                {/* <Image src={logo} alt="logo" /> */}
               </a>
               <button
                 type="button"
@@ -93,68 +148,65 @@ export default function MobileHeader({ unreadMessages, unreadCount, openSidebar,
                             setOpenSidebar(true);
                           }
                         }}
-                        className={` flex items-center gap-3 py-3 cursor-pointer`}
+                        className="flex items-center gap-3 py-3 cursor-pointer"
                       >
                         <Image
                           src={isLinkActive ? link.icon?.active : link.icon?.inactive}
                           alt="icon"
                         />
                         <h2
-                          className={`font-normal text-[14px] ${active ? "text-green-1" : "text-gray-8"
-                            } leading-none`}
+                          className={`font-normal text-[14px] ${
+                            active ? "text-green-1" : "text-gray-8"
+                          } leading-none`}
                         >
                           {
                             pages?.[
-                            link?.title?.toLocaleLowerCase() as keyof typeof pages
+                              link?.title?.toLocaleLowerCase() as keyof typeof pages
                             ]
                           }
                         </h2>
-                        {isUpdatesLink && unreadCount > 0 && (
-                          <div className="min-w-[1.25rem] shrink-0 rounded-full bg-green-1 px-1 py-0.5 text-center text-[10px] font-medium leading-none text-white">
-                            {unreadCount || 0}
+                        {isUpdatesLink && notificationBadge ? (
+                          <div className="min-w-[1.25rem] shrink-0 rounded-full bg-[#E53935] px-1 py-0.5 text-center text-[10px] font-medium leading-none text-white">
+                            {notificationBadge}
                           </div>
-                        )}
-                        {isChatLink && unreadMessages > 0 && (
-                          <div className="min-w-[1.25rem] shrink-0 rounded-full bg-green-1 px-1 py-0.5 text-center text-[10px] font-medium leading-none text-white">
-                            {unreadMessages || 0}
+                        ) : null}
+                        {isChatLink && chatBadge ? (
+                          <div className="min-w-[1.25rem] shrink-0 rounded-full bg-[#E53935] px-1 py-0.5 text-center text-[10px] font-medium leading-none text-white">
+                            {chatBadge}
                           </div>
-                        )}
+                        ) : null}
                       </div>
                     );
                   })}
                   {isGuest ? (
-                    <GuestAuthNav
-                      onNavigate={() => setMobileMenuOpen(false)}
-                    />
+                    <GuestAuthNav onNavigate={() => setMobileMenuOpen(false)} />
                   ) : (
                     <div
                       onClick={() => {
                         setMobileMenuOpen(false);
                         router.push("/profile");
                       }}
-                      className=" flex items-center gap-3 py-3 hover:bg-green-3 cursor-pointer"
+                      className="flex items-center gap-3 py-3 hover:bg-green-3 cursor-pointer"
                     >
                       <Image
                         src={
                           profileData?.data?.image &&
-                            !profileData?.data?.image.includes("default-avatar")
-                            ? `${profileData?.data?.image
-                            }?t=${new Date().getTime()}`
+                          !profileData?.data?.image.includes("default-avatar")
+                            ? `${profileData?.data?.image}?t=${new Date().getTime()}`
                             : dummyProfile
                         }
                         height={100}
                         width={100}
                         alt="icon"
                         unoptimized
-                        className={`h-[26px] w-[26px] rounded-full object-cover ${path.includes("/profile") &&
-                          "border-[2px] border-green-1"
-                          }`}
+                        className={`h-[26px] w-[26px] rounded-full object-cover ${
+                          path.includes("/profile") && "border-[2px] border-green-1"
+                        }`}
                       />
                       <h2
-                        className={`font-normal text-[14px] ${path.includes("/profile")
-                          ? "text-green-1"
-                          : "text-gray-8"
-                          } leading-none`}
+                        className={`font-normal text-[14px] ${
+                          path.includes("/profile") ? "text-green-1" : "text-gray-8"
+                        } leading-none`}
                       >
                         {pages.profile}
                       </h2>
@@ -172,7 +224,7 @@ export default function MobileHeader({ unreadMessages, unreadCount, openSidebar,
                       {info_messages.post_an_ad}
                     </button>
                   )}
-                  <div className=" flex flex-col items-center mt-20">
+                  <div className="flex flex-col items-center mt-20">
                     <div className="flex items-center gap-[6px] text-[12px] font-normal">
                       <span className="text-green-1 underline cursor-pointer">
                         {placeholders.company}
@@ -191,7 +243,7 @@ export default function MobileHeader({ unreadMessages, unreadCount, openSidebar,
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2 ">
+                    <div className="flex items-center gap-2">
                       <div className="flex gap-[3px] pt-1 min-w-max">
                         <Image src={copyRight} alt="icon" />
                         <span className="text-gray-6 text-[12px] font-light">
