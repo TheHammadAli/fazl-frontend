@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import tickIcon from "@/assets/icons/tick-circle.svg";
 import Image from "next/image";
 import { useGetUserWithProvidedTokenQuery } from "@/store/services/authService";
@@ -11,15 +11,31 @@ import {
   setToken,
   setUserId,
 } from "@/store/reducers/authReducer";
-import { baseApi } from "@/store/baseApi";
 import { useLazyGetUserDetailQuery } from "@/store/services/profileService";
+import { setAdminRoleCookie } from "@/utils/authCookies";
+import { getCookie } from "cookies-next";
+import { i18n } from "@/i18n.config";
+
+function getLocalePrefix() {
+  const lang = getCookie("lang");
+  const locale =
+    typeof lang === "string" &&
+    i18n.locales.includes(lang as (typeof i18n.locales)[number])
+      ? lang
+      : i18n.defaultLocale;
+  return `/${locale}`;
+}
+
+function handledStorageKey(token: string) {
+  return `google-oauth-handled:${token}`;
+}
 
 export default function GoogleCallback() {
   const searchParams = useSearchParams();
-
-  const router = useRouter();
-
   const dispatch = useAppDispatch();
+  const [profileError, setProfileError] = useState(false);
+  const [stopQueries, setStopQueries] = useState(false);
+
   const token = searchParams.get("token");
   const refreshToken = searchParams.get("refreshToken");
 
@@ -29,78 +45,142 @@ export default function GoogleCallback() {
     isFetching,
     isSuccess,
     isError,
-  } = useGetUserWithProvidedTokenQuery({ token });
+  } = useGetUserWithProvidedTokenQuery(
+    { token },
+    { skip: !token || stopQueries },
+  );
 
-  const loading = isFetching || isLoading;
+  const [getUserDetail, { isLoading: detailLoading }] =
+    useLazyGetUserDetailQuery();
 
-  const [
-    getUserDetail,
-    {
-      data: detail,
-      isLoading: detailLoading,
-      isSuccess: detailSuccess,
-      isError: detailError,
-    },
-  ] = useLazyGetUserDetailQuery();
-
-  const loadingDetail = detailLoading;
+  const loading =
+    Boolean(token) && !stopQueries && (isLoading || isFetching || detailLoading);
 
   useEffect(() => {
-    if (isSuccess) {
-      dispatch(baseApi.util.resetApiState());
-      dispatch(
-        setToken({
-          accessToken: token ?? "",
-          ...(refreshToken ? { refreshToken } : {}),
-        }),
-      );
-      dispatch(setUserId(user?.data?.sub));
-      getUserDetail(user?.data?.sub);
+    if (!token) return;
+
+    // Remount / back-navigation guard — leave this page once per token.
+    if (sessionStorage.getItem(handledStorageKey(token)) === "1") {
+      setStopQueries(true);
+      window.location.replace(`${getLocalePrefix()}/welcome`);
     }
-  }, [isSuccess]);
+  }, [token]);
 
   useEffect(() => {
-    if (detailSuccess && detail?.data) {
-      if (!detail.data.phone) {
-        dispatch(setProfileCompleted(false));
-        router.push("/complete-info");
-      } else {
+    if (!token || !isSuccess || stopQueries) return;
+    if (sessionStorage.getItem(handledStorageKey(token)) === "1") return;
+
+    const userId = user?.data?.sub;
+    if (!userId) return;
+
+    // Persist before async work so remounts cannot start another loop.
+    sessionStorage.setItem(handledStorageKey(token), "1");
+    setStopQueries(true);
+    setProfileError(false);
+
+    dispatch(
+      setToken({
+        accessToken: token,
+        ...(refreshToken ? { refreshToken } : {}),
+      }),
+    );
+    dispatch(setUserId(userId));
+
+    void getUserDetail(userId)
+      .unwrap()
+      .then((detailRes) => {
+        const profile = detailRes?.data;
+        if (!profile) {
+          sessionStorage.removeItem(handledStorageKey(token));
+          setStopQueries(false);
+          setProfileError(true);
+          return;
+        }
+
+        try {
+          localStorage.setItem("user", JSON.stringify({ user: profile }));
+        } catch {
+          // Ignore storage failures; auth cookies already set.
+        }
+
+        const roles = profile?.roles;
+        const isAdmin =
+          Array.isArray(roles) &&
+          roles.some(
+            (role: unknown) =>
+              String(
+                typeof role === "string"
+                  ? role
+                  : (role as { name?: string })?.name,
+              ).toLowerCase() === "admin",
+          );
+        setAdminRoleCookie(isAdmin);
+
+        if (!profile.phone) {
+          dispatch(setProfileCompleted(false));
+          window.location.replace(`${getLocalePrefix()}/complete-info`);
+          return;
+        }
+
         dispatch(setProfileCompleted(true));
-        router.push("/welcome");
-      }
-    }
-  }, [detailSuccess, detail, dispatch, router]);
+        window.location.replace(
+          isAdmin ? "/admin/users" : `${getLocalePrefix()}/welcome`,
+        );
+      })
+      .catch(() => {
+        sessionStorage.removeItem(handledStorageKey(token));
+        setStopQueries(false);
+        setProfileError(true);
+      });
+    // getUserDetail omitted on purpose (unstable identity caused repeat runs).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isSuccess, user?.data?.sub, token, refreshToken, dispatch, stopQueries]);
+
+  if (!token) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-50 px-4">
+        <div className="bg-white shadow-md rounded-2xl p-8 flex flex-col items-center w-96">
+          <div className="flex items-center justify-center h-12 w-12 bg-red-100 rounded-full">
+            ❌
+          </div>
+          <p className="mt-4 text-red-600 font-medium text-center">
+            Missing login token. Please try again.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-50 px-4">
       <div className="bg-white shadow-md rounded-2xl p-8 flex flex-col items-center w-96">
-        {loading && (
+        {(loading || stopQueries) && !profileError && !isError && (
           <>
-            <div className="animate-spin rounded-full h-12 w-12 border-4 border-green-1 border-t-transparent"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-4 border-green-1 border-t-transparent" />
             <p className="mt-4 text-gray-8 text-center">
               Signing you in with Google...
             </p>
           </>
         )}
 
-        {isSuccess && (
-          <>
-            <div className="flex items-center justify-center h-12 w-12 bg-green-4 rounded-full">
-              <Image src={tickIcon} alt="tick-icon" />
-            </div>
-            <p className="mt-4 text-green-1 font-medium text-center">
-              Login successful! Redirecting...
-            </p>
-          </>
-        )}
-
-        {(isError || detailError) && (
+        {(isError || profileError) && (
           <>
             <div className="flex items-center justify-center h-12 w-12 bg-red-100 rounded-full">
               ❌
             </div>
             <p className="mt-4 text-red-600 font-medium text-center">
               Something went wrong. Please try again.
+            </p>
+          </>
+        )}
+
+        {!loading && !stopQueries && isSuccess && !isError && !profileError && (
+          <>
+            <div className="flex items-center justify-center h-12 w-12 bg-green-4 rounded-full">
+              <Image src={tickIcon} alt="tick-icon" />
+            </div>
+            <p className="mt-4 text-green-1 font-medium text-center">
+              Login successful! Redirecting...
             </p>
           </>
         )}

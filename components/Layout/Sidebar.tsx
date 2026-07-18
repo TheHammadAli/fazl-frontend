@@ -166,7 +166,7 @@ function Sidebar({
 
                 <span className="max-w-0 overflow-hidden transition-[max-width] duration-200 ease-out group-hover/nav-links:max-w-[140px]">
                   <h2
-                    className={`inline-block font-normal text-[14px] leading-none whitespace-nowrap opacity-0 -translate-x-3 transition-all duration-200 ease-out group-hover/nav-links:translate-x-0 group-hover/nav-links:opacity-100 rtl:translate-x-3 ${isLinkActive ? "text-green-1" : "text-gray-8"
+                    className={`inline-block font-medium text-[14px]  leading-none whitespace-nowrap opacity-0 -translate-x-3 transition-all duration-200 ease-out group-hover/nav-links:translate-x-0 group-hover/nav-links:opacity-100 rtl:translate-x-3 ${isLinkActive ? "text-green-1" : "text-gray-8"
                       }`}
                   >
                     {
