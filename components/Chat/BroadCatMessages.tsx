@@ -20,13 +20,24 @@ type BroadcastItem = {
     createdAt: string;
 };
 
-function BroadCatMessages({ chatId, onSelectChat }: { chatId: string, onSelectChat: (chat: ChatThread) => void }) {
+function BroadCatMessages({
+    chatId,
+    onSelectChat,
+    activeTab: controlledTab,
+    onActiveTabChange,
+}: {
+    chatId: string;
+    onSelectChat: (chat: ChatThread | null) => void;
+    activeTab?: BroadcastTab;
+    onActiveTabChange?: (tab: BroadcastTab) => void;
+}) {
     const { placeholders } = useDictionary();
     type PlaceholderKey = keyof typeof placeholders;
     const ph = (key: PlaceholderKey) => placeholders[key];
 
     const PAGE_LIMIT = 15;
-    const [activeTab, setActiveTab] = useState<BroadcastTab>("sent");
+    const [internalTab, setInternalTab] = useState<BroadcastTab>(controlledTab ?? "sent");
+    const activeTab = controlledTab ?? internalTab;
     const [sentPage, setSentPage] = useState(1);
     const [receivedPage, setReceivedPage] = useState(1);
     const [filteredSent, setFilteredSent] = useState<BroadcastItem[]>([]);
@@ -128,7 +139,8 @@ function BroadCatMessages({ chatId, onSelectChat }: { chatId: string, onSelectCh
     const handleTabChange = (tab: BroadcastTab) => {
         if (tab === activeTab) return;
         setShowBroadcastThreadList(false);
-        setActiveTab(tab);
+        setInternalTab(tab);
+        onActiveTabChange?.(tab);
         if (tab === "sent" && filteredSent.length === 0) {
             setSentPage(1);
         }
@@ -188,7 +200,6 @@ function BroadCatMessages({ chatId, onSelectChat }: { chatId: string, onSelectCh
                     broadcast={selectedBroadcast}
                     onSelectChat={onSelectChat}
                 />
-                // <></>
             ) : isLoadingCurrentTab && currentPage === 1 ? (
                 <div className="flex-1 space-y-1 overflow-y-auto bg-white px-5 py-4">
                     {Array.from({ length: 7 }).map((_, index) => (
@@ -208,7 +219,6 @@ function BroadCatMessages({ chatId, onSelectChat }: { chatId: string, onSelectCh
                     onScroll={handleScrollNearBottom}
                     onSelectItem={(broadcast) => handleSelectBroadcastMessage(broadcast)}
                 />
-                // <></>
             )}
         </div>
     );

@@ -7,7 +7,7 @@ import { getUserId } from "@/utils/getUserId";
 import { useAppDispatch } from "@/store/store";
 import { baseApi } from "@/store/baseApi";
 import { initializeSocket } from "@/utils/socket";
-import { useUnreadMessagesCountQuery } from "@/store/services/chatService";
+import { useUnreadMessagesCountQuery, useGetAllConversationsForUserQuery } from "@/store/services/chatService";
 import { playNotificationSound } from "@/utils/playNotificationSound";
 import inAppChatIcon from "@/assets/icons/in-app-icon-chat.png"
 import {
@@ -17,6 +17,7 @@ import {
 } from "@/utils/showDesktopNotification";
 import { useDictionary } from "@/dictionaries/DictionaryProvider";
 import NotificationIcon from "@/assets/icons/new-notification-icon.png"
+import { useRouter } from "next/navigation";
 function getSocketSenderId(data: unknown): string | undefined {
   if (!data || typeof data !== "object") return undefined;
   const payload = data as Record<string, unknown>;
@@ -64,7 +65,46 @@ function getSenderMeta(data: Record<string, unknown>): {
   };
 }
 
+/** API returns either `data: Thread[]` or `data: { conversations: Thread[] }`. */
+function extractConversationIds(...sources: unknown[]): string[] {
+  const ids = new Set<string>();
+
+  const addFromList = (list: unknown) => {
+    if (!Array.isArray(list)) return;
+    for (const item of list) {
+      if (!item || typeof item !== "object") continue;
+      const row = item as Record<string, unknown>;
+      const id =
+        row._id ?? row.id ?? row.conversationId ?? row.conversation_id;
+      if (id != null && String(id).trim()) ids.add(String(id));
+    }
+  };
+
+  for (const source of sources) {
+    if (!source) continue;
+    if (Array.isArray(source)) {
+      addFromList(source);
+      continue;
+    }
+    if (typeof source !== "object") continue;
+    const root = source as Record<string, unknown>;
+    const data = root.data ?? source;
+    if (Array.isArray(data)) {
+      addFromList(data);
+      continue;
+    }
+    if (data && typeof data === "object") {
+      const inner = data as Record<string, unknown>;
+      addFromList(inner.conversations);
+      addFromList(inner.data);
+    }
+  }
+
+  return [...ids];
+}
+
 function Layout({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
   const [openSidebar, setOpenSidebar] = useState(false);
   const userId = getUserId();
   const [readCount, setReadCount] = useState(0);
@@ -74,6 +114,10 @@ function Layout({ children }: { children: React.ReactNode }) {
   });
   const { data: unreadMessagesCount } = useUnreadMessagesCountQuery(
     { userId: userId ?? "" },
+    { skip: !userId },
+  );
+  const { data: conversationsData } = useGetAllConversationsForUserQuery(
+    { id: userId ?? "", page: 1, limit: 100 },
     { skip: !userId },
   );
   const dispatch = useAppDispatch();
@@ -107,8 +151,24 @@ function Layout({ children }: { children: React.ReactNode }) {
   }, [unreadMessagesCount?.data]);
 
   useEffect(() => {
+    if (!userId) return;
+
     const socket = initializeSocket();
     if (!socket) return;
+
+    // DirectMessages treats `data` as Thread[]; Layout previously only read
+    // `data.conversations`, so join never ran until ChatWindow opened a room.
+    const conversationIds = extractConversationIds(
+      conversationsData,
+      unreadMessagesCount,
+    );
+
+    const joinConversationRooms = () => {
+      if (!socket.connected || conversationIds.length === 0) return;
+      conversationIds.forEach((conversationId) => {
+        socket.emit("joinConversation", { conversationId });
+      });
+    };
 
     const onNotification = (data: Record<string, unknown> | undefined) => {
       if (data?.type === "SERVICE_REQUEST") {
@@ -123,7 +183,7 @@ function Layout({ children }: { children: React.ReactNode }) {
         body: getPreviewText(data ?? {}) || placeholders.new_notification,
         icon: typeof data?.image === "string" ? data.image : NotificationIcon.src as string,
         tag: "app-notification",
-        onClick: () => setOpenSidebar(true),
+        onClick: () => { if (data?.type === "PROMOTION") { router.push(`/chat?tab=broadcast_messages&type=received`) } else { setOpenSidebar(true) } },
       });
     };
 
@@ -131,13 +191,17 @@ function Layout({ children }: { children: React.ReactNode }) {
       if (!isFromCurrentUser(data, userId)) {
         playNotificationSound("REST");
         if (data && typeof data === "object") {
-          const payload = data as Record<string, unknown>;
-          const { name, image } = getSenderMeta(payload);
+          const payload = data as Record<string, any>;
+          const { name } = getSenderMeta(payload);
           showDesktopOsNotification({
             title: placeholders.new_notification,
             body: `${placeholders.new_message_from} ${name}`,
             icon: inAppChatIcon.src as string,
             tag: "chat-message",
+            onClick: () => {
+              router.push(`/chat?chatId=${payload?.message?.conversationId}`)
+              console.log(payload, "payload")
+            }
           });
         }
       }
@@ -161,16 +225,27 @@ function Layout({ children }: { children: React.ReactNode }) {
       dispatch(baseApi.util.invalidateTags(["BROADCAST"]));
     };
 
+    joinConversationRooms();
+    socket.on("connect", joinConversationRooms);
     socket.on("notification", onNotification);
     socket.on("receiveMessage", onReceiveMessage);
     socket.on("receiveBroadcastMessage", onReceiveBroadcastMessage);
 
     return () => {
+      socket.off("connect", joinConversationRooms);
       socket.off("notification", onNotification);
       socket.off("receiveMessage", onReceiveMessage);
       socket.off("receiveBroadcastMessage", onReceiveBroadcastMessage);
     };
-  }, [dispatch, userId, placeholders.new_notification, placeholders.chat_title]);
+  }, [
+    dispatch,
+    userId,
+    conversationsData,
+    unreadMessagesCount,
+    placeholders.new_notification,
+    placeholders.new_message_from,
+    placeholders.chat_title,
+  ]);
 
   return (
     <div className="lg:flex">

@@ -9,12 +9,17 @@ import addBroadCast from "@/assets/icons/add-broadcast.svg";
 import Image from "next/image";
 import BroadCastModal from "../Ui/BroadCastModal";
 import Modal from "../Ui/Modals/Modal";
+
+export type BroadcastSubTab = "sent" | "received";
+
 export type ChatSidebarProps = {
-  onSelectChat: (thread: ChatThread) => void;
+  onSelectChat: (thread: ChatThread | null) => void;
   threadType: string;
   setThreadType: (threadType: string) => void;
   chatId: string;
   broadcast?: { _id?: string; id?: string } | null;
+  broadcastSubTab?: BroadcastSubTab;
+  onBroadcastSubTabChange?: (tab: BroadcastSubTab) => void;
 };
 
 export default function ChatSidebar({
@@ -22,27 +27,58 @@ export default function ChatSidebar({
   setThreadType,
   chatId,
   onSelectChat,
+  broadcastSubTab = "sent",
+  onBroadcastSubTabChange,
 }: ChatSidebarProps) {
   const { placeholders } = useDictionary();
   const [openBroadcast, setOpenBroadcast] = useState(false);
-  const broadcastRef = useRef<HTMLDivElement>(null); type PlaceholderKey = keyof typeof placeholders;
+  const broadcastRef = useRef<HTMLDivElement>(null);
+  type PlaceholderKey = keyof typeof placeholders;
   const ph = (key: PlaceholderKey) => placeholders[key];
   const tabs = {
-    direct_messages: <DirectMessages threadType={threadType} setThreadType={setThreadType} chatId={chatId} onSelectChat={onSelectChat} />,
-    broadcast_messages: <BroadCatMessages chatId={chatId} onSelectChat={onSelectChat} />,
-  }
+    direct_messages: (
+      <DirectMessages
+        threadType={threadType}
+        setThreadType={setThreadType}
+        chatId={chatId}
+        onSelectChat={onSelectChat}
+      />
+    ),
+    broadcast_messages: (
+      <BroadCatMessages
+        chatId={chatId}
+        onSelectChat={onSelectChat}
+        activeTab={broadcastSubTab}
+        onActiveTabChange={onBroadcastSubTabChange}
+      />
+    ),
+  };
   return (
-    <aside className="h-full w-full border-r border-gray-200 bg-white lg:w-[320px]" >
+    <aside className="h-full w-full border-r border-gray-200 bg-white lg:w-[320px]">
       <div className="flex justify-between h-16 items-center border-b border-gray-200 px-4">
         <h1 className="text-[22px] font-medium text-[#030303]">{ph("chat_title")}</h1>
-        {threadType === "broadcast_messages" && <Image onClick={() => setOpenBroadcast(true)} src={addBroadCast} alt="add-broadcast" className="w-7 h-7 cursor-pointer" />
-        }
+        {threadType === "broadcast_messages" && (
+          <Image
+            onClick={() => setOpenBroadcast(true)}
+            src={addBroadCast}
+            alt="add-broadcast"
+            className="w-7 h-7 cursor-pointer"
+          />
+        )}
       </div>
       <div className="flex text-sm">
-        <button type="button" onClick={() => setThreadType("direct_messages")} className={`w-1/2 cursor-pointer py-2.5 ${threadType === "direct_messages" ? "border-b-2 border-[#3C9197] font-medium text-[#007781]" : "border-b border-[#E5E5E5] font-normal text-[#4B514F]"}`}>
+        <button
+          type="button"
+          onClick={() => setThreadType("direct_messages")}
+          className={`w-1/2 cursor-pointer py-2.5 ${threadType === "direct_messages" ? "border-b-2 border-[#3C9197] font-medium text-[#007781]" : "border-b border-[#E5E5E5] font-normal text-[#4B514F]"}`}
+        >
           {ph("direct_messages")}
         </button>
-        <button type="button" onClick={() => setThreadType("broadcast_messages")} className={`w-1/2 cursor-pointer py-2.5 ${threadType === "broadcast_messages" ? "border-b-2 border-[#3C9197] font-medium text-[#007781]" : "border-b border-[#E5E5E5] font-normal text-[#4B514F]"}`}>
+        <button
+          type="button"
+          onClick={() => setThreadType("broadcast_messages")}
+          className={`w-1/2 cursor-pointer py-2.5 ${threadType === "broadcast_messages" ? "border-b-2 border-[#3C9197] font-medium text-[#007781]" : "border-b border-[#E5E5E5] font-normal text-[#4B514F]"}`}
+        >
           {ph("broadcast_messages")}
         </button>
       </div>
@@ -57,6 +93,6 @@ export default function ChatSidebar({
           <BroadCastModal setOpenBroadcast={setOpenBroadcast} />
         </div>
       </Modal>
-    </aside >
+    </aside>
   );
 }
