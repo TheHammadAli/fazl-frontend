@@ -75,11 +75,19 @@ export function showDesktopOsNotification({
   const text = body?.trim();
   if (!title?.trim() && !text) return;
 
-  const notification = new Notification(title || "Notification", {
+  // Unique tag + renotify so Chrome shows a popup on every event
+  // (same fixed tag replaces quietly and looks like "only the first one works").
+  // `renotify` is supported by Chromium but missing from TS DOM lib typings.
+  const options = {
     body: text || undefined,
     icon: icon?.trim() || undefined,
-    tag: tag || undefined,
-  });
+    tag: tag ? `${tag}-${Date.now()}` : undefined,
+    renotify: true,
+    // Mute OS default sound — app already plays its own notification sound.
+    silent: true,
+  } as NotificationOptions;
+
+  const notification = new Notification(title || "Notification", options);
 
   notification.onclick = () => {
     window.focus();

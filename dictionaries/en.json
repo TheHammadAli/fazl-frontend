@@ -279,6 +279,7 @@
         "no_notifications_yet": "No notifications yet",
         "notifications_empty_subtitle": "This is where you find your notifications.",
         "notifications_title": "Notifications",
+        "new_notification": "New notification",
         "enable_notifications": "Enable notifications",
         "enable_notifications_body": "Turn on notifications to get alerts for messages and updates.",
         "allow_notifications": "Allow",

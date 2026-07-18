@@ -347,8 +347,8 @@ function BuyServiceDetail({
                       setType("image");
                     }}
                     className={`h-[96px] w-[96px] cursor-pointer overflow-hidden rounded-[10px] border md:w-[154px] ${typeIndex === index && type === "image"
-                        ? "border-green-1"
-                        : "border-transparent"
+                      ? "border-green-1"
+                      : "border-transparent"
                       }`}
                   >
                     <Image
@@ -514,16 +514,18 @@ function BuyServiceDetail({
                 </div>
               )}
 
-              {mounted && allowedToBuy && (
-                <DoodleButton
-                  type="button"
-                  disabled={!hasAllVariantsSelected}
-                  onClick={() => requireSignIn(() => setOpenPciker?.(true))}
-                  className="mt-4 flex h-[46px] w-full cursor-pointer items-center justify-center rounded-xl border border-green-1 bg-green-1 text-[16px] font-medium text-white hover:bg-white hover:text-green-1 disabled:pointer-events-none disabled:opacity-50"
-                >
-                  {placeholders.book_now}
-                </DoodleButton>
-              )}
+              {mounted &&
+                allowedToBuy &&
+                (
+                  <DoodleButton
+                    type="button"
+                    // disabled={!hasAllVariantsSelected}
+                    onClick={() => requireSignIn(() => setOpenPciker?.(true))}
+                    className="mt-4 flex h-[46px] w-full cursor-pointer items-center justify-center rounded-xl border border-green-1 bg-green-1 text-[16px] font-medium text-white hover:bg-white hover:text-green-1 disabled:pointer-events-none disabled:opacity-50"
+                  >
+                    {placeholders.book_now}
+                  </DoodleButton>
+                )}
 
               {allowedToBuy && (
                 <>
