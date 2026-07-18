@@ -8,7 +8,8 @@ import type { parameterTypes } from "./ParametersModal";
 type ParameterTagsProps = {
   label: string;
   parameters: parameterTypes[];
-  onClick: () => void;
+  /** Called with the parameter index, or `null` for the add button. */
+  onClick: (parameterIndex: number | null) => void;
 };
 
 export function removeParameterVariant(
@@ -28,16 +29,19 @@ export function removeParameterVariant(
 }
 
 function ParameterTags({ label, parameters, onClick }: ParameterTagsProps) {
-  const listedParameters = parameters.filter(
-    (parameter) => parameter.name.trim() !== "" || parameter.variants.length > 0,
-  );
+  const listedParameters = parameters
+    .map((parameter, index) => ({ parameter, index }))
+    .filter(
+      ({ parameter }) =>
+        parameter.name.trim() !== "" || parameter.variants.length > 0,
+    );
 
   if (listedParameters.length === 0) {
     return (
       <div className="border-b border-gray-9">
         <button
           type="button"
-          onClick={onClick}
+          onClick={() => onClick(null)}
           className="my-4 ml-[15px] flex w-max cursor-pointer items-center gap-2"
         >
           <Image src={plusIcon} alt="" />
@@ -49,11 +53,11 @@ function ParameterTags({ label, parameters, onClick }: ParameterTagsProps) {
 
   return (
     <>
-      {listedParameters.map((parameter, index) => (
+      {listedParameters.map(({ parameter, index }) => (
         <button
           key={`${parameter.name}-${index}`}
           type="button"
-          onClick={onClick}
+          onClick={() => onClick(index)}
           className="flex w-full h-[50px] cursor-pointer items-center justify-between border-b border-gray-9 bg-white px-4 text-left"
         >
           <h3 className="text-[15px] font-medium text-black-1 shrink-0">
@@ -75,7 +79,7 @@ function ParameterTags({ label, parameters, onClick }: ParameterTagsProps) {
       <div className="border-b border-gray-9">
         <button
           type="button"
-          onClick={onClick}
+          onClick={() => onClick(null)}
           className="my-4 ml-[15px] flex w-max cursor-pointer items-center gap-2"
         >
           <Image src={plusIcon} alt="" />

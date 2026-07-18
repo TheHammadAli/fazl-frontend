@@ -70,6 +70,9 @@ function ListProduct() {
   const [isCatOpen, setIsCatOpen] = useState(false);
   const [isPriceOpen, setIsPriceOpen] = useState(false);
   const [isParametersModalOpen, setIsParametersModalOpen] = useState(false);
+  const [parametersEditIndex, setParametersEditIndex] = useState<number | null>(
+    null,
+  );
   const [priceError, setPriceError] = useState("");
   const [selectedCategory, setSelectedCategory] =
     useState<categroyTypes | null>(null);
@@ -251,15 +254,22 @@ function ListProduct() {
       <Modal
         editModalRef={categoryRef}
         open={isParametersModalOpen}
-        setOpen={setIsParametersModalOpen}
-        centered={false}
+        setOpen={(open) => {
+          setIsParametersModalOpen(open);
+          if (!open) setParametersEditIndex(null);
+        }}
+        centered={true}
       >
-        <div className="h-full w-full flex justify-center pt-[80px]">
+        <div className="flex justify-center">
           <ParametersModal
             open={isParametersModalOpen}
             parameters={parameters}
             setParameters={setParameters}
-            setOpen={setIsParametersModalOpen}
+            editIndex={parametersEditIndex}
+            setOpen={(open) => {
+              setIsParametersModalOpen(open);
+              if (!open) setParametersEditIndex(null);
+            }}
           />
         </div>
       </Modal>
@@ -397,7 +407,10 @@ function ListProduct() {
                 <ParameterTags
                   label={parameters.length > 0 ? placeholders.add_more : placeholders.add_parameter}
                   parameters={parameters}
-                  onClick={() => setIsParametersModalOpen(true)}
+                  onClick={(parameterIndex) => {
+                    setParametersEditIndex(parameterIndex);
+                    setIsParametersModalOpen(true);
+                  }}
                 />
                 {parameterError && (
                   <p className="text-red-1 text-[14px] font-normal">

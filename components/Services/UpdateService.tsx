@@ -10,7 +10,10 @@ import cameraIcon from "@/assets/icons/camera-icon.svg";
 import { BeatLoader } from "react-spinners";
 import Modal from "../Ui/Modals/Modal";
 import DoodleButton from "@/components/Ui/DoodleButton";
-import CategoryModal, { categroyTypes } from "../Services/CategoryModal";
+import CategoryModal, {
+  categroyTypes,
+  type CategoryParameters,
+} from "../Services/CategoryModal";
 import PriceModal, { priceTypes } from "../Services/PriceModal";
 import {
   useDeleteServiceMediaMutation,
@@ -18,21 +21,44 @@ import {
   useUpdateServiceMutation,
 } from "@/store/services/sellingService";
 import toast from "react-hot-toast";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams } from "next/navigation";
 import { useRouter } from "next/navigation";
-
 import ProductListed from "../Selling/ProductListed";
+import {
+  parameterTypes,
+  hasDuplicateParameterNames,
+} from "../Selling/ParametersModal";
+import ParametersModal from "../Selling/ParametersModal";
+import ParameterTags from "../Selling/ParameterTags";
+import { getFeedCategoryLabel } from "@/utils/getFeedCategoryLabel";
+
+function mapCategoryParametersToServiceParameters(
+  parameters: CategoryParameters | undefined,
+  lang: string,
+): parameterTypes[] {
+  if (!parameters) return [];
+
+  const names =
+    (lang === "ur" ? parameters.ur : parameters.en) ??
+    parameters.en ??
+    parameters.ur ??
+    [];
+
+  return names
+    .map((name) => name.trim())
+    .filter(Boolean)
+    .map((name) => ({ name, variants: [] }));
+}
 
 function UpdateService() {
   const router = useRouter();
   const categoryRef = useRef<HTMLDivElement | null>(null);
-  const { pages, placeholders, info_messages, error_messages } =
+  const { placeholders, info_messages, error_messages, currentLanguage } =
     useDictionary();
   const [updateService, { data, isLoading, isError, isSuccess, error }] =
     useUpdateServiceMutation();
   const params = useParams();
   const { serviceId } = params;
-  const { currentLanguage } = useDictionary();
   const [
     deleteServiceMedia,
     { isLoading: isDeleting, error: deleteError, data: deleteData },
@@ -42,7 +68,7 @@ function UpdateService() {
     serviceId,
     {
       skip: !serviceId,
-    }
+    },
   );
 
   const productData = service?.data;
@@ -65,20 +91,28 @@ function UpdateService() {
   const [title, setTitle] = useState(productData?.title || "");
   const [titleError, setTitleError] = useState("");
   const [description, setDescription] = useState(
-    productData?.description || ""
+    productData?.description || "",
   );
 
   const [descriptionError, setDescriptionError] = useState("");
   const [isCatOpen, setIsCatOpen] = useState(false);
   const [isPriceOpen, setIsPriceOpen] = useState(false);
+  const [isParametersModalOpen, setIsParametersModalOpen] = useState(false);
+  const [parametersEditIndex, setParametersEditIndex] = useState<number | null>(
+    null,
+  );
   const [priceError, setPriceError] = useState("");
   const [selectedCategory, setSelectedCategory] =
-    useState<any | null>(null);
+    useState<categroyTypes | null>(null);
   const [categoryError, setCategoryError] = useState("");
   const [selectedPrice, setSelectedPrice] = useState<priceTypes>({
     paymentType: "fixed",
     price: "",
   });
+  const [parameters, setParameters] = useState<parameterTypes[]>([]);
+  const [parameterError, setParameterError] = useState("");
+  const loadedCategoryIdRef = useRef<string | null>(null);
+  const hasLoadedServiceRef = useRef(false);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -86,6 +120,7 @@ function UpdateService() {
     setDescriptionError("");
     setCategoryError("");
     setPriceError("");
+    setParameterError("");
 
     if (title === "") {
       setTitleError(error_messages.title_required);
@@ -100,23 +135,29 @@ function UpdateService() {
     if (selectedPrice.price === "") {
       setPriceError(error_messages.price_required);
     }
+    if (parameters.length === 0) {
+      setParameterError(error_messages.parameter_required);
+    }
+    if (parameters.some((parameter) => parameter.variants.length === 0)) {
+      setParameterError(error_messages.parameter_value_required);
+    }
+    if (hasDuplicateParameterNames(parameters)) {
+      setParameterError(error_messages.parameter_name_duplicate);
+    }
     if (images?.length === 0) {
       toast.error(error_messages.image_required);
       return;
     }
-    // if (video === null || video === "") {
-    //   toast.error(error_messages.video_required);
-    //   return;
-    // }
 
     if (
       title !== "" &&
       description !== "" &&
       selectedCategory !== null &&
       selectedPrice.price !== "" &&
-      // video !== null &&
-      // video !== "" &&
-      images?.length > 0
+      images?.length > 0 &&
+      parameters.length > 0 &&
+      parameters.every((parameter) => parameter.variants.length > 0) &&
+      !hasDuplicateParameterNames(parameters)
     ) {
       const formData = new FormData();
       formData.append("title", title);
@@ -124,6 +165,9 @@ function UpdateService() {
       formData.append("category", selectedCategory._id);
       formData.append("price", selectedPrice.price);
       formData.append("paymentType", selectedPrice.paymentType);
+      if (parameters.length > 0) {
+        formData.append("parameters", JSON.stringify(parameters));
+      }
       if (typeof video !== "string") {
         if (video) {
           formData.append("video", video);
@@ -157,10 +201,10 @@ function UpdateService() {
     if (isError && "data" in error) {
       toast.error(
         (error?.data as { message?: string })?.message ||
-        "something went wrong!"
+          "something went wrong!",
       );
     }
-  }, [isSuccess, isError, data, error]);
+  }, [isSuccess, isError, data, error, router]);
 
   useEffect(() => {
     if (service?.data) {
@@ -168,14 +212,41 @@ function UpdateService() {
       setTitle(serviceData?.title ?? "");
       setDescription(serviceData?.description ?? "");
       setSelectedCategory(serviceData?.category ?? null);
-      setSelectedPrice({
-        ...selectedPrice,
+      setParameters(serviceData?.parameters ?? []);
+      setSelectedPrice((prev) => ({
+        ...prev,
         price: serviceData?.price != null ? String(serviceData.price) : "",
-      });
+      }));
       setVideo(serviceData?.video ?? null);
       setImages(serviceData?.images ?? []);
+      loadedCategoryIdRef.current = serviceData?.category?._id ?? null;
+      hasLoadedServiceRef.current = true;
     }
   }, [service?.data, serviceSuccess]);
+
+  useEffect(() => {
+    if (!hasLoadedServiceRef.current) return;
+
+    if (!selectedCategory) {
+      setParameters([]);
+      setParameterError("");
+      loadedCategoryIdRef.current = null;
+      return;
+    }
+
+    const categoryId = selectedCategory._id;
+    if (categoryId === loadedCategoryIdRef.current) return;
+
+    loadedCategoryIdRef.current = categoryId;
+    setParameters(
+      mapCategoryParametersToServiceParameters(
+        selectedCategory.parameters,
+        currentLanguage,
+      ),
+    );
+    setParameterError("");
+  }, [selectedCategory, currentLanguage]);
+
   return (
     <>
       <Modal
@@ -205,8 +276,28 @@ function UpdateService() {
             setSelectedPrice={setSelectedPrice}
             setIsPriceOpen={setIsPriceOpen}
             type="service"
-
-
+          />
+        </div>
+      </Modal>
+      <Modal
+        editModalRef={categoryRef}
+        open={isParametersModalOpen}
+        setOpen={(open) => {
+          setIsParametersModalOpen(open);
+          if (!open) setParametersEditIndex(null);
+        }}
+        centered={true}
+      >
+        <div className="flex justify-center">
+          <ParametersModal
+            open={isParametersModalOpen}
+            parameters={parameters}
+            setParameters={setParameters}
+            editIndex={parametersEditIndex}
+            setOpen={(open) => {
+              setIsParametersModalOpen(open);
+              if (!open) setParametersEditIndex(null);
+            }}
           />
         </div>
       </Modal>
@@ -214,7 +305,9 @@ function UpdateService() {
       <div className="h-full min-h-screen flex flex-col items-center">
         <div className="px-6 h-[61px] border-b-[1px] border-gray-9 bg-white w-full  flex justify-center">
           <div className="w-full   flex items-center gap-[6px] font-normal text-[14px] mt-5">
-            <span className="text-gray-8 first-letter:capitalize">{placeholders.service}</span>
+            <span className="text-gray-8 first-letter:capitalize">
+              {placeholders.service}
+            </span>
             <Image
               src={chevron}
               alt="chevron"
@@ -259,8 +352,9 @@ function UpdateService() {
                 {/*  title */}
                 <div className="space-y-1 mt-5 w-full">
                   <p
-                    className={`text-[14px] font-normal  ${titleError ? "text-red-1" : "text-gray-8"
-                      }`}
+                    className={`text-[14px] font-normal  ${
+                      titleError ? "text-red-1" : "text-gray-8"
+                    }`}
                   >
                     {placeholders.title}
                   </p>
@@ -281,8 +375,9 @@ function UpdateService() {
                 {/* descripton */}
                 <div className="space-y-1 mt-5 w-full">
                   <p
-                    className={`text-[14px] font-normal  ${descriptionError ? "text-red-1" : "text-gray-8"
-                      }`}
+                    className={`text-[14px] font-normal  ${
+                      descriptionError ? "text-red-1" : "text-gray-8"
+                    }`}
                   >
                     {info_messages?.describe_product}
                   </p>
@@ -312,7 +407,10 @@ function UpdateService() {
                     onClick={() => setIsCatOpen(true)}
                   >
                     <h4 className="text-[15px] font-normal text-gray-8 leading-none">
-                      {selectedCategory?.name?.[currentLanguage] || placeholders.choose_category}
+                      {getFeedCategoryLabel(
+                        selectedCategory?.name,
+                        currentLanguage,
+                      ) || placeholders.choose_category}
                     </h4>
                     <Image
                       src={chevron}
@@ -324,6 +422,23 @@ function UpdateService() {
                 {categoryError && (
                   <p className="text-red-1 text-[14px] font-normal">
                     {categoryError}
+                  </p>
+                )}
+                <ParameterTags
+                  label={
+                    parameters.length > 0
+                      ? placeholders.add_more
+                      : placeholders.add_parameter
+                  }
+                  parameters={parameters}
+                  onClick={(parameterIndex) => {
+                    setParametersEditIndex(parameterIndex);
+                    setIsParametersModalOpen(true);
+                  }}
+                />
+                {parameterError && (
+                  <p className="text-red-1 text-[14px] font-normal">
+                    {parameterError}
                   </p>
                 )}
 
@@ -338,14 +453,7 @@ function UpdateService() {
                     onClick={() => setIsPriceOpen(true)}
                   >
                     <h4 className="text-[15px] font-normal text-gray-8 leading-none">
-                      {
-                        selectedPrice?.price
-                        //  +
-                        // "-/" +
-                        // placeholders?.[
-                        //   selectedPrice?.paymentType as keyof typeof placeholders
-                        // ]
-                      }
+                      {selectedPrice?.price}
                     </h4>
                     <Image
                       src={chevron}
