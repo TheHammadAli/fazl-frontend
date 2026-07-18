@@ -9,13 +9,14 @@ import { baseApi } from "@/store/baseApi";
 import { initializeSocket } from "@/utils/socket";
 import { useUnreadMessagesCountQuery } from "@/store/services/chatService";
 import { playNotificationSound } from "@/utils/playNotificationSound";
+import inAppChatIcon from "@/assets/icons/in-app-icon-chat.png"
 import {
   isDesktopBrowser,
   requestBrowserNotificationPermission,
   showDesktopOsNotification,
 } from "@/utils/showDesktopNotification";
 import { useDictionary } from "@/dictionaries/DictionaryProvider";
-import NotificationIcon from "@/assets/icons/new-notification-icon.jpeg"
+import NotificationIcon from "@/assets/icons/new-notification-icon.png"
 function getSocketSenderId(data: unknown): string | undefined {
   if (!data || typeof data !== "object") return undefined;
   const payload = data as Record<string, unknown>;
@@ -133,9 +134,9 @@ function Layout({ children }: { children: React.ReactNode }) {
           const payload = data as Record<string, unknown>;
           const { name, image } = getSenderMeta(payload);
           showDesktopOsNotification({
-            title: name || placeholders.chat_title,
-            body: getPreviewText(payload) || placeholders.chat_title,
-            icon: image,
+            title: placeholders.new_notification,
+            body: `${placeholders.new_message_from} ${name}`,
+            icon: inAppChatIcon.src as string,
             tag: "chat-message",
           });
         }

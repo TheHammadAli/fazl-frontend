@@ -12,7 +12,7 @@ import { useEffect, useLayoutEffect, useRef, useState, type Dispatch, type SetSt
 import noNotificationIcon from "@/assets/icons/no-notification.svg";
 import { useRouter } from "next/navigation";
 import { formatRequestedDateTime } from "@/utils/formatRequestedDateTime";
-import NotificationIcon from "@/assets/icons/new-notification-icon.jpeg";
+import NotificationIcon from "@/assets/icons/new-notification-icon.png";
 /** Must match what the notifications API expects (see `data.limit` in the response). */
 const PAGE_LIMIT = 15;
 
