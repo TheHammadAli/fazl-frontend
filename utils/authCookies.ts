@@ -81,17 +81,34 @@ export function extractAuthTokens(data: unknown): {
       ? (root.data as Record<string, unknown>)
       : root;
 
-  const accessToken =
-    (typeof nested.accessToken === "string" && nested.accessToken) ||
-    (typeof nested.access_token === "string" && nested.access_token) ||
-    undefined;
+  const pickString = (...keys: string[]) => {
+    for (const source of [nested, root]) {
+      for (const key of keys) {
+        const value = source[key];
+        if (typeof value === "string" && value.trim()) return value.trim();
+      }
+    }
+    return undefined;
+  };
 
-  const refreshToken =
-    (typeof nested.refreshToken === "string" && nested.refreshToken) ||
-    (typeof nested.refresh_token === "string" && nested.refresh_token) ||
-    undefined;
+  const accessToken = pickString(
+    "accessToken",
+    "access_token",
+    "token",
+  );
+
+  const refreshToken = pickString(
+    "refreshToken",
+    "refresh_token",
+  );
 
   if (!accessToken) return null;
+
+  // Avoid treating the refresh token itself as the access token when APIs
+  // only return `{ token: <refresh> }`.
+  if (refreshToken && accessToken === refreshToken && !nested.accessToken && !root.accessToken) {
+    return null;
+  }
 
   return refreshToken ? { accessToken, refreshToken } : { accessToken };
 }

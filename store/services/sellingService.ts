@@ -79,6 +79,7 @@ export const profileService = baseApi.injectEndpoints({
         method: "POST",
         body,
       }),
+      invalidatesTags: ["SERVICES"],
     }),
     getShopDetail: build.query({
       query: (id) => {
@@ -161,6 +162,7 @@ export const profileService = baseApi.injectEndpoints({
         method: "DELETE",
         body: body,
       }),
+      invalidatesTags: ["SERVICES"],
     }),
     updateShop: build.mutation({
       query: ({ id, formData }) => ({
@@ -194,6 +196,7 @@ export const profileService = baseApi.injectEndpoints({
           method: "GET",
         };
       },
+      providesTags: ["SERVICES"],
     }),
     getServiceDetail: build.query({
       query: (id) => {

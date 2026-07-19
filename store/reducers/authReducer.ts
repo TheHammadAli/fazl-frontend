@@ -7,7 +7,6 @@ import {
   setProfileCompletedCookie,
   setUserIdCookie,
 } from "@/utils/authCookies";
-import { use } from "react";
 // import { deleteCookie } from "cookies-next";
 
 type otpInfoTypes = {
@@ -78,13 +77,15 @@ const authSlice = createSlice({
 
     setToken: (state, action) => {
       state.token = action.payload.accessToken;
-      if (action.payload.refreshToken) {
-        state.refreshToken = action.payload.refreshToken;
+      const nextRefreshToken =
+        action.payload.refreshToken ?? state.refreshToken ?? "";
+      if (nextRefreshToken) {
+        state.refreshToken = nextRefreshToken;
       }
       state.isGuest = false;
       setAuthTokens({
         accessToken: action.payload.accessToken,
-        refreshToken: action.payload.refreshToken ?? state.refreshToken,
+        refreshToken: nextRefreshToken || undefined,
       });
       deleteCookie("isGuest", { path: "/" });
     },
