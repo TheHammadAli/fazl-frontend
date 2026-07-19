@@ -2,8 +2,8 @@ import { deleteCookie, setCookie } from "cookies-next";
 
 const COOKIE_PATH = "/";
 
-/** Matches typical access-token JWT lifetime. */
-export const ACCESS_TOKEN_MAX_AGE = 60 * 60;
+/** Keep access cookie until refresh expires so proxy does not kick users out. */
+export const ACCESS_TOKEN_MAX_AGE = 60 * 60 * 24 * 30;
 
 /** Keep users signed in across sessions until refresh token expires. */
 export const REFRESH_TOKEN_MAX_AGE = 60 * 60 * 24 * 30;

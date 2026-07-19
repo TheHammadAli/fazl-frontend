@@ -26,6 +26,10 @@ export function proxy(request: NextRequest) {
   const urlSearchParams = new URLSearchParams(search);
   const params = Object.fromEntries(urlSearchParams.entries());
   const token = request.cookies.get("token")?.value || "";
+  // Access cookie can expire while refresh cookie is still valid — allow the
+  // app to load so the client can call /auth/refreshToken.
+  const refreshToken = request.cookies.get("refreshToken")?.value || "";
+  const hasSession = Boolean(token) || Boolean(refreshToken);
   const isGuest = request.cookies.get("isGuest")?.value === "true";
   const completeProfile =
     request.cookies.get("profileCompleted")?.value === "true";
@@ -46,7 +50,7 @@ export function proxy(request: NextRequest) {
   if (isAdminPath(pathname)) {
     const isAdmin = request.cookies.get("isAdmin")?.value === "true";
 
-    if (!token) {
+    if (!hasSession) {
       return NextResponse.redirect(new URL(`/${locale}/signin`, request.url));
     }
 
@@ -98,29 +102,31 @@ export function proxy(request: NextRequest) {
   }
 
   if (
-    (token || isGuest) &&
+    (hasSession || isGuest) &&
     (pathname === "/" || pathname === `/${locale}`)
   ) {
     return NextResponse.redirect(new URL(`/${locale}/home`, request.url));
   }
 
-  if (isGuest && !token && pathname.startsWith(`/${locale}/complete-info`)) {
+  if (isGuest && !hasSession && pathname.startsWith(`/${locale}/complete-info`)) {
     return NextResponse.redirect(new URL(`/${locale}/home`, request.url));
   }
 
   if (
     isGuest &&
-    !token &&
+    !hasSession &&
     isGuestRestrictedPathname(pathname) &&
     !isGuestAllowedPathname(pathname)
   ) {
     return NextResponse.redirect(new URL(`/${locale}/home`, request.url));
   }
 
-  if (token && checkPathStartsWith(pathname)) {
+  if (hasSession && checkPathStartsWith(pathname)) {
     return NextResponse.redirect(new URL(`/${locale}`, request.url));
   }
 
+  // Only enforce complete-info when we already have an access token.
+  // Refresh-only sessions restore the access token on the client first.
   if (token && !completeProfile) {
     if (pathname !== `/${locale}/complete-info`) {
       return NextResponse.redirect(
@@ -133,7 +139,7 @@ export function proxy(request: NextRequest) {
   }
 
   if (
-    !token &&
+    !hasSession &&
     !isGuest &&
     !checkPathStartsWith(pathname) &&
     !isPublicInfoRoute(pathname)

@@ -6,10 +6,9 @@ import {
   createApi,
 } from "@reduxjs/toolkit/query/react";
 import { Mutex } from "async-mutex";
-import { BASE_URL } from "@/assets/content/constants";
 
 import { getRefreshToken, getToken } from "@/utils/getToken";
-import { extractAuthTokens } from "@/utils/authCookies";
+import { refreshAuthTokens } from "@/utils/refreshAuthTokens";
 import { logout, setToken } from "./reducers/authReducer";
 import { getCookie } from "cookies-next";
 import { isGuestSession } from "@/utils/isGuestSession";
@@ -49,7 +48,7 @@ const resolveLanguage = () => {
 };
 
 const rawBaseQuery = fetchBaseQuery({
-  baseUrl: BASE_URL,
+  baseUrl: process.env.NEXT_PUBLIC_API_URL,
   prepareHeaders: (headers, { endpoint, getState }) => {
     const lang = resolveLanguage();
     headers.set("accept-language", lang);
@@ -67,15 +66,6 @@ const rawBaseQuery = fetchBaseQuery({
         headers.set("Authorization", `Bearer ${token}`);
       }
     }
-    return headers;
-  },
-});
-
-/** Refresh must not send the expired access token in Authorization. */
-const refreshBaseQuery = fetchBaseQuery({
-  baseUrl: BASE_URL,
-  prepareHeaders: (headers) => {
-    headers.set("accept-language", resolveLanguage());
     return headers;
   },
 });
@@ -129,23 +119,7 @@ export const baseQueryWithReauth: BaseQueryFn<
           return result;
         }
 
-        const refreshResult = await refreshBaseQuery(
-          {
-            url: "/auth/refreshToken",
-            method: "POST",
-            body: {
-              // Support both common backend field names.
-              token: refreshToken,
-              refreshToken,
-            },
-          },
-          api,
-          extraOptions,
-        );
-
-        const tokens = refreshResult.data
-          ? extractAuthTokens(refreshResult.data)
-          : null;
+        const tokens = await refreshAuthTokens(refreshToken);
 
         if (tokens?.accessToken) {
           isRedirectingToSignIn = false;
