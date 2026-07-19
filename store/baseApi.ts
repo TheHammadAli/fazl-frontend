@@ -5,6 +5,7 @@ import {
   FetchBaseQueryError,
   createApi,
 } from "@reduxjs/toolkit/query/react";
+import { Mutex } from "async-mutex";
 import { BASE_URL } from "@/assets/content/constants";
 
 import { getRefreshToken, getToken } from "@/utils/getToken";
@@ -13,6 +14,13 @@ import { logout, setToken } from "./reducers/authReducer";
 import { getCookie } from "cookies-next";
 import { isGuestSession } from "@/utils/isGuestSession";
 import { i18n } from "@/i18n.config";
+
+type AuthSliceState = {
+  authReducer?: {
+    token?: string;
+    refreshToken?: string;
+  };
+};
 
 /** Login/signup failures must not trigger refresh/logout redirects. */
 const PUBLIC_AUTH_ENDPOINTS = new Set([
@@ -24,6 +32,11 @@ const PUBLIC_AUTH_ENDPOINTS = new Set([
   "forgotPassword",
   "resetPassword",
 ]);
+
+/** Serialize refresh so parallel 401s do not spam /auth/refreshToken. */
+const refreshMutex = new Mutex();
+
+let isRedirectingToSignIn = false;
 
 const resolveLanguage = () => {
   if (typeof window !== "undefined") {
@@ -37,14 +50,22 @@ const resolveLanguage = () => {
 
 const rawBaseQuery = fetchBaseQuery({
   baseUrl: BASE_URL,
-  prepareHeaders: (headers, { endpoint }) => {
+  prepareHeaders: (headers, { endpoint, getState }) => {
     const lang = resolveLanguage();
     headers.set("accept-language", lang);
-    const token = getToken();
     const excludeToken = [...PUBLIC_AUTH_ENDPOINTS, "getLocations"];
 
-    if (token && !excludeToken.includes(endpoint)) {
-      headers.set("Authorization", `Bearer ${token}`);
+    if (!excludeToken.includes(endpoint)) {
+      const cookieToken = getToken();
+      const stateToken = (getState() as AuthSliceState).authReducer?.token;
+      const token =
+        (typeof cookieToken === "string" && cookieToken) ||
+        (typeof stateToken === "string" && stateToken) ||
+        "";
+
+      if (token) {
+        headers.set("Authorization", `Bearer ${token}`);
+      }
     }
     return headers;
   },
@@ -60,15 +81,31 @@ const refreshBaseQuery = fetchBaseQuery({
 });
 
 const redirectToSignIn = () => {
+  if (typeof window === "undefined" || isRedirectingToSignIn) return;
+  isRedirectingToSignIn = true;
   const locale = resolveLanguage();
   window.location.href = `/${locale}/signin`;
 };
+
+const resolveRefreshToken = (getState: () => unknown): string => {
+  const fromCookie = getRefreshToken();
+  if (fromCookie) return fromCookie;
+
+  const fromState = (getState() as AuthSliceState).authReducer?.refreshToken;
+  return typeof fromState === "string" ? fromState : "";
+};
+
+const isUsableRefreshToken = (value: string | null | undefined): value is string =>
+  Boolean(value && value !== "undefined" && value !== "null");
 
 export const baseQueryWithReauth: BaseQueryFn<
   string | FetchArgs,
   unknown,
   FetchBaseQueryError
 > = async (args, api, extraOptions: object) => {
+  // Wait if another request is already refreshing the session.
+  await refreshMutex.waitForUnlock();
+
   let result = await rawBaseQuery(args, api, extraOptions);
 
   if (result.error && result.error.status === 401) {
@@ -81,44 +118,69 @@ export const baseQueryWithReauth: BaseQueryFn<
       return result;
     }
 
-    const refreshToken = getRefreshToken();
-    if (!refreshToken || refreshToken === "" || refreshToken === "undefined") {
-      api.dispatch(logout());
-      redirectToSignIn();
-      return result;
-    }
+    if (!refreshMutex.isLocked()) {
+      const release = await refreshMutex.acquire();
+      try {
+        const refreshToken = resolveRefreshToken(api.getState);
 
-    const refreshResult = await refreshBaseQuery(
-      {
-        url: "/auth/refreshToken",
-        method: "POST",
-        body: {
-          token: refreshToken,
-        },
-      },
-      api,
-      extraOptions,
-    );
+        if (!isUsableRefreshToken(refreshToken)) {
+          api.dispatch(logout());
+          redirectToSignIn();
+          return result;
+        }
 
-    const tokens = refreshResult.data
-      ? extractAuthTokens(refreshResult.data)
-      : null;
+        const refreshResult = await refreshBaseQuery(
+          {
+            url: "/auth/refreshToken",
+            method: "POST",
+            body: {
+              // Support both common backend field names.
+              token: refreshToken,
+              refreshToken,
+            },
+          },
+          api,
+          extraOptions,
+        );
 
-    if (tokens) {
-      api.dispatch(
-        setToken({
-          accessToken: tokens.accessToken,
-          refreshToken: tokens.refreshToken,
-        }),
-      );
-      result = await rawBaseQuery(args, api, extraOptions);
+        const tokens = refreshResult.data
+          ? extractAuthTokens(refreshResult.data)
+          : null;
+
+        if (tokens?.accessToken) {
+          isRedirectingToSignIn = false;
+          api.dispatch(
+            setToken({
+              accessToken: tokens.accessToken,
+              refreshToken: tokens.refreshToken ?? refreshToken,
+            }),
+          );
+          // Retry the original request with the new access token.
+          result = await rawBaseQuery(args, api, extraOptions);
+        } else {
+          api.dispatch(logout());
+          redirectToSignIn();
+        }
+      } finally {
+        release();
+      }
     } else {
-      api.dispatch(logout());
-      redirectToSignIn();
+      // Another request refreshed the session — retry once with new tokens.
+      await refreshMutex.waitForUnlock();
+
+      const stillHasSession =
+        Boolean(getToken()) ||
+        Boolean((api.getState() as AuthSliceState).authReducer?.token);
+
+      if (stillHasSession) {
+        result = await rawBaseQuery(args, api, extraOptions);
+      }
     }
   }
+
   return result;
 };
+
 export const baseApi = createApi({
   baseQuery: baseQueryWithReauth,
   tagTypes: [

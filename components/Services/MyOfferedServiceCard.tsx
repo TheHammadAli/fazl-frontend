@@ -38,12 +38,16 @@ function MyOfferedServiceCard({ serviceData }: Props) {
     serviceData?.images?.length > 0
       ? serviceData.images[0]
       : noImageAvtar;
+  const imageCacheKey =
+    typeof imageSrc === "string" && serviceData?.updatedAt
+      ? `${imageSrc}${imageSrc.includes("?") ? "&" : "?"}v=${encodeURIComponent(String(serviceData.updatedAt))}`
+      : imageSrc;
 
   const createdOn = serviceData?.updatedAt
     ? new Date(serviceData.updatedAt).toLocaleDateString(
-        currentLanguage === "ur" ? "ur-PK" : "en-GB",
-        { day: "2-digit", month: "short", year: "numeric" },
-      )
+      currentLanguage === "ur" ? "ur-PK" : "en-GB",
+      { day: "2-digit", month: "short", year: "numeric" },
+    )
     : "";
 
   const shareUrl =
@@ -67,14 +71,16 @@ function MyOfferedServiceCard({ serviceData }: Props) {
         />
       </Modal>
 
-      <div className="w-full overflow-hidden rounded-[16px] border border-gray-9 bg-white">
-        <div className="relative h-[180px] w-full sm:h-[220px]">
+      <div className="flex w-full flex-col overflow-hidden rounded-[16px] border border-gray-9 bg-white md:flex-row">
+        <div className="relative h-[180px] w-full shrink-0 sm:h-[220px] md:h-auto md:min-h-full md:w-[35%]">
           <Image
-            src={imageSrc}
+            key={typeof imageCacheKey === "string" ? imageCacheKey : "local"}
+            src={imageCacheKey}
             alt={serviceData?.title || "service"}
             fill
             className="object-cover"
-            unoptimized={typeof imageSrc === "string"}
+
+            unoptimized={typeof imageCacheKey === "string"}
           />
           <div className="absolute start-3 top-3 flex items-center gap-1.5 rounded-full bg-[#2C2C2C]/85 px-2.5 py-1">
             <span className="h-2 w-2 rounded-full bg-green-1" aria-hidden />
@@ -84,19 +90,17 @@ function MyOfferedServiceCard({ serviceData }: Props) {
           </div>
         </div>
 
-        <div className="px-4 pb-4 pt-4 sm:px-5">
+        <div className="px-4 pb-4 pt-4 sm:px-5 md:w-[65%]">
           <div className="flex items-start justify-between gap-3">
             <div className="flex min-w-0 flex-1 items-center gap-3">
-              {/* <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gray-12"> */}
-                <Image
-                  src={categoryIcon}
-                  alt=""
-                  width={44}
-                  height={44}
-                  className="h-[36px] w-[36px] object-cover"
-                  unoptimized={typeof categoryIcon === "string"}
-                />
-              {/* </div> */}
+              <Image
+                src={categoryIcon}
+                alt=""
+                width={44}
+                height={44}
+                className="h-[36px] w-[36px] object-cover"
+                unoptimized={typeof categoryIcon === "string"}
+              />
               <div className="min-w-0">
                 <h3 className="truncate text-[16px] font-semibold text-black-1">
                   {serviceData?.title}
@@ -116,11 +120,11 @@ function MyOfferedServiceCard({ serviceData }: Props) {
             </div>
           </div>
 
-          <div className="mt-4 border-t border-gray-9 pt-3">
+          <div className="mt-4 w-full border-t border-gray-9 pt-3">
             <h4 className="text-[15px] font-medium text-black-1">
               {serviceData?.description
                 ? serviceData.description.slice(0, 80) +
-                  (serviceData.description.length > 80 ? "…" : "")
+                (serviceData.description.length > 80 ? "…" : "")
                 : serviceData?.title}
             </h4>
             <div className="mt-3 grid grid-cols-2 gap-3">

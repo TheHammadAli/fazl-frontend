@@ -58,7 +58,6 @@ function ServiceDetail({ serviceData }: { serviceData: ServiceDetailType }) {
     useDeleteServiceMutation();
 
   const allowedToBuy = userId !== serviceData?.ownerId;
-
   const videoSrc =
     typeof serviceData?.video === "string" && serviceData.video.trim() !== ""
       ? serviceData.video.trim()
@@ -197,11 +196,10 @@ function ServiceDetail({ serviceData }: { serviceData: ServiceDetailType }) {
                       setTypeIndex(index);
                       setType("image");
                     }}
-                    className={`h-[96px] w-[96px] cursor-pointer overflow-hidden rounded-[10px] border md:w-[154px] ${
-                      typeIndex === index && type === "image"
+                    className={`h-[96px] w-[96px] cursor-pointer overflow-hidden rounded-[10px] border md:w-[154px] ${typeIndex === index && type === "image"
                         ? "border-green-1"
                         : "border-transparent"
-                    }`}
+                      }`}
                   >
                     <Image
                       src={`${image}?t=${Date.now()}`}
@@ -219,9 +217,8 @@ function ServiceDetail({ serviceData }: { serviceData: ServiceDetailType }) {
                     key={`${videoSrc}?v=${serviceData?.updatedAt}`}
                     src={`${videoSrc}?v=${serviceData?.updatedAt}`}
                     controls={false}
-                    className={`h-[96px] w-[96px] cursor-pointer rounded-[10px] border object-cover md:w-[154px] ${
-                      type === "video" ? "border-green-1" : "border-transparent"
-                    }`}
+                    className={`h-[96px] w-[96px] cursor-pointer rounded-[10px] border object-cover md:w-[154px] ${type === "video" ? "border-green-1" : "border-transparent"
+                      }`}
                   />
                 ) : null}
               </div>
