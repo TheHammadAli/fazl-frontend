@@ -1,71 +1,64 @@
 import { BASE_URL } from "@/assets/content/constants";
-import { extractAuthTokens } from "@/utils/authCookies";
-import { getRefreshToken, getToken } from "@/utils/getToken";
-import { getCookie } from "cookies-next";
-import { i18n } from "@/i18n.config";
+import { extractAuthTokens, setAuthTokens } from "@/utils/authCookies";
+import { getRefreshToken } from "@/utils/getToken";
 
 export type RefreshedTokens = {
   accessToken: string;
-  refreshToken?: string;
+  refreshToken: string;
 };
 
-let inFlightRefresh: Promise<RefreshedTokens | null> | null = null;
-
-function resolveLanguage(): string {
-  if (typeof window !== "undefined") {
-    const firstSegment = window.location.pathname.split("/")[1];
-    if (i18n.locales.includes(firstSegment as (typeof i18n.locales)[number])) {
-      return firstSegment;
-    }
-  }
-  return getCookie("lang")?.toString() || i18n.defaultLocale;
-}
+/** One in-flight refresh shared by parallel 401s. */
+let inFlight: Promise<RefreshedTokens | null> | null = null;
 
 /**
- * Single-flight refresh: concurrent callers share one /auth/refreshToken request.
+ * POST /auth/refreshToken with `{ token: refreshToken }`.
+ * Saves BOTH new accessToken and refreshToken cookies immediately
+ * (backend rotates refresh token — old one becomes invalid after first use).
  */
 export function refreshAuthTokens(
   refreshTokenOverride?: string,
 ): Promise<RefreshedTokens | null> {
-  if (inFlightRefresh) return inFlightRefresh;
+  if (inFlight) return inFlight;
 
-  inFlightRefresh = (async () => {
-    const refreshToken = refreshTokenOverride || getRefreshToken();
-    if (!refreshToken) return null;
-
-    // Another caller may have already restored the access token.
-    const existing = getToken();
-    if (existing && !refreshTokenOverride) {
-      return { accessToken: existing, refreshToken };
-    }
+  const promise = (async (): Promise<RefreshedTokens | null> => {
+    const currentRefresh = (
+      refreshTokenOverride ||
+      getRefreshToken() ||
+      ""
+    ).trim();
+    if (!currentRefresh) return null;
 
     const response = await fetch(`${BASE_URL}/auth/refreshToken`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "accept-language": resolveLanguage(),
-      },
-      body: JSON.stringify({
-        token: refreshToken,
-        refreshToken,
-      }),
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ token: currentRefresh }),
     });
 
     if (!response.ok) return null;
 
-    const data = await response.json();
-    const tokens = extractAuthTokens(data);
+    const json = await response.json();
+    const tokens = extractAuthTokens(json);
     if (!tokens?.accessToken) return null;
+
+    // Backend rotates refresh tokens — must persist the NEW refreshToken.
+    // Falling back to the old one only if API omits it.
+    const nextRefresh = tokens.refreshToken?.trim() || currentRefresh;
+
+    setAuthTokens({
+      accessToken: tokens.accessToken,
+      refreshToken: nextRefresh,
+    });
 
     return {
       accessToken: tokens.accessToken,
-      refreshToken: tokens.refreshToken ?? refreshToken,
+      refreshToken: nextRefresh,
     };
-  })()
-    .catch(() => null)
-    .finally(() => {
-      inFlightRefresh = null;
-    });
+  })().catch(() => null);
 
-  return inFlightRefresh;
+  inFlight = promise;
+  void promise.finally(() => {
+    if (inFlight === promise) inFlight = null;
+  });
+
+  return promise;
 }
