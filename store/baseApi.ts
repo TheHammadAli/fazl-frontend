@@ -6,20 +6,13 @@ import {
   createApi,
 } from "@reduxjs/toolkit/query/react";
 import { Mutex } from "async-mutex";
-
+import { BASE_URL } from "@/assets/content/constants";
 import { getRefreshToken, getToken } from "@/utils/getToken";
 import { refreshAuthTokens } from "@/utils/refreshAuthTokens";
 import { logout, setToken } from "./reducers/authReducer";
 import { getCookie } from "cookies-next";
 import { isGuestSession } from "@/utils/isGuestSession";
 import { i18n } from "@/i18n.config";
-
-type AuthSliceState = {
-  authReducer?: {
-    token?: string;
-    refreshToken?: string;
-  };
-};
 
 /** Login/signup failures must not trigger refresh/logout redirects. */
 const PUBLIC_AUTH_ENDPOINTS = new Set([
@@ -32,9 +25,7 @@ const PUBLIC_AUTH_ENDPOINTS = new Set([
   "resetPassword",
 ]);
 
-/** Serialize refresh so parallel 401s do not spam /auth/refreshToken. */
 const refreshMutex = new Mutex();
-
 let isRedirectingToSignIn = false;
 
 const resolveLanguage = () => {
@@ -48,23 +39,13 @@ const resolveLanguage = () => {
 };
 
 const rawBaseQuery = fetchBaseQuery({
-  baseUrl: process.env.NEXT_PUBLIC_API_URL,
-  prepareHeaders: (headers, { endpoint, getState }) => {
-    const lang = resolveLanguage();
-    headers.set("accept-language", lang);
+  baseUrl: BASE_URL,
+  prepareHeaders: (headers, { endpoint }) => {
+    headers.set("accept-language", resolveLanguage());
     const excludeToken = [...PUBLIC_AUTH_ENDPOINTS, "getLocations"];
-
-    if (!excludeToken.includes(endpoint)) {
-      const cookieToken = getToken();
-      const stateToken = (getState() as AuthSliceState).authReducer?.token;
-      const token =
-        (typeof cookieToken === "string" && cookieToken) ||
-        (typeof stateToken === "string" && stateToken) ||
-        "";
-
-      if (token) {
-        headers.set("Authorization", `Bearer ${token}`);
-      }
+    const token = getToken();
+    if (token && !excludeToken.includes(endpoint)) {
+      headers.set("Authorization", `Bearer ${token}`);
     }
     return headers;
   },
@@ -73,82 +54,60 @@ const rawBaseQuery = fetchBaseQuery({
 const redirectToSignIn = () => {
   if (typeof window === "undefined" || isRedirectingToSignIn) return;
   isRedirectingToSignIn = true;
-  const locale = resolveLanguage();
-  window.location.href = `/${locale}/signin`;
+  window.location.href = `/${resolveLanguage()}/signin`;
 };
 
-const resolveRefreshToken = (getState: () => unknown): string => {
-  const fromCookie = getRefreshToken();
-  if (fromCookie) return fromCookie;
-
-  const fromState = (getState() as AuthSliceState).authReducer?.refreshToken;
-  return typeof fromState === "string" ? fromState : "";
-};
-
-const isUsableRefreshToken = (value: string | null | undefined): value is string =>
-  Boolean(value && value !== "undefined" && value !== "null");
-
+/**
+ * Flow:
+ * 1) API returns 401 Unauthorized
+ * 2) Call /auth/refreshToken with { token: refreshToken from cookie }
+ * 3) Save new accessToken → retry original request
+ * 4) If refresh fails → logout + signin (once)
+ */
 export const baseQueryWithReauth: BaseQueryFn<
   string | FetchArgs,
   unknown,
   FetchBaseQueryError
 > = async (args, api, extraOptions: object) => {
-  // Wait if another request is already refreshing the session.
   await refreshMutex.waitForUnlock();
 
   let result = await rawBaseQuery(args, api, extraOptions);
 
-  if (result.error && result.error.status === 401) {
-    // Wrong password / public auth errors: return to the form, do not redirect.
-    if (PUBLIC_AUTH_ENDPOINTS.has(api.endpoint)) {
-      return result;
-    }
-    // Guests have no token; do not clear guest session on public API 401s.
-    if (isGuestSession()) {
-      return result;
-    }
+  if (result.error?.status !== 401) return result;
+  if (PUBLIC_AUTH_ENDPOINTS.has(api.endpoint)) return result;
+  if (isGuestSession()) return result;
 
-    if (!refreshMutex.isLocked()) {
-      const release = await refreshMutex.acquire();
-      try {
-        const refreshToken = resolveRefreshToken(api.getState);
-
-        if (!isUsableRefreshToken(refreshToken)) {
-          api.dispatch(logout());
-          redirectToSignIn();
-          return result;
-        }
-
-        const tokens = await refreshAuthTokens(refreshToken);
-
-        if (tokens?.accessToken) {
-          isRedirectingToSignIn = false;
-          api.dispatch(
-            setToken({
-              accessToken: tokens.accessToken,
-              refreshToken: tokens.refreshToken ?? refreshToken,
-            }),
-          );
-          // Retry the original request with the new access token.
-          result = await rawBaseQuery(args, api, extraOptions);
-        } else {
-          api.dispatch(logout());
-          redirectToSignIn();
-        }
-      } finally {
-        release();
+  if (!refreshMutex.isLocked()) {
+    const release = await refreshMutex.acquire();
+    try {
+      const refreshToken = getRefreshToken();
+      if (!refreshToken) {
+        api.dispatch(logout());
+        redirectToSignIn();
+        return result;
       }
-    } else {
-      // Another request refreshed the session — retry once with new tokens.
-      await refreshMutex.waitForUnlock();
 
-      const stillHasSession =
-        Boolean(getToken()) ||
-        Boolean((api.getState() as AuthSliceState).authReducer?.token);
-
-      if (stillHasSession) {
+      const tokens = await refreshAuthTokens(refreshToken);
+      if (tokens?.accessToken && tokens.refreshToken) {
+        api.dispatch(
+          setToken({
+            accessToken: tokens.accessToken,
+            refreshToken: tokens.refreshToken,
+          }),
+        );
         result = await rawBaseQuery(args, api, extraOptions);
+      } else {
+        // api.dispatch(logout());
+        // redirectToSignIn();
       }
+    } finally {
+      release();
+    }
+  } else {
+    // Another request already refreshed — retry once with new token.
+    await refreshMutex.waitForUnlock();
+    if (getToken()) {
+      result = await rawBaseQuery(args, api, extraOptions);
     }
   }
 

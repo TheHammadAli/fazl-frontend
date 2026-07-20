@@ -76,16 +76,20 @@ const authSlice = createSlice({
     },
 
     setToken: (state, action) => {
-      state.token = action.payload.accessToken;
-      const nextRefreshToken =
+      const accessToken = action.payload.accessToken;
+      const refreshToken =
         action.payload.refreshToken ?? state.refreshToken ?? "";
-      if (nextRefreshToken) {
-        state.refreshToken = nextRefreshToken;
+
+      state.token = accessToken;
+      if (refreshToken) {
+        state.refreshToken = refreshToken;
       }
       state.isGuest = false;
+
+      // Update access + refresh cookies together.
       setAuthTokens({
-        accessToken: action.payload.accessToken,
-        refreshToken: nextRefreshToken || undefined,
+        accessToken,
+        refreshToken: refreshToken || undefined,
       });
       deleteCookie("isGuest", { path: "/" });
     },

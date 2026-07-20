@@ -2,10 +2,7 @@ import { deleteCookie, setCookie } from "cookies-next";
 
 const COOKIE_PATH = "/";
 
-/** Keep access cookie until refresh expires so proxy does not kick users out. */
 export const ACCESS_TOKEN_MAX_AGE = 60 * 60 * 24 * 30;
-
-/** Keep users signed in across sessions until refresh token expires. */
 export const REFRESH_TOKEN_MAX_AGE = 60 * 60 * 24 * 30;
 
 const baseOptions = {
@@ -33,6 +30,7 @@ export function setAuthTokens(tokens: {
   refreshToken?: string;
 }) {
   setAccessTokenCookie(tokens.accessToken);
+  // Always keep refresh cookie in sync when access is updated.
   if (tokens.refreshToken) {
     setRefreshTokenCookie(tokens.refreshToken);
   }
@@ -69,6 +67,7 @@ export function clearAuthCookies() {
   deleteCookie("isAdmin", opts);
 }
 
+/** Reads accessToken + refreshToken from refresh/login response. */
 export function extractAuthTokens(data: unknown): {
   accessToken: string;
   refreshToken?: string;
@@ -79,36 +78,40 @@ export function extractAuthTokens(data: unknown): {
   const nested =
     root.data && typeof root.data === "object"
       ? (root.data as Record<string, unknown>)
-      : root;
+      : null;
+  const deeper =
+    nested?.data && typeof nested.data === "object"
+      ? (nested.data as Record<string, unknown>)
+      : null;
 
-  const pickString = (...keys: string[]) => {
-    for (const source of [nested, root]) {
-      for (const key of keys) {
+  const pick = (...sources: Array<Record<string, unknown> | null>) => {
+    const accessKeys = ["accessToken", "access_token"];
+    const refreshKeys = ["refreshToken", "refresh_token"];
+
+    let accessToken: string | undefined;
+    let refreshToken: string | undefined;
+
+    for (const source of sources) {
+      if (!source) continue;
+      for (const key of accessKeys) {
         const value = source[key];
-        if (typeof value === "string" && value.trim()) return value.trim();
+        if (!accessToken && typeof value === "string" && value.trim()) {
+          accessToken = value.trim();
+        }
+      }
+      for (const key of refreshKeys) {
+        const value = source[key];
+        if (!refreshToken && typeof value === "string" && value.trim()) {
+          refreshToken = value.trim();
+        }
       }
     }
-    return undefined;
+
+    return { accessToken, refreshToken };
   };
 
-  const accessToken = pickString(
-    "accessToken",
-    "access_token",
-    "token",
-  );
-
-  const refreshToken = pickString(
-    "refreshToken",
-    "refresh_token",
-  );
+  const { accessToken, refreshToken } = pick(deeper, nested, root);
 
   if (!accessToken) return null;
-
-  // Avoid treating the refresh token itself as the access token when APIs
-  // only return `{ token: <refresh> }`.
-  if (refreshToken && accessToken === refreshToken && !nested.accessToken && !root.accessToken) {
-    return null;
-  }
-
   return refreshToken ? { accessToken, refreshToken } : { accessToken };
 }
