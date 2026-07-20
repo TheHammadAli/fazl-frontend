@@ -4,34 +4,78 @@ import Image from "next/image";
 import MobileTabsImage from "@/assets/icons/mobile-tabs.svg";
 import GoogleStoreBadge from "@/assets/icons/google-store.svg";
 import AppleStoreBadge from "@/assets/icons/apple-store.svg";
+import shoppingBagIcon from "@/assets/icons/total-shops.svg";
+import broadcastIcon from "@/assets/icons/broadcast.svg";
+import shopIcon from "@/assets/icons/view-shop-icon.svg";
 import { useDictionary } from "@/dictionaries/DictionaryProvider";
 
 function DownloadAppBanner() {
     const { info_messages } = useDictionary();
 
+    const features = [
+        {
+            icon: shoppingBagIcon,
+            label: info_messages.find_local_buyers_sellers,
+        },
+        {
+            icon: broadcastIcon,
+            label: info_messages.broadcast_in_your_area,
+        },
+        {
+            icon: shopIcon,
+            label: info_messages.explore_trusted_services,
+        },
+    ];
+
     return (
-        <section className="mt-8 overflow-hidden rounded-[16px] bg-green-1 sm:mt-14 sm:rounded-[24px]">
-            <div className="flex flex-col items-center gap-5 px-5 pb-5 pt-5 sm:flex-row md:gap-8 md:px-10 md:pb-0 xl:gap-16 xl:px-16 2xl:gap-20 2xl:px-20">
-                <div className="relative h-[150px] w-full max-w-[280px] shrink-0 sm:h-[190px] sm:max-w-[320px] md:h-[220px] md:max-w-[300px] lg:h-[240px] xl:max-w-[405px] 2xl:h-[500px] 2xl:max-w-[700px]">
+        <section className="mt-8 overflow-hidden rounded-[16px] bg-[#f2f8f8] sm:mt-14 sm:rounded-[24px]">
+            <div className="flex flex-col sm:flex-row 2xl:justify-center  h-full pt-5 sm:pt-0 gap-5 px-5  md:gap-8 md:px-8 lg:gap-12 lg:px-12 xl:gap-16 xl:px-16 2xl:px-20 2xl:gap-20">
+                <div className="min-h-max flex items-center justify-center sm:block">
                     <Image
                         src={MobileTabsImage}
                         alt=""
-                        fill
                         unoptimized
-                        sizes="(min-width: 1536px) 700px, 405px"
-                        className="object-contain object-center"
+                        className="object-contain sm:object-center xl:object-bottom lg:min-w-[320px] xl:min-w-[405px]  2xl:min-w-[500px] h-full  "
                     />
                 </div>
 
-                <div className="flex min-w-0 w-full  flex-col text-center sm:max-w-[52%] sm:text-left rtl:sm:text-right 2xl:max-w-none 2xl:flex 2xl:flex-row 2xl:gap-14">
-                   <div>
-                    <h2 className="text-[18px] font-medium leading-tight text-white sm:text-[20px] md:text-[24px] xl:text-[26px] 2xl:text-[30px]">
-                        {info_messages.buy_sell_connect_on_the_go}
+                <div className="flex min-w-0 w-full flex-col py-5 text-center sm:max-w-[52%]   sm:text-left rtl:sm:text-right 2xl:w-max  ">
+                    <h2 className="text-[32px] font-bold leading-tight text-black 2xl:text-[40px]">
+                        {info_messages.buy_sell_and_connect}
                     </h2>
-                    <p className="mt-2 text-[18px] font-medium text-white sm:text-[20px] md:text-[22px] xl:text-[26px] 2xl:text-[28px]">
-                        {info_messages.download_our_app_now}
-                    </p>
-                    </div>
+                    <h2 className="text-[32px] font-bold leading-tight text-green-1 2xl:text-[40px]">
+                        {info_messages.on_the_go}
+                    </h2>
+
+                    <ul className="mt-5 flex flex-col items-center gap-3 sm:items-start">
+                        {features.map((feature) => (
+                            <li
+                                key={feature.label}
+                                className="flex min-w-[280px] items-center gap-1.5  sm:gap-3 sm:w-full sm:max-w-none sm:justify-start"
+                            >
+                                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[6px] bg-green-1 2xl:h-12 2xl:w-12">
+                                    <Image
+                                        src={feature.icon}
+                                        alt=""
+                                        width={16}
+                                        height={16}
+                                        unoptimized
+                                        className="h-4 w-4 brightness-0 invert 2xl:h-8 2xl:w-8"
+                                    />
+                                </span>
+                                <span className="text-center text-[12px] font-normal leading-snug text-black sm:text-start 2xl:text-[16px]">
+                                    {feature.label}
+                                </span>
+                            </li>
+                        ))}
+                    </ul>
+
+                    <span
+
+                        className="mt-4 text-[15px] font-medium text-green-1 hover:underline sm:self-start 2xl:text-[16px]"
+                    >
+                        {info_messages.download_fazl_app_now}
+                    </span>
 
                     <div className="mt-5 flex flex-wrap items-center justify-center gap-3 sm:justify-start rtl:sm:justify-end 2xl:gap-4">
                         <a
