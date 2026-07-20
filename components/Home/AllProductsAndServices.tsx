@@ -34,7 +34,7 @@ type CatalogItem = {
 
 const CATALOG_SWIPER_BREAKPOINTS = {
     0: {
-        slidesPerView: 1.35,
+        slidesPerView: 2,
         spaceBetween: 8,
     },
     640: {
