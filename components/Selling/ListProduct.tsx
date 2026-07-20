@@ -292,10 +292,10 @@ function ListProduct() {
           </div>
         </div>
         {status === "success" ? (
-          <ProductListed setStatus={setStatus} createdData={createdData}/>
+          <ProductListed setStatus={setStatus} createdData={createdData} />
         ) : (
-          <div className="md:flex w-full flex-1">
-            <div className="md:w-[46%] p-4 md:p-6 border-b md:border-r border-gray-9 ">
+          <div className="md:flex w-full flex-1 ">
+            <div className="w-full md:w-[46%] p-4 md:p-6 border-b md:border-r border-gray-9 ">
               <div>
                 <Tabs
                   tabs={tabs}
@@ -311,10 +311,10 @@ function ListProduct() {
                 </h4>
               </div>
             </div>
-            <div className="md:w-[54%] p-4 md:px-6">
+            <div className="w-full  md:w-[54%] p-4 md:px-6">
               <form
                 onSubmit={handleSubmit}
-                className={`w-full  max-w-[390px] 
+                className={`w-full  md:max-w-[390px] 
              ${isLoading && "pointer-events-none"}
           `}
               >
