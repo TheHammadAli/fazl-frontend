@@ -31,11 +31,13 @@ import ShopProductsSlider from "./ShopProductsSlider";
 import { formatJoinedDate } from "@/utils/formatJoinedDate";
 import Lightbox from "yet-another-react-lightbox";
 import "yet-another-react-lightbox/styles.css";
+import { buildListingUrl } from "@/utils/getPublicAppOrigin";
 
 function buildWhatsAppUrl(phone: string, message: string) {
   const digits = phone.replace(/\D/g, "");
   if (!digits) return null;
-  return `https://wa.me/${digits}?text=${encodeURIComponent(message)}`;
+  // api.whatsapp.com preserves links in prefilled text more reliably than wa.me
+  return `https://api.whatsapp.com/send?phone=${digits}&text=${encodeURIComponent(message)}`;
 }
 
 function resolveEntityId(value: unknown): string | null {
@@ -282,7 +284,21 @@ function BuyProductDetail({
       return;
     }
 
-    const message = `${info_messages.whatsapp_product_inquiry}: ${product?.data?.title ?? ""}`;
+    const title = product?.data?.title ?? "";
+    const listingUrl = productId
+      ? buildListingUrl(`/${currentLanguage}/buy-product?id=${productId}`)
+      : "";
+
+    // Blank line before URL helps WhatsApp auto-detect it as a tappable link.
+    const message = [
+      info_messages.interested_in_this_product,
+      title,
+      listingUrl ? `\n${listingUrl}` : "",
+    ]
+      .filter(Boolean)
+      .join("\n")
+      .trim();
+
     const url = buildWhatsAppUrl(sellerPhone, message);
     if (!url) {
       toast.error(error_messages.seller_phone_unavailable);
@@ -294,7 +310,19 @@ function BuyProductDetail({
 
   const handleChatStore = () => {
     requireSignIn(() => {
-      onInitiateChat(userId, sellerUserId ?? "");
+      const title = product?.data?.title ?? "";
+      const listingUrl = productId
+        ? buildListingUrl(`/${currentLanguage}/buy-product?id=${productId}`)
+        : "";
+      const initialMessage = [
+        info_messages.interested_in_this_product,
+        title,
+        listingUrl,
+      ]
+        .filter(Boolean)
+        .join("\n");
+
+      onInitiateChat(userId, sellerUserId ?? "", initialMessage);
     });
   };
 

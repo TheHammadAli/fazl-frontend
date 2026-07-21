@@ -313,6 +313,8 @@
         "receive_order": "How would you like to receive your order?",
         "added_to_cart": "Added to cart",
         "whatsapp_product_inquiry": "Hi, I am interested in your listing",
+        "interested_in_this_product": "Hi, I'm interested in this product:",
+        "interested_in_this_service": "Hi, I'm interested in this service:",
         "guest_banner_message": "You're browsing as a guest. Sign in to buy, book services, chat, and more.",
         "cart_empty": "Your cart is empty",
         "cart_empty_subtitle": "When you add something to a cart, it appears here.",

@@ -112,6 +112,7 @@ export default function ChatPage() {
             <ChatWindow
               threadType={threadType}
               thread={selectedThread}
+              draftMessage={params.get("draft") ?? ""}
               onBack={() => setMobileShowConversation(false)}
             />
           ) : (

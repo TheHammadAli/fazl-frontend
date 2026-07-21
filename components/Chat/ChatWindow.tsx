@@ -27,6 +27,7 @@ type ChatWindowProps = {
   thread: any;
   onBack?: () => void;
   threadType: string;
+  draftMessage?: string;
 };
 
 function getMessageImageUrls(message: {
@@ -45,7 +46,7 @@ function getMessageImageUrls(message: {
   return [];
 }
 
-export default function ChatWindow({ thread, onBack, threadType }: ChatWindowProps) {
+export default function ChatWindow({ thread, onBack, threadType, draftMessage = "" }: ChatWindowProps) {
   const { placeholders } = useDictionary();
   type PlaceholderKey = keyof typeof placeholders;
   const ph = (key: PlaceholderKey) => placeholders[key];
@@ -389,6 +390,7 @@ export default function ChatWindow({ thread, onBack, threadType }: ChatWindowPro
     if (!socket) return;
     setPage(1);
     setSelectedFile(null);
+    setMessageText(draftMessage.trim());
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -410,7 +412,7 @@ export default function ChatWindow({ thread, onBack, threadType }: ChatWindowPro
         // Keep chat usable even if marking read fails.
       });
     }
-  }, [conversationId, markMessagesAsRead, userId, threadType, broadcastMessages?.data, broadcastThreadId, isBroadcastReceived, thread?._id, thread?.broadcastId]);
+  }, [conversationId, markMessagesAsRead, userId, threadType, broadcastMessages?.data, broadcastThreadId, isBroadcastReceived, thread?._id, thread?.broadcastId, draftMessage]);
 
   const sortedFilteredMessages = useMemo(
     () =>
@@ -605,7 +607,23 @@ export default function ChatWindow({ thread, onBack, threadType }: ChatWindowPro
                           <div
                             className={`break-words text-sm leading-relaxed ${mine ? "text-[#030303]" : "text-gray-900"} ${hasImages ? "px-3 pb-2.5 pt-2" : "px-4 py-2.5"} whitespace-pre-wrap`}
                           >
-                            {textContent}
+                            {String(textContent)
+                              .split(/(https?:\/\/[^\s]+)/g)
+                              .map((part, partIndex) =>
+                                /^https?:\/\//.test(part) ? (
+                                  <a
+                                    key={`link-${partIndex}`}
+                                    href={part}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="break-all text-green-1 hover:underline"
+                                  >
+                                    {part}
+                                  </a>
+                                ) : (
+                                  <span key={`text-${partIndex}`}>{part}</span>
+                                ),
+                              )}
                           </div>
                         ) : null}
                       </div>
@@ -658,20 +676,25 @@ export default function ChatWindow({ thread, onBack, threadType }: ChatWindowPro
             <Image src={camIcon} alt="cam-icon" />
           </label>
           <div className="relative w-full">
-            <input
-              type="text"
+            <textarea
               value={messageText}
               onChange={(e) => setMessageText(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === "Enter" && !isSendingMessage && !isSendingBroadcastMessage) {
+                if (
+                  e.key === "Enter" &&
+                  !e.shiftKey &&
+                  !isSendingMessage &&
+                  !isSendingBroadcastMessage
+                ) {
                   e.preventDefault();
                   handleSendMessage();
                 }
               }}
               placeholder={ph("write_a_message")}
-              className=" bg-[#EEF2F3] w-full pr-8 rtl:pl-8 rounded-[10px] flex-1 h-10 text px-4 text-[#949494] text-sm outline-none placeholder:text-[#949494]"
+              rows={Math.min(4, Math.max(1, messageText.split("\n").length))}
+              className="max-h-[120px] min-h-10 w-full resize-none rounded-[10px] bg-[#EEF2F3] px-4 py-2.5 pr-10 text-sm text-[#030303] outline-none placeholder:text-[#949494] rtl:pl-10"
             />
-            <div className="absolute rtl:rotate-180 ltr:right-3 rtl:left-3 top-1/2 -translate-y-1/2 p-1 hover:bg-green-1/10 rounded-full">
+            <div className="absolute ltr:right-3 rtl:left-3 rtl:rotate-180 bottom-2.5 p-1 hover:bg-green-1/10 rounded-full">
               {isSendingMessage || isSendingBroadcastMessage ? (
                 <span className="">
                   <span className="block h-4 w-4 animate-spin rounded-full border-2 border-[#3C9197] border-t-transparent" />
@@ -683,8 +706,8 @@ export default function ChatWindow({ thread, onBack, threadType }: ChatWindowPro
                   alt="white-arrow-icon"
                   className="cursor-pointer"
                 />
-              )}</div>
-
+              )}
+            </div>
           </div>
         </div>
       </div>
