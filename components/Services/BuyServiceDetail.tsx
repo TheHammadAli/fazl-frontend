@@ -27,11 +27,13 @@ import {
 import { useGetProductOwnerDetailQuery } from "@/store/services/authService";
 import Lightbox from "yet-another-react-lightbox";
 import "yet-another-react-lightbox/styles.css";
+import { buildListingUrl } from "@/utils/getPublicAppOrigin";
 
 function buildWhatsAppUrl(phone: string, message: string) {
   const digits = phone.replace(/\D/g, "");
   if (!digits) return null;
-  return `https://wa.me/${digits}?text=${encodeURIComponent(message)}`;
+  // api.whatsapp.com preserves links in prefilled text more reliably than wa.me
+  return `https://api.whatsapp.com/send?phone=${digits}&text=${encodeURIComponent(message)}`;
 }
 
 function WhatsAppIcon({ className }: { className?: string }) {
@@ -202,7 +204,19 @@ function BuyServiceDetail({
 
   const handleMessageProvider = () => {
     requireSignIn(() => {
-      onInitiateChat(userId, providerUserId);
+      const title = service?.data?.title ?? "";
+      const listingUrl = serviceId
+        ? buildListingUrl(`/${currentLanguage}/book-service?id=${serviceId}`)
+        : "";
+      const initialMessage = [
+        info_messages.interested_in_this_service,
+        title,
+        listingUrl,
+      ]
+        .filter(Boolean)
+        .join("\n");
+
+      onInitiateChat(userId, providerUserId, initialMessage);
     });
   };
 
@@ -212,7 +226,21 @@ function BuyServiceDetail({
       return;
     }
 
-    const message = `${info_messages.whatsapp_product_inquiry}: ${service?.data?.title ?? ""}`;
+    const title = service?.data?.title ?? "";
+    const listingUrl = serviceId
+      ? buildListingUrl(`/${currentLanguage}/book-service?id=${serviceId}`)
+      : "";
+
+    // Blank line before URL helps WhatsApp auto-detect it as a tappable link.
+    const message = [
+      info_messages.interested_in_this_service,
+      title,
+      listingUrl ? `\n${listingUrl}` : "",
+    ]
+      .filter(Boolean)
+      .join("\n")
+      .trim();
+
     const url = buildWhatsAppUrl(sellerPhone, message);
     if (!url) {
       toast.error(error_messages.seller_phone_unavailable);
