@@ -8,6 +8,12 @@ import { useDictionary } from "@/dictionaries/DictionaryProvider";
 import privacyIcon from "@/assets/icons/privacy-policy.svg";
 import settingIcon from "@/assets/icons/settings.svg";
 import aboutIcon from "@/assets/icons/about.svg";
+import WhatsAppIcon from "@/assets/icons/whatsapp-icon.svg";
+import {
+  PRIVACY_POLICY_URL,
+  TERMS_AND_CONDITIONS_URL,
+  getSupportWhatsAppUrl,
+} from "@/assets/content/constants";
 import { useRouter } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/store/store";
 import { logout } from "@/store/reducers/authReducer";
@@ -131,7 +137,9 @@ function Navigations({
       <div className="bg-gray-12 border-t-[1px] border-gray-9 h-[27px]"></div>
       <div
         className={`px-4 xl:px-6 py-4 flex items-center gap-2 cursor-pointer `}
-        onClick={() => router.push("/privacy-policy")}
+        onClick={() =>
+          window.open(PRIVACY_POLICY_URL, "_blank", "noopener,noreferrer")
+        }
       >
         <Image src={privacyIcon} alt="icon" className="" />
         <h2 className="font-medium text-black-1 text-[15px] first-letter:capitalize">
@@ -140,11 +148,24 @@ function Navigations({
       </div>
       <div
         className={`px-4 xl:px-6 py-4 flex items-center gap-2 cursor-pointer `}
-        onClick={() => router.push("/terms-conditions")}
+        onClick={() =>
+          window.open(TERMS_AND_CONDITIONS_URL, "_blank", "noopener,noreferrer")
+        }
       >
         <Image src={privacyIcon} alt="icon" className="" />
         <h2 className="font-medium text-black-1 text-[15px] first-letter:capitalize">
           {placeholders.terms_condition}
+        </h2>
+      </div>
+      <div
+        className={`px-4 xl:px-6 py-4 flex items-center gap-2 cursor-pointer `}
+        onClick={() =>
+          window.open(getSupportWhatsAppUrl(), "_blank", "noopener,noreferrer")
+        }
+      >
+        <Image src={WhatsAppIcon} alt="icon" className="h-[22px] w-[22px]" />
+        <h2 className="font-medium text-black-1 text-[15px] first-letter:capitalize">
+          {placeholders.contact_us}
         </h2>
       </div>
       <div className="bg-gray-12 border-t-[1px] border-gray-9 h-[27px]"></div>

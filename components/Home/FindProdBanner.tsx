@@ -13,7 +13,7 @@ function FindProdBanner() {
     const { info_messages } = useDictionary();
 
     return (
-        <div className="relative mt-4  overflow-hidden rounded-[24px] bg-green-1 sm:mt-6  sm:rounded-[24px]">
+        <div className="relative mt-4 hidden sm:block  overflow-hidden rounded-[24px] bg-green-1 sm:mt-6  sm:rounded-[24px]">
             <div
                 aria-hidden
                 className="pointer-events-none absolute inset-0  "

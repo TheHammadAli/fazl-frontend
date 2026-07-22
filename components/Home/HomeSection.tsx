@@ -33,6 +33,7 @@ import { useCategoriesQuery } from "@/custom-hooks/useCategoriesQuery";
 import { getFeedCategoryLabel } from "@/utils/getFeedCategoryLabel";
 import DoodleButton from "../Ui/DoodleButton";
 import locationGrayIcon from "@/assets/icons/location-gray.svg";
+import chevronRightIcon from "@/assets/icons/chevron-right-icon.svg";
 import { useAppSelector } from "@/store/store";
 import { useGetUserDetailQuery } from "@/store/services/profileService";
 
@@ -44,6 +45,9 @@ type HomeActionCardProps = {
   buttonLabel: string;
   buttonClass: string;
   onClick: () => void;
+  className?: string;
+  /** Mobile-only layout: featured tall card vs compact chevron row */
+  mobileVariant?: "featured" | "compact";
 };
 
 function renderDescription(text: string) {
@@ -62,31 +66,84 @@ function HomeActionCard({
   buttonLabel,
   buttonClass,
   onClick,
+  className = "",
+  mobileVariant = "compact",
 }: HomeActionCardProps) {
   return (
-    <div
-      className={`flex w-full flex-col rounded-[16px] p-2.5 sm:p-3 lg:p-4 ${bgClass}`}
-    >
-      <div className="flex items-start gap-2 sm:gap-2.5 lg:gap-3">
-        <div className="flex h-[48px] w-[48px] shrink-0 items-center justify-center rounded-full bg-white sm:h-[52px] sm:w-[52px] lg:h-[62px] lg:w-[62px]">
-          <Image src={icon} alt="" className="max-h-[70%] max-w-[70%] lg:max-h-none lg:max-w-none" />
-        </div>
-        <div className="min-w-0 flex-1">
-          <h3 className="text-[15px] font-semibold leading-snug text-[#001907]">
-            {title}
-          </h3>
-          <p className="mt-1 text-[14px] font-normal leading-snug text-[#001907]">
+    <div className={`h-full ${className}`}>
+      {/* Mobile: featured tall card (Broadcast) */}
+      {mobileVariant === "featured" ? (
+        <div
+          className={`flex h-full flex-col gap-[14px] justify-between rounded-[16px] py-[12px] px-[12px] sm:hidden ${bgClass}`}
+        >
+          <div className="flex h-[62px] w-[62px] shrink-0 items-center justify-center rounded-full bg-white">
+            <Image src={icon} alt="" className="max-h-[70%] max-w-[70%]" />
+          </div>
+          <p className=" flex-1 text-[14px] font-medium leading-snug text-[#001907]">
             {renderDescription(description)}
           </p>
+          <button
+            type="button"
+            onClick={onClick}
+            className=" flex h-[40px] w-full cursor-pointer items-center justify-center rounded-[8px] bg-white text-[13px] font-semibold text-[#001907]"
+          >
+            {buttonLabel}
+          </button>
         </div>
-      </div>
-      <DoodleButton
-        type="button"
-        onClick={onClick}
-        className={`mt-3 flex h-[36px] w-full cursor-pointer items-center justify-center rounded-[8px] px-3 text-center text-[13px] font-medium text-white sm:mt-3.5 lg:mt-4 lg:h-[40px] lg:px-4 ${buttonClass}`}
+      ) : (
+        /* Mobile: compact row with chevron */
+        <button
+          type="button"
+          onClick={onClick}
+          className={`h-full w-full items-center space-y-[14px] rounded-[16px] px-[12px] py-[12px] text-start sm:hidden ${bgClass}`}
+        >
+          <div className="flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-full bg-white">
+            <Image src={icon} alt="" className="max-h-[70%] max-w-[70%] h-[18px] w-[18px]" />
+          </div>
+          <div className="flex items-center justify-between w-full">
+            <h3 className="min-w-0 flex-1 text-[14px] font-medium leading-snug text-[#001907]">
+              {title}
+            </h3>
+            <Image
+              src={chevronRightIcon}
+              alt=""
+              aria-hidden
+              className="h-3.5 w-2.5 shrink-0 rtl:rotate-180"
+            />
+          </div>
+
+        </button>
+      )}
+
+      {/* sm+: full card with description + CTA */}
+      <div
+        className={`hidden h-full w-full flex-col rounded-[16px] p-2.5 sm:flex sm:p-3 lg:p-4 ${bgClass}`}
       >
-        {buttonLabel}
-      </DoodleButton>
+        <div className="flex items-start gap-2 sm:gap-2.5 lg:gap-3">
+          <div className="flex h-[48px] w-[48px] shrink-0 items-center justify-center rounded-full bg-white sm:h-[52px] sm:w-[52px] lg:h-[62px] lg:w-[62px]">
+            <Image
+              src={icon}
+              alt=""
+              className="max-h-[70%] max-w-[70%] lg:max-h-none lg:max-w-none"
+            />
+          </div>
+          <div className="min-w-0 flex-1">
+            <h3 className="text-[15px] font-semibold leading-snug text-[#001907]">
+              {title}
+            </h3>
+            <p className="mt-1 text-[14px] font-normal leading-snug text-[#001907]">
+              {renderDescription(description)}
+            </p>
+          </div>
+        </div>
+        <DoodleButton
+          type="button"
+          onClick={onClick}
+          className={`mt-auto flex h-[36px] w-full cursor-pointer items-center justify-center rounded-[8px] px-3 text-center text-[13px] font-medium text-white sm:mt-3.5 lg:mt-4 lg:h-[40px] lg:px-4 ${buttonClass}`}
+        >
+          {buttonLabel}
+        </DoodleButton>
+      </div>
     </div>
   );
 }
@@ -214,9 +271,8 @@ function HomeSection() {
         </div>
 
         <div
-          className={`flex w-full min-w-0 items-center gap-2 sm:contents ${
-            isLoggedIn && locationName ? "justify-between" : "justify-end"
-          }`}
+          className={`flex w-full min-w-0 items-center gap-2 sm:contents ${isLoggedIn && locationName ? "justify-between" : "justify-end"
+            }`}
         >
           {isLoggedIn && locationName ? (
             <UserLocationBadge locationName={locationName} />
@@ -317,8 +373,10 @@ function HomeSection() {
 
       {!isGuest && (
         <>
-          <div className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-3 md:grid-cols-3 lg:gap-6">
+          <div className="mt-4 sm:mt-8 grid grid-cols-2 grid-rows-2 gap-2.5 sm:grid-cols-2 sm:grid-rows-none sm:gap-3 md:grid-cols-3 lg:gap-6">
             <HomeActionCard
+              className="row-span-2 sm:row-span-1"
+              mobileVariant="featured"
               bgClass="bg-[#DFF4F4]"
               icon={broadcastServiceIcon}
               title={info_messages.broadcast_request}
@@ -328,6 +386,7 @@ function HomeSection() {
               onClick={() => setOpenBroadcast(true)}
             />
             <HomeActionCard
+              mobileVariant="compact"
               bgClass="bg-[#EAF1FB]"
               icon={postAnAdIcon}
               title={info_messages.post_an_ad}
@@ -337,6 +396,7 @@ function HomeSection() {
               onClick={() => router.push("/selling/list-product?type=personal")}
             />
             <HomeActionCard
+              mobileVariant="compact"
               bgClass="bg-[#FBF3EA]"
               icon={createShopIcon}
               title={placeholders.create_shop}
