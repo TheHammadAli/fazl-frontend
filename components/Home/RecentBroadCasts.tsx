@@ -206,16 +206,15 @@ function BroadcastCard({ item, onClick, shouldSuppressClick }: BroadcastCardProp
         >
             <div className="pointer-events-none flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-[10px] bg-[#FBF3EA]">
                 <Image
-                    src={imageUrl}
+                    src={broadcastServiceIcon}
                     alt={item.message ?? "broadcast"}
                     width={48}
                     height={48}
                     draggable={false}
-                    unoptimized
+
                     className={
-                        hasCustomImage
-                            ? "h-full w-full select-none object-cover"
-                            : "h-8 w-8 select-none object-contain "
+
+                        "h-10 w-10"
                     }
                 />
             </div>

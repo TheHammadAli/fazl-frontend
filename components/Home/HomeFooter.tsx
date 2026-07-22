@@ -12,6 +12,12 @@ import LinkedInIcon from "@/assets/icons/linked-in.svg";
 import XIcon from "@/assets/icons/xicon.svg";
 import PhoneIconFooter from "@/assets/icons/phone-icon-footer.svg";
 import GmailIconFooter from "@/assets/icons/gmail-icon-footer.svg";
+import WhatsAppIcon from "@/assets/icons/whatsapp-icon.svg";
+import {
+    PRIVACY_POLICY_URL,
+    TERMS_AND_CONDITIONS_URL,
+    getSupportWhatsAppUrl,
+} from "@/assets/content/constants";
 import { useDictionary } from "@/dictionaries/DictionaryProvider";
 import { useCategoriesQuery } from "@/custom-hooks/useCategoriesQuery";
 import { getFeedCategoryLabel } from "@/utils/getFeedCategoryLabel";
@@ -24,6 +30,8 @@ type CategoryItem = {
 type FooterLink = {
     label: string;
     href: string;
+    external?: boolean;
+    showWhatsAppIcon?: boolean;
 };
 
 type SocialLink = {
@@ -40,7 +48,7 @@ const SOCIAL_LINKS: SocialLink[] = [
 ];
 
 const FOOTER_LINK_CLASS =
-    "text-[13px] font-light text-gray-8 transition-colors hover:text-green-1 sm:text-[14px]";
+    "break-words text-[13px] font-light text-gray-8 transition-colors hover:text-green-1 sm:text-[14px]";
 
 function FooterColumn({
     title,
@@ -52,8 +60,8 @@ function FooterColumn({
     className?: string;
 }) {
     return (
-        <div className={`w-max min-w-0 shrink-0 ${className}`}>
-            <h3 className="text-[15px] font-medium text-[#030303] sm:text-[16px]">
+        <div className={`min-w-0 ${className}`}>
+            <h3 className="text-[15px] font-medium leading-snug text-[#030303] sm:text-[16px]">
                 {title}
             </h3>
             <div className="mt-3 sm:mt-4">{children}</div>
@@ -61,33 +69,63 @@ function FooterColumn({
     );
 }
 
+function mapCategoriesToLinks(
+    categories: CategoryItem[] | undefined,
+    tab: "products" | "services",
+    lang: string,
+): FooterLink[] {
+    return (categories ?? []).slice(0, 4).map((category) => ({
+        label: getFeedCategoryLabel(category.name, lang),
+        href: `/home/search-list?tab=${tab}&categoryId=${category._id}`,
+    }));
+}
+
 function HomeFooter() {
     const router = useRouter();
-    const { placeholders, info_messages, pages, currentLanguage } = useDictionary();
-    const { data: categories } = useCategoriesQuery({ type: "product" });
+    const { placeholders, info_messages, currentLanguage } = useDictionary();
+    const { data: productCategories } = useCategoriesQuery({ type: "product" });
+    const { data: serviceCategories } = useCategoriesQuery({ type: "service" });
 
-    const popularCategories = useMemo(() => {
-        const items: FooterLink[] = [
-            ...((categories?.data ?? []) as CategoryItem[])
-                .slice(0, 4)
-                .map((category) => ({
-                    label: category.name as string,
-                    href: `/home/search-list?tab=products&categoryId=${category._id}`,
-                })),
-        ];
+    const popularProductCategories = useMemo(
+        () =>
+            mapCategoriesToLinks(
+                productCategories?.data as CategoryItem[] | undefined,
+                "products",
+                currentLanguage,
+            ),
+        [productCategories?.data, currentLanguage],
+    );
 
-        return items;
-    }, [categories?.data, currentLanguage, pages.home]);
+    const popularServiceCategories = useMemo(
+        () =>
+            mapCategoriesToLinks(
+                serviceCategories?.data as CategoryItem[] | undefined,
+                "services",
+                currentLanguage,
+            ),
+        [serviceCategories?.data, currentLanguage],
+    );
+
+    const whatsappUrl = getSupportWhatsAppUrl();
 
     const companyLinks: FooterLink[] = [
         { label: placeholders.about, href: "/about" },
-        { label: placeholders.contact, href: "/contact-us" },
-        { label: info_messages.blog, href: "#" },
+
+        {
+            label: placeholders.privacy_policy,
+            href: PRIVACY_POLICY_URL,
+            external: true,
+        },
+        {
+            label: placeholders.terms_condition,
+            href: TERMS_AND_CONDITIONS_URL,
+            external: true,
+        },
     ];
 
     return (
-        <footer className="mt-8 bg-[#EEF2F3] -mx-4 px-4 py-8 sm:mt-20 sm:-mx-5 sm:px-5 sm:py-10">
-            <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between lg:gap-10 xl:gap-16">
+        <footer className="mt-8 overflow-hidden bg-[#EEF2F3] -mx-4 px-4 py-8 sm:mt-20 sm:-mx-5 sm:px-5 sm:py-10">
+            <div className="flex min-w-0 flex-col gap-8 lg:flex-row lg:items-start lg:justify-between lg:gap-10 xl:gap-16">
                 <div className="max-w-[320px] shrink-0">
                     <Image
                         src={FazalLogo}
@@ -116,11 +154,27 @@ function HomeFooter() {
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 gap-8 xs:grid-cols-2 sm:gap-10 lg:flex lg:shrink-0 lg:gap-10 xl:gap-16">
-                    <FooterColumn title={info_messages.popular_categories}>
-                        <ul className="">
-                            {popularCategories.map((item) => (
-                                <li key={`${item.label}-${item.href}`}>
+                <div className="grid min-w-0 w-full grid-cols-2 gap-x-6 gap-y-8 sm:gap-x-10 sm:gap-y-10 lg:grid-cols-3 xl:grid-cols-4 lg:gap-6">
+                    <FooterColumn title={info_messages.popular_product_categories}>
+                        <ul className="space-y-1">
+                            {popularProductCategories.map((item) => (
+                                <li key={item.href}>
+                                    <button
+                                        type="button"
+                                        onClick={() => router.push(item.href)}
+                                        className={`cursor-pointer text-left ${FOOTER_LINK_CLASS}`}
+                                    >
+                                        {item.label}
+                                    </button>
+                                </li>
+                            ))}
+                        </ul>
+                    </FooterColumn>
+
+                    <FooterColumn title={info_messages.popular_service_categories}>
+                        <ul className="space-y-1">
+                            {popularServiceCategories.map((item) => (
+                                <li key={item.href}>
                                     <button
                                         type="button"
                                         onClick={() => router.push(item.href)}
@@ -134,13 +188,25 @@ function HomeFooter() {
                     </FooterColumn>
 
                     <FooterColumn title={placeholders.company}>
-                        <ul className="">
+                        <ul className="space-y-1">
                             {companyLinks.map((item) => (
                                 <li key={item.label}>
-                                    {item.href === "#" ? (
-                                        <span className={FOOTER_LINK_CLASS}>
-                                            {item.label}
-                                        </span>
+                                    {item.external ? (
+                                        <a
+                                            href={item.href}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className={`inline-flex items-center gap-2 ${FOOTER_LINK_CLASS}`}
+                                        >
+                                            {item.showWhatsAppIcon && (
+                                                <Image
+                                                    src={WhatsAppIcon}
+                                                    alt=""
+                                                    className="h-4 w-4 shrink-0"
+                                                />
+                                            )}
+                                            <span>{item.label}</span>
+                                        </a>
                                     ) : (
                                         <Link
                                             href={item.href}
@@ -152,34 +218,59 @@ function HomeFooter() {
                                 </li>
                             ))}
                         </ul>
+                        <p className={`mt-3 inline-flex items-center gap-1 ${FOOTER_LINK_CLASS}`}>
+                            <span aria-hidden className="text-[16px]">©</span>
+                            <span>2026 Fazl App</span>
+                        </p>
                     </FooterColumn>
 
-                    <FooterColumn title={info_messages.contact_info} className="xs:col-span-2 lg:col-span-1">
-                        <ul className="">
+                    <FooterColumn title={info_messages.contact_info}>
+                        <ul className="space-y-1">
+                            <li>
+                                <a
+                                    href={whatsappUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className={`inline-flex max-w-full items-center gap-2 ${FOOTER_LINK_CLASS}`}
+                                >
+                                    <Image
+                                        src={WhatsAppIcon}
+                                        alt=""
+                                        className="h-4 w-4 shrink-0"
+                                    />
+                                    <span className="min-w-0 break-all">
+                                        {placeholders.contact_us}
+                                    </span>
+                                </a>
+                            </li>
                             <li>
                                 <a
                                     href={`tel:${info_messages.footer_phone.replace(/\s/g, "")}`}
-                                    className={`inline-flex items-center gap-2 whitespace-nowrap ${FOOTER_LINK_CLASS}`}
+                                    className={`inline-flex max-w-full items-center gap-2 ${FOOTER_LINK_CLASS}`}
                                 >
                                     <Image
                                         src={PhoneIconFooter}
                                         alt=""
-                                        className=" h-[13px] w-3 shrink-0"
+                                        className="h-[13px] w-3 shrink-0"
                                     />
-                                    <span>{info_messages.footer_phone}</span>
+                                    <span className="min-w-0 break-all">
+                                        {info_messages.footer_phone}
+                                    </span>
                                 </a>
                             </li>
                             <li>
                                 <a
                                     href={`mailto:${info_messages.footer_email}`}
-                                    className={`inline-flex items-center gap-2 ${FOOTER_LINK_CLASS}`}
+                                    className={`inline-flex max-w-full items-center gap-2 ${FOOTER_LINK_CLASS}`}
                                 >
                                     <Image
                                         src={GmailIconFooter}
                                         alt=""
-                                        className=" h-[9px] w-[13px] shrink-0"
+                                        className="h-[9px] w-[13px] shrink-0"
                                     />
-                                    <span>{info_messages.footer_email}</span>
+                                    <span className="min-w-0 ">
+                                        {info_messages.footer_email}
+                                    </span>
                                 </a>
                             </li>
                         </ul>
