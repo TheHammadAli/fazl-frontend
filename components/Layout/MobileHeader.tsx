@@ -18,6 +18,12 @@ import { useIsGuest } from "@/custom-hooks/useIsGuest";
 import GuestAuthNav from "./GuestAuthNav";
 import notificationMobileIcon from "@/assets/icons/notification-mobile-icon.svg";
 import messageMobileIcon from "@/assets/icons/message-mobile icon.svg";
+import WhatsAppIcon from "@/assets/icons/whatsapp-icon.svg";
+import {
+  PRIVACY_POLICY_URL,
+  TERMS_AND_CONDITIONS_URL,
+  getSupportWhatsAppUrl,
+} from "@/assets/content/constants";
 
 function formatBadgeCount(count: number) {
   if (count <= 0) return null;
@@ -226,19 +232,44 @@ export default function MobileHeader({
                   )}
                   <div className="flex flex-col items-center mt-20">
                     <div className="flex items-center gap-[6px] text-[12px] font-normal">
-                      <span className="text-green-1 underline cursor-pointer">
+                      <span
+                        onClick={() =>
+                          window.open(PRIVACY_POLICY_URL, "_blank", "noopener,noreferrer")
+                        }
+                        className="text-green-1 underline cursor-pointer"
+                      >
                         {placeholders.company}
                       </span>
                       <div className="h-1 w-1 rounded-full bg-gray-7"></div>
-                      <span className="text-green-1 underline cursor-pointer">
+                      <span
+                        onClick={() =>
+                          window.open(getSupportWhatsAppUrl(), "_blank", "noopener,noreferrer")
+                        }
+                        className="inline-flex items-center gap-1 text-green-1 underline cursor-pointer"
+                      >
+                        <Image
+                          src={WhatsAppIcon}
+                          alt=""
+                          className="h-3.5 w-3.5 shrink-0"
+                        />
                         {placeholders.contact}
                       </span>
                       <div className="h-1 w-1 rounded-full bg-gray-7"></div>
-                      <span className="text-green-1 underline cursor-pointer">
+                      <span
+                        onClick={() =>
+                          window.open(TERMS_AND_CONDITIONS_URL, "_blank", "noopener,noreferrer")
+                        }
+                        className="text-green-1 underline cursor-pointer"
+                      >
                         {placeholders.terms}
                       </span>
                       <div className="h-1 w-1 rounded-full bg-gray-7"></div>
-                      <div className="text-green-1 underline cursor-pointer text-[12px] font-normal -mt-[2px]">
+                      <div
+                        onClick={() =>
+                          window.open(PRIVACY_POLICY_URL, "_blank", "noopener,noreferrer")
+                        }
+                        className="text-green-1 underline cursor-pointer text-[12px] font-normal -mt-[2px]"
+                      >
                         {placeholders.privacy}
                       </div>
                     </div>

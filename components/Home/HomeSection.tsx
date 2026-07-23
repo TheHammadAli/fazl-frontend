@@ -413,7 +413,7 @@ function HomeSection() {
             setOpen={setOpenBroadcast}
             centered={false}
           >
-            <div className="flex h-full w-full justify-center pt-12">
+            <div className="flex h-full w-full justify-center p-2 sm:pt-12">
               <BroadCastModal setOpenBroadcast={setOpenBroadcast} />
             </div>
           </Modal>
