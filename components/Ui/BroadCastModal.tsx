@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import chevDown from "@/assets/icons/chev-down-icon.svg";
 import crossIcon from "@/assets/icons/cross-icon.svg";
 import locationIcon from "@/assets/icons/location-icon.svg";
@@ -10,6 +10,7 @@ import addPhotoIcon from "@/assets/icons/add-photo-icom.svg";
 import broadcastMicSec from "@/assets/icons/mic-section.svg";
 import broadcastMembers from "@/assets/icons/broadcast-members.svg";
 import safeAndSecureIcon from "@/assets/icons/safe-and-secure.svg";
+import messageSentGif from "@/assets/Gif/message-sent.gif";
 import Image, { type StaticImageData } from "next/image";
 import { Plus } from "lucide-react";
 import { useCategoriesQuery } from "@/custom-hooks/useCategoriesQuery";
@@ -21,6 +22,7 @@ import ChooseImagesTab from "@/components/Services/ChooseImagesTab";
 import { useClickOutside } from "@/custom-hooks/useClickOutside";
 import { useDebounce } from "use-debounce";
 import DoodleButton from "@/components/Ui/DoodleButton";
+import { createPortal } from "react-dom";
 
 type CategoryItem = {
     _id: string;
@@ -52,10 +54,14 @@ const FIELD_ROW_LABEL_CLASS = "text-[14px] font-medium text-[#030303] leading-ti
 const FIELD_PLACEHOLDER_CLASS = "text-[14px] font-normal text-[#4B514F] first-letter:uppercase";
 const FIELD_VALUE_CLASS = "text-[14px] font-normal text-[#030303] first-letter:uppercase";
 const DROPDOWN_PANEL_CLASS =
-    "absolute left-0 right-0 top-full z-20 mt-1 max-h-[200px] overflow-y-auto rounded-[8px] border border-gray-9 bg-white shadow-md";
+    "absolute left-0 right-0 top-full z-20 mt-1 max-h-[200px] overflow-y-auto rounded-[8px] border border-gray-9 bg-white shadow-md hide-scrollbar";
 
 const MAX_BROADCAST_PHOTOS = 5;
 const PURPOSE_TABS: any[] = ["Selling", "Buying"];
+const NO_BUYERS_MESSAGES = [
+    "دیے گئے دائرے میں کوئی خریدار نہیں ملا",
+    "No buyers found in given radius",
+];
 
 type BroadcastFieldRowProps = {
     icon?: StaticImageData;
@@ -100,7 +106,6 @@ function BroadcastFieldRow({
 }
 
 function BroadCastModal({ setOpenBroadcast }: { setOpenBroadcast: (open: boolean) => void }) {
-    const SUCCESS_TOAST_DURATION = 1500;
     const { placeholders, error_messages, info_messages } = useDictionary();
     type PlaceholderKey = keyof typeof placeholders;
     type ErrorKey = keyof typeof error_messages;
@@ -131,6 +136,26 @@ function BroadCastModal({ setOpenBroadcast }: { setOpenBroadcast: (open: boolean
     const [images, setImages] = useState<(File | string)[]>([]);
     const photoInputRef = useRef<HTMLInputElement | null>(null);
     const [broadcastMessage, { isLoading: isBroadcastLoading }] = useBroadcastMessageMutation();
+    const [showSentSuccess, setShowSentSuccess] = useState(false);
+    const [successDescription, setSuccessDescription] = useState("");
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    const buildSentDescription = () => {
+        const categoryName = selectedCategory?.name?.trim() || "";
+        const locationName = location?.description?.trim() || "";
+        const isBuying = String(selectedPurpose).toLowerCase() === "buying";
+        const template = isBuying
+            ? ph("broadcast_sent_buying")
+            : ph("broadcast_sent_selling");
+
+        return template
+            .replace("{category}", categoryName)
+            .replace("{location}", locationName);
+    };
 
     useClickOutside(locationRef, () => {
         setIsLocationOpen(false);
@@ -195,358 +220,402 @@ function BroadCastModal({ setOpenBroadcast }: { setOpenBroadcast: (open: boolean
 
         try {
             const res = await broadcastMessage(payload).unwrap();
-            toast.success(res.message, { duration: SUCCESS_TOAST_DURATION });
-            setImages([]);
-            setTimeout(() => {
-                setOpenBroadcast(false);
-            }, SUCCESS_TOAST_DURATION);
+            const apiMessage =
+                typeof res?.message === "string" ? res.message : "";
+            const isNoBuyers = NO_BUYERS_MESSAGES.includes(apiMessage);
+
+            if (isNoBuyers) {
+                toast.error(apiMessage);
+                return;
+            }
+
+            setSuccessDescription(buildSentDescription());
+            setShowSentSuccess(true);
         } catch (error) {
             toast.error((error as { data?: { message?: string } })?.data?.message || eh("something_went_wrong"));
         }
     };
+
     return (
-        <div className="w-full max-w-[514px] overflow-hidden rounded-[12px] bg-white">
-
-
-            <div className="flex items-center justify-between border-b border-gray-9 px-5 py-4">
-                <h2 className="text-[16px] font-semibold text-black-1">{ph("broadcast_message_title")}</h2>
-                <button
-                    onClick={() => setOpenBroadcast(false)}
-                    disabled={isBroadcastLoading}
-                    type="button"
-                    className="cursor-pointer text-[#111827] disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                    <Image src={crossIcon} alt="cross-icon" className="w-3 h-3" />
-                </button>
-            </div>
-            <div className=" bg-[#F2F9F3]  px-4">
-                <div className="h-full  flex items-center justify-between gap-3  ">
-                    <div className="min-w-0 flex-1">
-                        <h3 className="text-[14px] font-medium lg:w-[220px] leading-snug text-[#030303] rtl:text-right ">
-                            {info_messages.broadcast_modal_banner}
-                        </h3>
-                        <Image
-                            src={broadcastMembers}
-                            alt=""
-                            unoptimized
-                            className="mt-2 h-[28px] w-auto max-w-[132px] object-contain object-left rtl:object-right"
-                        />
-                    </div>
-                    <Image
-                        src={broadcastMicSec}
-                        alt=""
-                        width={199}
-                        height={136}
-                        unoptimized
-                        className=" h-full w-[150px] sm:w-[200px]"
-                    />
-
-                </div>
-            </div>
-
-            <div className="flex text-sm">
-                {PURPOSE_TABS.map((tab) => (
-                    <button
-                        key={tab}
-                        type="button"
-                        disabled={isBroadcastLoading}
-                        onClick={() => setSelectedPurpose(tab)}
-                        className={`w-1/2 cursor-pointer py-2.5 disabled:cursor-not-allowed disabled:opacity-60 ${selectedPurpose === tab
-                            ? "border-b-2 border-[#3C9197] font-medium text-[#007781]"
-                            : "border-b border-[#E5E5E5] font-normal text-[#4B514F]"
-                            }`}
+        <>
+            {mounted &&
+                showSentSuccess &&
+                createPortal(
+                    <div
+                        className="fixed inset-0 z-[80] flex items-center justify-center bg-[#1E1E1E]/40 px-4"
+                        role="dialog"
+                        aria-label={ph("broadcast_sent_title")}
+                        onClick={() => {
+                            setShowSentSuccess(false);
+                            setOpenBroadcast(false);
+                        }}
                     >
-                        {ph(tab.toLowerCase())}
-                    </button>
-                ))}
-            </div>
-
-            <div className={`space-y-2  py-3 ${isBroadcastLoading ? "pointer-events-none opacity-70" : ""}`}>
-                <div className="px-5">
-                    <div className="px-2">
-                        <div className="relative border-b border-gray-9 ">
-                            <div ref={locationRef}>
-                                <BroadcastFieldRow
-                                    icon={chooseLocationIcon}
-                                    label={ph("choose_location")}
-                                    value={location?.description}
-                                    placeholder={ph("select_your_location")}
-                                    disabled={isBroadcastLoading}
-                                    onClick={() => {
-                                        setIsLocationOpen((prev) => !prev);
-                                        setIsRadiusOpen(false);
-                                        setIsTypeOpen(false);
-                                        setIsCategoryOpen(false);
-                                    }}
-                                />
-                                {isLocationOpen ? (
-                                    <div className={`${DROPDOWN_PANEL_CLASS} max-h-none overflow-hidden rounded-[8px] pt-1`}>
-                                        <input
-                                            type="text"
-                                            placeholder={ph("search_country")}
-                                            className="w-full rounded-t-[8px] border-b border-gray-9 px-3 py-2 text-[14px] outline-none"
-                                            value={locationSearch}
-                                            onChange={(e) => setLocationSearch(e.target.value)}
-                                        />
-                                        <div className="max-h-[200px] overflow-y-auto">
-                                            {!isLocationsLoading &&
-                                                !isLocationsFetching &&
-                                                (locationsData?.data?.length ?? 0) > 0 &&
-                                                locationsData?.data?.map((item: Location, index: number) => (
-                                                    <button
-                                                        key={`${item.description}-${index}`}
-                                                        type="button"
-                                                        onClick={() => {
-                                                            setLocation(item);
-                                                            setIsLocationOpen(false);
-                                                            setLocationSearch("");
-                                                        }}
-                                                        className="flex w-full cursor-pointer items-center gap-2 border-b border-gray-9 px-3 py-2 text-left text-[14px] text-black-1 last:border-b-0 hover:bg-gray-10"
-                                                    >
-                                                        <Image
-                                                            src={locationIcon}
-                                                            alt=""
-                                                            className="h-[18px] w-[14px] shrink-0"
-                                                        />
-                                                        <span>{item.description}</span>
-                                                    </button>
-                                                ))}
-                                            {!isLocationsLoading &&
-                                                !isLocationsFetching &&
-                                                locationsData?.data?.length === 0 && (
-                                                    <p className="px-3 py-2 text-[14px] text-gray-8">
-                                                        {ph("no_data_available")}
-                                                    </p>
-                                                )}
-                                            {(isLocationsLoading || isLocationsFetching) && (
-                                                <div className="space-y-1 p-1">
-                                                    {Array.from({ length: 4 }).map((_, index) => (
-                                                        <div
-                                                            key={index}
-                                                            className="h-[36px] animate-pulse rounded bg-gray-10"
-                                                        />
-                                                    ))}
-                                                </div>
-                                            )}
-                                            {!locationsData &&
-                                                !isLocationsLoading &&
-                                                !isLocationsFetching && (
-                                                    <p className="px-3 py-2 text-[14px] text-gray-8">
-                                                        {ph("no_data_available")}
-                                                    </p>
-                                                )}
-                                        </div>
-                                    </div>
-                                ) : null}
-                            </div>
-                        </div>
-
-                        <div className="relative border-b border-gray-9 pt-2">
-                            <BroadcastFieldRow
-                                icon={setRadiusIcon}
-                                label={ph("set_radius")}
-                                value={
-                                    selectedRadius != null
-                                        ? `${selectedRadius} ${placeholders["km" as keyof typeof placeholders] ?? "km"}`
-                                        : null
-                                }
-                                placeholder={ph("choose_radius")}
-                                disabled={isBroadcastLoading}
-                                onClick={() => {
-                                    setIsRadiusOpen((prev) => !prev);
-                                    setIsTypeOpen(false);
-                                    setIsCategoryOpen(false);
-                                    setIsLocationOpen(false);
-                                }}
+                        <div
+                            className="flex h-[267px] w-full max-w-[360px] flex-col items-center justify-center overflow-hidden rounded-[12px] bg-gradient-to-b from-[#C8EDE8] via-[#E8F7F4] to-white px-6 py-8 text-center shadow-lg xl:w-[360px]"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <Image
+                                src={messageSentGif}
+                                alt=""
+                                width={66}
+                                height={66}
+                                unoptimized
+                                className="mx-auto h-[66px] w-[66px] object-contain"
                             />
-                            {isRadiusOpen ? (
-                                <div className={DROPDOWN_PANEL_CLASS}>
-                                    {Array.from({ length: 100 }, (_, idx) => idx + 1).map((radius) => (
-                                        <button
-                                            key={radius}
-                                            type="button"
-                                            className="w-full cursor-pointer border-b border-gray-9 rtl:text-right ltr:text-left px-3 py-2 text-left text-[14px] text-black-1 last:border-b-0 hover:bg-gray-10"
-                                            onClick={() => {
-                                                setSelectedRadius(radius);
-                                                setIsRadiusOpen(false);
-                                            }}
-                                        >
-                                            {radius} {placeholders["km" as keyof typeof placeholders] ?? "km"}
-                                        </button>
-                                    ))}
-                                </div>
-                            ) : null}
+                            <h3 className="mt-1 text-[22px] font-medium text-[#030303]">
+                                {ph("broadcast_sent_title")}
+                            </h3>
+                            <p className="mt-1 text-[14px] font-normal leading-snug text-[#4B514F]">
+                                {successDescription || ph("broadcast_sent_description")}
+                            </p>
                         </div>
+                    </div>,
+                    document.body,
+                )}
 
-                        <div className="relative border-b border-gray-9 pt-2">
-                            <BroadcastFieldRow
-                                icon={selectTypeIcon}
-                                label={ph("select_type")}
-                                value={
-                                    selectedType
-                                        ? placeholders[selectedType as keyof typeof placeholders] ?? selectedType
-                                        : null
-                                }
-                                placeholder={ph("choose_type")}
-                                disabled={isBroadcastLoading}
-                                onClick={() => {
-                                    setIsTypeOpen((prev) => !prev);
-                                    setIsRadiusOpen(false);
-                                    setIsCategoryOpen(false);
-                                    setIsLocationOpen(false);
-                                }}
-                            />
-                            {isTypeOpen ? (
-                                <div className={DROPDOWN_PANEL_CLASS}>
-                                    {([
-                                        { value: "product", label: ph("product") },
-                                        { value: "service", label: ph("service") },
-                                    ] as { value: BroadcastType; label: string }[]).map((type) => (
-                                        <button
-                                            key={type.value}
-                                            type="button"
-                                            className="w-full cursor-pointer border-b border-gray-9 px-3 py-2 text-left text-[14px] text-black-1 last:border-b-0 hover:bg-gray-10"
-                                            onClick={() => {
-                                                setSelectedType(type.value);
-                                                setIsTypeOpen(false);
-                                            }}
-                                        >
-                                            <p className="first-letter:uppercase rtl:text-right ltr:text-left">{type.label}</p>
-                                        </button>
-                                    ))}
-                                </div>
-                            ) : null}
-                        </div>
+            <div className="w-full max-w-[514px] overflow-hidden rounded-[12px] bg-white">
 
-                        <div className="relative border-b border-gray-9 pt-2">
-                            <BroadcastFieldRow
-                                icon={chooseCatIcon}
-                                label={ph("category")}
-                                value={selectedCategory?.name}
-                                placeholder={ph("choose_category")}
-                                disabled={isBroadcastLoading}
-                                onClick={() => {
-                                    setIsCategoryOpen((prev) => !prev);
-                                    setIsRadiusOpen(false);
-                                    setIsTypeOpen(false);
-                                    setIsLocationOpen(false);
-                                }}
-                            />
-                            {isCategoryOpen ? (
-                                <div className={DROPDOWN_PANEL_CLASS}>
-                                    {isCategoriesLoading || isCategoriesFetching ? (
-                                        <p className="px-3 py-2 text-[14px] text-gray-8">{ph("loading_categories")}</p>
-                                    ) : categories?.data?.length > 0 ? (
-                                        categories.data.map((category: CategoryItem) => (
-                                            <button
-                                                key={category._id}
-                                                type="button"
-                                                className="w-full cursor-pointer border-b border-gray-9 px-3 py-2 text-left text-[14px] text-black-1 rtl:text-right ltr:text-left last:border-b-0 hover:bg-gray-10"
-                                                onClick={() => {
-                                                    setSelectedCategory(category);
-                                                    setIsCategoryOpen(false);
-                                                }}
-                                            >
-                                                {category.name}
-                                            </button>
-                                        ))
-                                    ) : (
-                                        <p className="px-3 py-2 text-[14px] text-gray-8">{ph("no_categories_found")}</p>
-                                    )}
-                                </div>
-                            ) : null}
-                        </div>
-                        <div className="border-b border-gray-9 pt-2">
-                            <button
-                                type="button"
-                                disabled={isBroadcastLoading || images.length >= MAX_BROADCAST_PHOTOS}
-                                onClick={() => photoInputRef.current?.click()}
-                                className="flex w-full cursor-pointer items-center gap-3 py-2 text-left disabled:cursor-not-allowed disabled:opacity-60"
-                            >
-                                <Image src={addPhotoIcon} alt="" className="h-5 w-5 shrink-0" />
-                                <div className="min-w-0 flex-1 rtl:text-right">
-                                    <p className={FIELD_ROW_LABEL_CLASS}>{ph("add_photos")}</p>
-                                    <p className={FIELD_PLACEHOLDER_CLASS}>{ph("upload_photos")}</p>
-                                </div>
-                                <Plus className="h-5 w-5 shrink-0 text-[#007781]" strokeWidth={1.75} />
-                            </button>
-                            <input
-                                ref={photoInputRef}
-                                id="broadcast-modal-photo-upload"
-                                type="file"
-                                multiple
-                                accept="image/*"
-                                className="hidden"
-                                disabled={isBroadcastLoading}
-                                onChange={(event) => {
-                                    handlePhotoUpload(event.target.files);
-                                    event.target.value = "";
-                                }}
-                            />
-                            {images.length > 0 ? (
-                                <div className="mt-1">
-                                    <ChooseImagesTab
-                                        images={images}
-                                        setImages={setImages}
-                                        inputId="broadcast-modal-photo-upload"
-                                    />
-                                </div>
-                            ) : null}
-                        </div>
-                    </div>
-                    <div className="pt-4 ">
-                        <p className={`mb-2 ${FIELD_ROW_LABEL_CLASS}`}>{ph("your_message")}</p>
-                        <textarea
-                            className="h-20 w-full resize-none border-b border-gray-9 text-[14px] font-normal text-[#030303] outline-none placeholder:font-normal placeholder:text-[#4B514F]"
-                            placeholder={ph("type_your_message_here")}
-                            value={message}
-                            disabled={isBroadcastLoading}
-                            onChange={(e) => setMessage(e.target.value)}
-                        />
-                    </div>
 
-                </div>
-                <div className="flex items-center gap-3 px-4 py-2  bg-[#F5F8F5] ">
-                    <Image src={safeAndSecureIcon} alt="" className="h-7 w-7 shrink-0" />
-                    <div className="min-w-0 rtl:text-right">
-                        <p className="text-[14px] font-medium text-[#007781]">
-                            {info_messages.safe_and_secure}
-                        </p>
-                        <p className="mt-1 text-[14px] font-normal leading-snug text-[#4B514F]">
-                            {info_messages.safe_and_secure_description}
-                        </p>
-                    </div>
-                </div>
-                <div className="flex items-center px-6 pb-2 justify-end gap-3 pt-4">
+                <div className="flex items-center justify-between border-b border-gray-9 px-5 py-4">
+                    <h2 className="text-[16px] font-semibold text-black-1">{ph("broadcast_message_title")}</h2>
                     <button
                         onClick={() => setOpenBroadcast(false)}
                         disabled={isBroadcastLoading}
                         type="button"
-                        className="h-[38px] cursor-pointer min-w-[83px] rounded-[8px] border border-green-2 px-5 text-[15px] font-normal text-green-2 disabled:cursor-not-allowed disabled:opacity-60"
+                        className="cursor-pointer text-[#111827] disabled:cursor-not-allowed disabled:opacity-60"
                     >
-                        {ph("cancel")}
+                        <Image src={crossIcon} alt="cross-icon" className="w-3 h-3" />
                     </button>
-                    <DoodleButton
-                        type="button"
-                        disabled={isBroadcastLoading}
-                        onClick={handleSendMessage}
-                        className="flex h-[38px] min-w-[114px] cursor-pointer items-center justify-center rounded-[8px] bg-green-1 px-5 text-[15px] font-normal text-white disabled:cursor-not-allowed disabled:opacity-80"
-                    >
-                        {isBroadcastLoading ? (
-                            <span className="flex items-center gap-1">
-                                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-white" />
-                                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-white [animation-delay:120ms]" />
-                                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-white [animation-delay:240ms]" />
-                            </span>
-                        ) : (
-                            ph("send")
-                        )}
-                    </DoodleButton>
+                </div>
+                <div className=" bg-[#F2F9F3]  px-4">
+                    <div className="h-full  flex items-center justify-between gap-3  ">
+                        <div className="min-w-0 flex-1">
+                            <h3 className="text-[14px] font-medium lg:w-[220px] leading-snug text-[#030303] rtl:text-right ">
+                                {info_messages.broadcast_modal_banner}
+                            </h3>
+                            <Image
+                                src={broadcastMembers}
+                                alt=""
+                                unoptimized
+                                className="mt-2 h-[28px] w-auto max-w-[132px] object-contain object-left rtl:object-right"
+                            />
+                        </div>
+                        <Image
+                            src={broadcastMicSec}
+                            alt=""
+                            width={199}
+                            height={136}
+                            unoptimized
+                            className=" h-full w-[150px] sm:w-[200px]"
+                        />
+
+                    </div>
+                </div>
+
+                <div className="flex text-sm">
+                    {PURPOSE_TABS.map((tab) => (
+                        <button
+                            key={tab}
+                            type="button"
+                            disabled={isBroadcastLoading}
+                            onClick={() => setSelectedPurpose(tab)}
+                            className={`w-1/2 cursor-pointer py-2.5 disabled:cursor-not-allowed disabled:opacity-60 ${selectedPurpose === tab
+                                ? "border-b-2 border-[#3C9197] font-medium text-[#007781]"
+                                : "border-b border-[#E5E5E5] font-normal text-[#4B514F]"
+                                }`}
+                        >
+                            {ph(tab.toLowerCase())}
+                        </button>
+                    ))}
+                </div>
+
+                <div className={`space-y-2  py-3 ${isBroadcastLoading ? "pointer-events-none opacity-70" : ""}`}>
+                    <div className="px-5">
+                        <div className="px-2">
+                            <div className="relative border-b border-gray-9 ">
+                                <div ref={locationRef}>
+                                    <BroadcastFieldRow
+                                        icon={chooseLocationIcon}
+                                        label={ph("choose_location")}
+                                        value={location?.description}
+                                        placeholder={ph("select_your_location")}
+                                        disabled={isBroadcastLoading}
+                                        onClick={() => {
+                                            setIsLocationOpen((prev) => !prev);
+                                            setIsRadiusOpen(false);
+                                            setIsTypeOpen(false);
+                                            setIsCategoryOpen(false);
+                                        }}
+                                    />
+                                    {isLocationOpen ? (
+                                        <div className={`${DROPDOWN_PANEL_CLASS} max-h-none overflow-hidden rounded-[8px] pt-1`}>
+                                            <input
+                                                type="text"
+                                                placeholder={ph("search_country")}
+                                                className="w-full rounded-t-[8px] border-b border-gray-9 px-3 py-2 text-[14px] outline-none"
+                                                value={locationSearch}
+                                                onChange={(e) => setLocationSearch(e.target.value)}
+                                            />
+                                            <div className="max-h-[200px] overflow-y-auto">
+                                                {!isLocationsLoading &&
+                                                    !isLocationsFetching &&
+                                                    (locationsData?.data?.length ?? 0) > 0 &&
+                                                    locationsData?.data?.map((item: Location, index: number) => (
+                                                        <button
+                                                            key={`${item.description}-${index}`}
+                                                            type="button"
+                                                            onClick={() => {
+                                                                setLocation(item);
+                                                                setIsLocationOpen(false);
+                                                                setLocationSearch("");
+                                                            }}
+                                                            className="flex w-full cursor-pointer items-center gap-2 border-b border-gray-9 px-3 py-2 text-left text-[14px] text-black-1 last:border-b-0 hover:bg-gray-10"
+                                                        >
+                                                            <Image
+                                                                src={locationIcon}
+                                                                alt=""
+                                                                className="h-[18px] w-[14px] shrink-0"
+                                                            />
+                                                            <span>{item.description}</span>
+                                                        </button>
+                                                    ))}
+                                                {!isLocationsLoading &&
+                                                    !isLocationsFetching &&
+                                                    locationsData?.data?.length === 0 && (
+                                                        <p className="px-3 py-2 text-[14px] text-gray-8">
+                                                            {ph("no_data_available")}
+                                                        </p>
+                                                    )}
+                                                {(isLocationsLoading || isLocationsFetching) && (
+                                                    <div className="space-y-1 p-1">
+                                                        {Array.from({ length: 4 }).map((_, index) => (
+                                                            <div
+                                                                key={index}
+                                                                className="h-[36px] animate-pulse rounded bg-gray-10"
+                                                            />
+                                                        ))}
+                                                    </div>
+                                                )}
+                                                {!locationsData &&
+                                                    !isLocationsLoading &&
+                                                    !isLocationsFetching && (
+                                                        <p className="px-3 py-2 text-[14px] text-gray-8">
+                                                            {ph("no_data_available")}
+                                                        </p>
+                                                    )}
+                                            </div>
+                                        </div>
+                                    ) : null}
+                                </div>
+                            </div>
+
+                            <div className="relative border-b border-gray-9 pt-2">
+                                <BroadcastFieldRow
+                                    icon={setRadiusIcon}
+                                    label={ph("set_radius")}
+                                    value={
+                                        selectedRadius != null
+                                            ? `${selectedRadius} ${placeholders["km" as keyof typeof placeholders] ?? "km"}`
+                                            : null
+                                    }
+                                    placeholder={ph("choose_radius")}
+                                    disabled={isBroadcastLoading}
+                                    onClick={() => {
+                                        setIsRadiusOpen((prev) => !prev);
+                                        setIsTypeOpen(false);
+                                        setIsCategoryOpen(false);
+                                        setIsLocationOpen(false);
+                                    }}
+                                />
+                                {isRadiusOpen ? (
+                                    <div className={DROPDOWN_PANEL_CLASS}>
+                                        {[1, 5, 15, 25, 50, 100].map((radius) => (
+                                            <button
+                                                key={radius}
+                                                type="button"
+                                                className="w-full cursor-pointer border-b border-gray-9 rtl:text-right ltr:text-left px-3 py-2 text-left text-[14px] text-black-1 last:border-b-0 hover:bg-gray-10"
+                                                onClick={() => {
+                                                    setSelectedRadius(radius);
+                                                    setIsRadiusOpen(false);
+                                                }}
+                                            >
+                                                {radius} {placeholders["km" as keyof typeof placeholders] ?? "km"}
+                                            </button>
+                                        ))}
+                                    </div>
+                                ) : null}
+                            </div>
+
+                            <div className="relative border-b border-gray-9 pt-2">
+                                <BroadcastFieldRow
+                                    icon={selectTypeIcon}
+                                    label={ph("select_type")}
+                                    value={
+                                        selectedType
+                                            ? placeholders[selectedType as keyof typeof placeholders] ?? selectedType
+                                            : null
+                                    }
+                                    placeholder={ph("choose_type")}
+                                    disabled={isBroadcastLoading}
+                                    onClick={() => {
+                                        setIsTypeOpen((prev) => !prev);
+                                        setIsRadiusOpen(false);
+                                        setIsCategoryOpen(false);
+                                        setIsLocationOpen(false);
+                                    }}
+                                />
+                                {isTypeOpen ? (
+                                    <div className={DROPDOWN_PANEL_CLASS}>
+                                        {([
+                                            { value: "product", label: ph("product") },
+                                            { value: "service", label: ph("service") },
+                                        ] as { value: BroadcastType; label: string }[]).map((type) => (
+                                            <button
+                                                key={type.value}
+                                                type="button"
+                                                className="w-full cursor-pointer border-b border-gray-9 px-3 py-2 text-left text-[14px] text-black-1 last:border-b-0 hover:bg-gray-10"
+                                                onClick={() => {
+                                                    setSelectedType(type.value);
+                                                    setIsTypeOpen(false);
+                                                }}
+                                            >
+                                                <p className="first-letter:uppercase rtl:text-right ltr:text-left">{type.label}</p>
+                                            </button>
+                                        ))}
+                                    </div>
+                                ) : null}
+                            </div>
+
+                            <div className="relative border-b border-gray-9 pt-2">
+                                <BroadcastFieldRow
+                                    icon={chooseCatIcon}
+                                    label={ph("category")}
+                                    value={selectedCategory?.name}
+                                    placeholder={ph("choose_category")}
+                                    disabled={isBroadcastLoading}
+                                    onClick={() => {
+                                        setIsCategoryOpen((prev) => !prev);
+                                        setIsRadiusOpen(false);
+                                        setIsTypeOpen(false);
+                                        setIsLocationOpen(false);
+                                    }}
+                                />
+                                {isCategoryOpen ? (
+                                    <div className={DROPDOWN_PANEL_CLASS}>
+                                        {isCategoriesLoading || isCategoriesFetching ? (
+                                            <p className="px-3 py-2 text-[14px] text-gray-8">{ph("loading_categories")}</p>
+                                        ) : categories?.data?.length > 0 ? (
+                                            categories.data.map((category: CategoryItem) => (
+                                                <button
+                                                    key={category._id}
+                                                    type="button"
+                                                    className="w-full cursor-pointer border-b border-gray-9 px-3 py-2 text-left text-[14px] text-black-1 rtl:text-right ltr:text-left last:border-b-0 hover:bg-gray-10"
+                                                    onClick={() => {
+                                                        setSelectedCategory(category);
+                                                        setIsCategoryOpen(false);
+                                                    }}
+                                                >
+                                                    {category.name}
+                                                </button>
+                                            ))
+                                        ) : (
+                                            <p className="px-3 py-2 text-[14px] text-gray-8">{ph("no_categories_found")}</p>
+                                        )}
+                                    </div>
+                                ) : null}
+                            </div>
+                            <div className="border-b border-gray-9 pt-2">
+                                <button
+                                    type="button"
+                                    disabled={isBroadcastLoading || images.length >= MAX_BROADCAST_PHOTOS}
+                                    onClick={() => photoInputRef.current?.click()}
+                                    className="flex w-full cursor-pointer items-center gap-3 py-2 text-left disabled:cursor-not-allowed disabled:opacity-60"
+                                >
+                                    <Image src={addPhotoIcon} alt="" className="h-5 w-5 shrink-0" />
+                                    <div className="min-w-0 flex-1 rtl:text-right">
+                                        <p className={FIELD_ROW_LABEL_CLASS}>{ph("add_photos")}</p>
+                                        <p className={FIELD_PLACEHOLDER_CLASS}>{ph("upload_photos")}</p>
+                                    </div>
+                                    <Plus className="h-5 w-5 shrink-0 text-[#007781]" strokeWidth={1.75} />
+                                </button>
+                                <input
+                                    ref={photoInputRef}
+                                    id="broadcast-modal-photo-upload"
+                                    type="file"
+                                    multiple
+                                    accept="image/*"
+                                    className="hidden"
+                                    disabled={isBroadcastLoading}
+                                    onChange={(event) => {
+                                        handlePhotoUpload(event.target.files);
+                                        event.target.value = "";
+                                    }}
+                                />
+                                {images.length > 0 ? (
+                                    <div className="mt-1">
+                                        <ChooseImagesTab
+                                            images={images}
+                                            setImages={setImages}
+                                            inputId="broadcast-modal-photo-upload"
+                                        />
+                                    </div>
+                                ) : null}
+                            </div>
+                        </div>
+                        <div className="pt-4 ">
+                            <p className={`mb-2 ${FIELD_ROW_LABEL_CLASS}`}>{ph("your_message")}</p>
+                            <textarea
+                                className="h-20 w-full resize-none border-b border-gray-9 text-[14px] font-normal text-[#030303] outline-none placeholder:font-normal placeholder:text-[#4B514F]"
+                                placeholder={ph("type_your_message_here")}
+                                value={message}
+                                disabled={isBroadcastLoading}
+                                onChange={(e) => setMessage(e.target.value)}
+                            />
+                        </div>
+
+                    </div>
+                    <div className="flex items-center gap-3 px-4 py-2  bg-[#F5F8F5] ">
+                        <Image src={safeAndSecureIcon} alt="" className="h-7 w-7 shrink-0" />
+                        <div className="min-w-0 rtl:text-right">
+                            <p className="text-[14px] font-medium text-[#007781]">
+                                {info_messages.safe_and_secure}
+                            </p>
+                            <p className="mt-1 text-[14px] font-normal leading-snug text-[#4B514F]">
+                                {info_messages.safe_and_secure_description}
+                            </p>
+                        </div>
+                    </div>
+                    <div className="flex items-center px-6 pb-2 justify-end gap-3 pt-4">
+                        <button
+                            onClick={() => setOpenBroadcast(false)}
+                            disabled={isBroadcastLoading}
+                            type="button"
+                            className="h-[38px] cursor-pointer min-w-[83px] rounded-[8px] border border-green-2 px-5 text-[15px] font-normal text-green-2 disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                            {ph("cancel")}
+                        </button>
+                        <DoodleButton
+                            type="button"
+                            disabled={isBroadcastLoading}
+                            onClick={handleSendMessage}
+                            className="flex h-[38px] min-w-[114px] cursor-pointer items-center justify-center rounded-[8px] bg-green-1 px-5 text-[15px] font-normal text-white disabled:cursor-not-allowed disabled:opacity-80"
+                        >
+                            {isBroadcastLoading ? (
+                                <span className="flex items-center gap-1">
+                                    <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-white" />
+                                    <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-white [animation-delay:120ms]" />
+                                    <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-white [animation-delay:240ms]" />
+                                </span>
+                            ) : (
+                                ph("send")
+                            )}
+                        </DoodleButton>
+                    </div>
+
                 </div>
 
             </div>
-
-        </div>
+        </>
     );
 }
 

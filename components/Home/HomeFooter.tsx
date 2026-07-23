@@ -243,7 +243,7 @@ function HomeFooter() {
                                     </span>
                                 </a>
                             </li>
-                            <li>
+                            {/* <li>
                                 <a
                                     href={`tel:${info_messages.footer_phone.replace(/\s/g, "")}`}
                                     className={`inline-flex max-w-full items-center gap-2 ${FOOTER_LINK_CLASS}`}
@@ -257,7 +257,7 @@ function HomeFooter() {
                                         {info_messages.footer_phone}
                                     </span>
                                 </a>
-                            </li>
+                            </li> */}
                             <li>
                                 <a
                                     href={`mailto:${info_messages.footer_email}`}

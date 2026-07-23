@@ -33,6 +33,12 @@ import { Dialog, DialogPanel } from "@headlessui/react";
 import logo from "@/assets/icons/fazal-logo.svg";
 
 import Link from "next/link";
+import WhatsAppIcon from "@/assets/icons/whatsapp-icon.svg";
+import {
+  PRIVACY_POLICY_URL,
+  TERMS_AND_CONDITIONS_URL,
+  getSupportWhatsAppUrl,
+} from "@/assets/content/constants";
 
 // Avoid SSR + hydration issues with cookies, sockets, and Headless UI Dialog.
 
@@ -288,7 +294,12 @@ function Sidebar({
 
         <div className="flex items-center gap-[6px] text-[12px] font-normal">
 
-          <span className="text-green-1 underline cursor-pointer">
+          <span
+            onClick={() =>
+              window.open(PRIVACY_POLICY_URL, "_blank", "noopener,noreferrer")
+            }
+            className="text-green-1 underline cursor-pointer"
+          >
 
             {placeholders.company}
 
@@ -296,15 +307,28 @@ function Sidebar({
 
           <div className="h-1 w-1 rounded-full bg-gray-7"></div>
 
-          <span onClick={() => router.push("/contact-us")} className="text-green-1 underline cursor-pointer">
-
+          <span
+            onClick={() =>
+              window.open(getSupportWhatsAppUrl(), "_blank", "noopener,noreferrer")
+            }
+            className="inline-flex items-center gap-1 text-green-1 underline cursor-pointer"
+          >
+            <Image
+              src={WhatsAppIcon}
+              alt=""
+              className="h-3.5 w-3.5 shrink-0"
+            />
             {placeholders.contact}
-
           </span>
 
           <div className="h-1 w-1 rounded-full bg-gray-7"></div>
 
-          <span onClick={() => router.push("/terms-conditions")} className="text-green-1 underline cursor-pointer">
+          <span
+            onClick={() =>
+              window.open(TERMS_AND_CONDITIONS_URL, "_blank", "noopener,noreferrer")
+            }
+            className="text-green-1 underline cursor-pointer"
+          >
 
             {placeholders.terms}
 
@@ -312,7 +336,12 @@ function Sidebar({
 
         </div>
 
-        <div onClick={() => router.push("/privacy-policy")} className="text-green-1 underline cursor-pointer text-[12px] font-normal -mt-[2px]">
+        <div
+          onClick={() =>
+            window.open(PRIVACY_POLICY_URL, "_blank", "noopener,noreferrer")
+          }
+          className="text-green-1 underline cursor-pointer text-[12px] font-normal -mt-[2px]"
+        >
 
           {placeholders.privacy}
 
@@ -326,7 +355,7 @@ function Sidebar({
 
             <span className="text-gray-6 text-[12px] font-light">
 
-              2025 {placeholders.market}
+              2026 Fazl App
 
             </span>
 

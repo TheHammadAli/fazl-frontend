@@ -54,17 +54,22 @@ export default function ChatSidebar({
     ),
   };
   return (
-    <aside className="h-full w-full border-r border-gray-200 bg-white lg:w-[320px]">
+    <aside className="h-full w-full border-r  border-gray-200 bg-white lg:w-[320px]">
       <div className="flex justify-between h-16 items-center border-b border-gray-200 px-4">
         <h1 className="text-[22px] font-medium text-[#030303]">{ph("chat_title")}</h1>
-        {threadType === "broadcast_messages" && (
-          <Image
-            onClick={() => setOpenBroadcast(true)}
-            src={addBroadCast}
-            alt="add-broadcast"
-            className="w-7 h-7 cursor-pointer"
-          />
-        )}
+
+        {
+          threadType === "broadcast_messages" && (
+
+            <Image
+              onClick={() => setOpenBroadcast(true)}
+              src={addBroadCast}
+              alt="add-broadcast"
+              className="w-7 h-7 cursor-pointer"
+            />
+
+          )
+        }
       </div>
       <div className="flex text-sm">
         <button
