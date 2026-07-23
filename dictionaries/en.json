@@ -94,6 +94,7 @@
         "delivery": "Delivery",
         "description": "Description",
         "message_seller": "Message seller",
+        "message": "Message",
         "chat_store": "Chat store",
         "view_shop": "View shop",
         "more_from": "More from",

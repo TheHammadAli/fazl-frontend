@@ -8,21 +8,22 @@ import chevronIcon from "@/assets/icons/chevron.svg";
 import infoCircleIcon from "@/assets/icons/info-circle.svg";
 import {
   useGetServicesRequestsQuery,
-  useStartJobMutation,
+  // useStartJobMutation,
 } from "@/store/services/sellingService";
-import { getCookie } from "cookies-next";
 import { formatRequestedDateTime } from "@/utils/formatRequestedDateTime";
-import { toast } from "react-hot-toast";
+// import { toast } from "react-hot-toast";
 import { parsePositiveInt } from "../Updates/Notifications";
-import JobActionConfirmModal from "./JobActionConfirmModal";
+// import JobActionConfirmModal from "./JobActionConfirmModal";
 import { BeatLoader } from "react-spinners";
 import { getUserId } from "@/utils/getUserId";
+import useInitiateChat from "@/custom-hooks/useInitiateChat";
+
 type RequestFilterKey = "sent" | "new_offer" | "accepted" | "rejected";
 
 type RequestCard = {
   _id: string;
   title: string;
-  customer: { id: string; name: string };
+  customer: { id: string; name: string; _id?: string };
   price: string;
   requestedDateTime: string;
   startedAt?: string;
@@ -30,6 +31,25 @@ type RequestCard = {
   filter: RequestFilterKey;
   jobStatus: "in_progress" | "completed" | "cancelled" | "not_started";
 };
+
+function MessageIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.5}
+      aria-hidden
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m3.75 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m3.75 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z"
+      />
+    </svg>
+  );
+}
 
 function MyJobs() {
   const limit = 10;
@@ -43,22 +63,26 @@ function MyJobs() {
   type PlaceholderKey = keyof typeof placeholders;
   const userId = getUserId() ?? "";
   const [filteredRequests, setFilteredRequests] = useState<RequestCard[]>([]);
-  const [action, setAction] = useState<string>("");
-  const [openConfirmModal, setOpenConfirmModal] = useState(false);
-  const [pendingAction, setPendingAction] = useState<
-    "start_job" | "complete_job" | null
-  >(null);
-  const [pendingRequestId, setPendingRequestId] = useState<string>("");
+  // Start / end job — temporarily disabled
+  // const [action, setAction] = useState<string>("");
+  // const [openConfirmModal, setOpenConfirmModal] = useState(false);
+  // const [pendingAction, setPendingAction] = useState<
+  //   "start_job" | "complete_job" | null
+  // >(null);
+  // const [pendingRequestId, setPendingRequestId] = useState<string>("");
   const {
     data: servicesRequests,
     isLoading,
     isFetching,
+    // refetch,
   } = useGetServicesRequestsQuery(
     { id: userId, page: page, limit: limit, role: "provider", status: "accepted" },
     { skip: !userId },
   );
-  const [startJob, { isLoading: isJobActionLoading }] = useStartJobMutation();
-  const [updateReqId, setUpdateReqId] = useState<string>("");
+  // const [startJob, { isLoading: isJobActionLoading }] = useStartJobMutation();
+  // const [updateReqId, setUpdateReqId] = useState<string>("");
+  const { onInitiateChat } = useInitiateChat();
+  const [chattingRequestId, setChattingRequestId] = useState<string>("");
   const totalPages = parsePositiveInt(servicesRequests?.meta?.totalPages);
   const canLoadMore =
     totalPages != null
@@ -76,44 +100,78 @@ function MyJobs() {
     prevScrollHeightRef.current = el.scrollHeight;
     setPage((p) => p + 1);
   }
-  const handleJobAction = (id: string, action: string) => {
-    setAction(action);
-    setUpdateReqId(id);
-    startJob({
-      requestId: id,
-      action: action,
-    })
-      .unwrap()
-      .then((res) => {
-        toast.success(res.message);
-        setAction("");
-        setUpdateReqId("");
-      })
-      .catch((err) => {
-        toast.error(err.data.message);
-        setAction("");
-        setUpdateReqId("");
-      });
-  };
-  const openActionConfirm = (
-    id: string,
-    action: "start_job" | "complete_job",
-  ) => {
-    const serviceInProgress = filteredRequests.find(
-      (item) => item.jobStatus === "in_progress",
-    );
-    if (serviceInProgress && action === "start_job") {
-      toast.error(ph("service_already_in_progress"));
-      return;
+
+  // Start / end job — temporarily disabled
+  // const handleJobAction = (id: string, action: string) => {
+  //   setAction(action);
+  //   setUpdateReqId(id);
+  //   startJob({
+  //     requestId: id,
+  //     action: action,
+  //   })
+  //     .unwrap()
+  //     .then(async (res) => {
+  //       toast.success(res.message);
+  //       setFilteredRequests((prev) =>
+  //         prev.map((item) => {
+  //           if (item._id !== id) return item;
+  //           if (action === "start_job") {
+  //             return {
+  //               ...item,
+  //               jobStatus: "in_progress",
+  //               startedAt: new Date().toISOString(),
+  //             };
+  //           }
+  //           if (action === "complete_job") {
+  //             return { ...item, jobStatus: "completed" };
+  //           }
+  //           return item;
+  //         }),
+  //       );
+  //       setAction("");
+  //       setUpdateReqId("");
+  //       if (page === 1) {
+  //         await refetch();
+  //       } else {
+  //         setPage(1);
+  //       }
+  //     })
+  //     .catch((err) => {
+  //       toast.error(err.data.message);
+  //       setAction("");
+  //       setUpdateReqId("");
+  //     });
+  // };
+  // const openActionConfirm = (
+  //   id: string,
+  //   action: "start_job" | "complete_job",
+  // ) => {
+  //   const serviceInProgress = filteredRequests.find(
+  //     (item) => item.jobStatus === "in_progress",
+  //   );
+  //   if (serviceInProgress && action === "start_job") {
+  //     toast.error(ph("service_already_in_progress"));
+  //     return;
+  //   }
+  //   setPendingRequestId(id);
+  //   setPendingAction(action);
+  //   setOpenConfirmModal(true);
+  // };
+  // const handleConfirmAction = () => {
+  //   if (!pendingRequestId || !pendingAction) return;
+  //   handleJobAction(pendingRequestId, pendingAction);
+  //   setOpenConfirmModal(false);
+  // };
+
+  const handleChatCustomer = async (customerId: string, requestId: string) => {
+    if (!userId || !customerId || !requestId) return;
+    setChattingRequestId(requestId);
+    try {
+      // Provider messaging customer: buyer = customer, seller = provider
+      await onInitiateChat(customerId, userId);
+    } finally {
+      setChattingRequestId("");
     }
-    setPendingRequestId(id);
-    setPendingAction(action);
-    setOpenConfirmModal(true);
-  };
-  const handleConfirmAction = () => {
-    if (!pendingRequestId || !pendingAction) return;
-    handleJobAction(pendingRequestId, pendingAction);
-    setOpenConfirmModal(false);
   };
 
   const formatElapsed = (startedAt?: string) => {
@@ -133,22 +191,27 @@ function MyJobs() {
 
   useEffect(() => {
     if (!servicesRequests) return;
-    const acceptedRequests: any = servicesRequests?.data
+    const acceptedRequests = (servicesRequests?.data ?? []) as RequestCard[];
 
     if (page === 1) {
       setFilteredRequests(acceptedRequests);
-    } else {
-      setFilteredRequests((prev) => {
-        const seen = new Set(prev.map((item) => item._id));
-        const next = [...prev];
-        acceptedRequests.forEach((item: RequestCard) => {
-          if (!seen.has(item._id)) {
-            next.push(item);
-          }
-        });
-        return next;
-      });
+      return;
     }
+
+    setFilteredRequests((prev) => {
+      const byId = new Map(prev.map((item) => [item._id, item]));
+      acceptedRequests.forEach((item) => {
+        byId.set(item._id, { ...byId.get(item._id), ...item });
+      });
+
+      const next = prev.map((item) => byId.get(item._id) ?? item);
+      acceptedRequests.forEach((item) => {
+        if (!prev.some((existing) => existing._id === item._id)) {
+          next.push(item);
+        }
+      });
+      return next;
+    });
   }, [servicesRequests, userId, page]);
 
   useEffect(() => {
@@ -182,6 +245,7 @@ function MyJobs() {
   const ph = (key: PlaceholderKey) => placeholders[key];
   return (
     <div className=" h-screen ">
+      {/* Start / end job confirm modal — temporarily disabled
       <JobActionConfirmModal
         open={openConfirmModal}
         setOpen={setOpenConfirmModal}
@@ -195,6 +259,7 @@ function MyJobs() {
         cancelLabel={ph("cancel")}
         onConfirm={handleConfirmAction}
       />
+      */}
       <div>
         <div className="border-b px-4  h-[72px] border-gray-9 flex items-center justify-center">
           <div className="h-full    w-[522px]  flex items-center gap-2 text-[14px]">
@@ -239,60 +304,89 @@ function MyJobs() {
                 filteredRequests.map((item: RequestCard, index: number) => {
                   const isExpired =
                     new Date(item.requestedDateTime).getTime() < Date.now();
-                  const isExtendingTiming =
-                    item.jobStatus === "in_progress" &&
-                    new Date(item.requestedDateTime).getTime() < Date.now();
+                  // const isExtendingTiming =
+                  //   item.jobStatus === "in_progress" &&
+                  //   new Date(item.requestedDateTime).getTime() < Date.now();
+                  const customerId =
+                    item.customer?.id ?? item.customer?._id ?? "";
+                  const isThisChatLoading =
+                    Boolean(item._id) && chattingRequestId === item._id;
+
                   return (
                     <div
-                      key={index}
+                      key={item._id ?? index}
                       className="py-4 border-b border-gray-9 rtl:pl-3 ltr:pr-3"
                     >
-                      <div className="flex items-center justify-between">
-                        <p className="text-[15px] text-[#3C9197] font-medium leading-none first-letter:capitalize">
-                          {ph("booked_your_service").replace(
-                            "{name}",
-                            item?.customer?.name ?? "",
-                          )}
-                        </p>
-                        {item.jobStatus === "in_progress" && (
-                          <h1 className="text-[26px] font-semibold text-green-1">
-                            {formatElapsed(item.startedAt)}
-                          </h1>
-                        )}{" "}
-                      </div>
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center justify-between">
+                            <p className="text-[15px] text-[#3C9197] font-medium leading-none first-letter:capitalize">
+                              {ph("booked_your_service").replace(
+                                "{name}",
+                                item?.customer?.name ?? "",
+                              )}
+                            </p>
+                            {item.jobStatus === "in_progress" && (
+                              <h1 className="text-[26px] font-semibold text-green-1">
+                                {formatElapsed(item.startedAt)}
+                              </h1>
+                            )}
+                          </div>
 
-                      <p className="text-[15px] font-medium mt-2 leading-none text-black-1">
-                        {formatRequestedDateTime(
-                          item.requestedDateTime,
-                          currentLanguage,
-                        )}
-                      </p>
-                      {item.jobStatus === "in_progress" && (
-                        <p
-                          className={`text-[14px] font-normal mt-2 leading-none 
+                          <p className="text-[15px] font-medium mt-2 leading-none text-black-1">
+                            {formatRequestedDateTime(
+                              item.requestedDateTime,
+                              currentLanguage,
+                            )}
+                          </p>
+                          {item.jobStatus === "in_progress" && (
+                            <p
+                              className={`text-[14px] font-normal mt-2 leading-none 
                           text-[#FF9500]
                             `}
-                        >
-
-                          {ph("service_in_progress")}
-                        </p>
-                      )}
-                      {isExpired && item?.jobStatus === "not_started" && (
-                        <p
-                          className={`text-[14px] font-normal mt-2 leading-none 
+                            >
+                              {ph("service_in_progress")}
+                            </p>
+                          )}
+                          {isExpired && item?.jobStatus === "not_started" && (
+                            <p
+                              className={`text-[14px] font-normal mt-2 leading-none 
                           text-red-1
                             `}
-                        >
-                          {ph("booking_date_passed")}
-                        </p>
-                      )}
+                            >
+                              {ph("booking_date_passed")}
+                            </p>
+                          )}
 
-                      {item.jobStatus === "completed" && (
-                        <p className="text-[14px] font-normal text-[#007781] mt-2 leading-none">
-                          {ph("service_completed")}
-                        </p>
-                      )}
+                          {item.jobStatus === "completed" && (
+                            <p className="text-[14px] font-normal text-[#007781] mt-2 leading-none">
+                              {ph("service_completed")}
+                            </p>
+                          )}
+                        </div>
 
+                        {customerId ? (
+                          <DoodleButton
+                            type="button"
+                            disabled={Boolean(chattingRequestId)}
+                            onClick={() =>
+                              void handleChatCustomer(customerId, item._id)
+                            }
+                            className="flex h-[38px] shrink-0 cursor-pointer items-center justify-center gap-2 rounded-[6px] bg-green-1 px-3 text-[14px] font-normal text-white disabled:cursor-not-allowed disabled:opacity-60 sm:px-4"
+                          >
+                            {isThisChatLoading ? (
+                              <BeatLoader color="white" size={8} />
+                            ) : (
+                              <>
+                                <MessageIcon className="h-5 w-5 shrink-0" />
+                                {ph("message")}
+                              </>
+                            )}
+                          </DoodleButton>
+                        ) : null}
+                      </div>
+
+                      {/* Start / end job buttons — temporarily disabled
                       <div className="flex justify-end ">
                         {item.jobStatus === "in_progress" && (
                           <button
@@ -316,6 +410,7 @@ function MyJobs() {
                           </DoodleButton>
                         )}
                       </div>
+                      */}
                     </div>
                   );
                 })
