@@ -511,6 +511,15 @@ function OfferedServices() {
             setOfferForId(null);
             setSpinnerIndex(-1);
             setSpinnerAction(null);
+
+            if (action === "accept") {
+                setActiveRequestTab("service_request");
+                setActiveStatusTab("accepted");
+                setServiceRequestMenuOpen(true);
+                scrollToResultsOnMobile();
+                return;
+            }
+
             lastMergedKeyRef.current = "";
             setRequestItems((prev) => {
                 const next = prev.filter((item) => getRequestId(item) !== requestId);

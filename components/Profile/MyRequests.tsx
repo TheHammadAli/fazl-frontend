@@ -16,6 +16,26 @@ import ServiceRequestSkeleton from "@/components/Services/ServiceRequestSkeleton
 import { BeatLoader } from "react-spinners";
 import toast from "react-hot-toast";
 import { parsePositiveInt } from "../Updates/Notifications";
+import useInitiateChat from "@/custom-hooks/useInitiateChat";
+
+function MessageIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.5}
+      aria-hidden
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m3.75 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m3.75 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z"
+      />
+    </svg>
+  );
+}
 
 const PAGE_LIMIT = 10;
 const SCROLL_LOAD_MARGIN_PX = 200;
@@ -47,6 +67,7 @@ type CustomerServiceRequest = {
   };
   provider?: {
     id?: string;
+    _id?: string;
     name?: string;
   };
 };
@@ -128,6 +149,8 @@ function MyRequests() {
 
   const [updateServiceRequest, { isLoading: isUpdating }] =
     useUpdateServiceRequestMutation();
+  const { onInitiateChat } = useInitiateChat();
+  const [chattingRequestId, setChattingRequestId] = useState<string>("");
 
   const requestQueryParams = useMemo(() => {
     const { status, jobStatus } = REQUEST_FILTER_QUERY[activeFilter];
@@ -144,14 +167,14 @@ function MyRequests() {
     fulfilledTimeStamp,
     refetch,
   } = useGetBookedServicesQuery(
-      {
-        customerId: userId,
-        page,
-        limit: PAGE_LIMIT,
-        ...requestQueryParams,
-      },
-      { skip: !userId, refetchOnMountOrArgChange: true },
-    );
+    {
+      customerId: userId,
+      page,
+      limit: PAGE_LIMIT,
+      ...requestQueryParams,
+    },
+    { skip: !userId, refetchOnMountOrArgChange: true },
+  );
 
   const ph = (key: PlaceholderKey) => placeholders[key];
   const isInitialLoading =
@@ -260,6 +283,16 @@ function MyRequests() {
     }
   };
 
+  const handleChatProvider = async (providerId: string, requestId: string) => {
+    if (!userId || !providerId || !requestId) return;
+    setChattingRequestId(requestId);
+    try {
+      await onInitiateChat(userId, providerId);
+    } finally {
+      setChattingRequestId("");
+    }
+  };
+
   const getStatusClass = (status?: string) => {
     if (status === "accepted") return "text-green-1";
     if (status === "rejected") return "text-red-1";
@@ -304,144 +337,178 @@ function MyRequests() {
             </div>
 
             <div className="mt-4 max-w-[760px] bg-white">
-            {isInitialLoading ? (
-              <ServiceRequestSkeleton count={3} />
-            ) : showEmpty ? (
-              <p className="py-8 text-center text-[15px] font-medium text-gray-8">
-                {ph("no_data_available")}
-              </p>
-            ) : (
-              <>
-                {requestItems.map((item, index) => {
-                  const requestId = getRequestApiId(item);
-                  const providerName = item.provider?.name ?? "";
-                  const priceLabel = item.service?.price
-                    ? `${item.service.price}/${item.service.paymentType === "hourly" ? ph("fixed") : ph("fixed")}`
-                    : "";
-                  const offerExpired =
-                    activeFilter === "new_offer" && isNewOfferExpired(item);
-                  const offerDateTime = getOfferDateTime(item);
-                  const showOfferActions =
-                    activeFilter === "new_offer" &&
-                    Boolean(requestId) &&
-                    !offerExpired;
+              {isInitialLoading ? (
+                <ServiceRequestSkeleton count={3} />
+              ) : showEmpty ? (
+                <p className="py-8 text-center text-[15px] font-medium text-gray-8">
+                  {ph("no_data_available")}
+                </p>
+              ) : (
+                <>
+                  {requestItems.map((item, index) => {
+                    const requestId = getRequestApiId(item);
+                    const providerName = item.provider?.name ?? "";
+                    const providerId =
+                      item.provider?.id ?? item.provider?._id ?? "";
+                    const priceLabel = item.service?.price
+                      ? `${item.service.price}/${item.service.paymentType === "hourly" ? ph("fixed") : ph("fixed")}`
+                      : "";
+                    const offerExpired =
+                      activeFilter === "new_offer" && isNewOfferExpired(item);
+                    const offerDateTime = getOfferDateTime(item);
+                    const showOfferActions =
+                      activeFilter === "new_offer" &&
+                      Boolean(requestId) &&
+                      !offerExpired;
+                    const showChatAction =
+                      activeFilter === "accepted" && Boolean(providerId);
+                    const isThisChatLoading =
+                      Boolean(requestId) && chattingRequestId === requestId;
 
-                  return (
-                    <div
-                      key={getRequestId(item, index)}
-                      className="py-4 border-b border-gray-9"
-                    >
-                      <div className="flex flex-col sm:flex-row sm:items-start gap-3">
-                        <Image
-                          src={
-                            item.service?.images?.[0] ||
-                            item.service?.images?.[1] ||
-                            noImageAvtar
-                          }
-                          alt={item.service?.title ?? ""}
-                          width={60}
-                          height={60}
-                          className="w-[60px] h-[60px] rounded-[8px] object-cover shrink-0 bg-gray-5"
-                          unoptimized
-                        />
-                        <div className="min-w-0">
-                          <h3 className="text-[15px] font-medium leading-none text-black-1">
-                            {item.service?.title}
-                          </h3>
-                          <p className="text-[15px] font-normal mt-1 leading-none text-gray-8">
-                            {ph("to_label")}: {providerName}
-                          </p>
-                          {priceLabel ? (
-                            <p className="text-[14px] font-medium mt-1 leading-none text-green-1">
-                              {priceLabel}
+                    return (
+                      <div
+                        key={getRequestId(item, index)}
+                        className="py-4 border-b border-gray-9"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <div className="flex items-center gap-3">
+                              <Image
+                                src={
+                                  item.service?.images?.[0] ||
+                                  item.service?.images?.[1] ||
+                                  noImageAvtar
+                                }
+                                alt={item.service?.title ?? ""}
+                                width={60}
+                                height={60}
+                                className="w-[60px] h-[60px] rounded-[8px] object-cover shrink-0 bg-gray-5"
+                                unoptimized
+                              />
+                              <div className="min-w-0 flex-1">
+                                <h3 className="text-[15px] font-medium leading-none text-black-1">
+                                  {item.service?.title}
+                                </h3>
+                                <p className="text-[15px] font-normal mt-1 leading-none text-gray-8">
+                                  {ph("to_label")}: {providerName}
+                                </p>
+                                {priceLabel ? (
+                                  <p className="text-[14px] font-medium mt-1 leading-none text-green-1">
+                                    {priceLabel}
+                                  </p>
+                                ) : null}
+                              </div>
+
+                            </div>
+                            {activeFilter === "new_offer" && providerName ? (
+                              <p className="text-[15px] text-green-1 font-medium mt-4 leading-none">
+                                {ph("proposed_new_time").replace(
+                                  "{name}",
+                                  providerName,
+                                )}
+                              </p>
+                            ) : null}
+                            {offerDateTime ? (
+                              <p className="text-[15px] font-medium mt-2 leading-none text-black-1">
+                                {formatRequestedDateTime(
+                                  offerDateTime,
+                                  currentLanguage,
+                                )}
+                              </p>
+                            ) : null}
+                            <p
+                              className={`text-[14px] font-normal mt-2 leading-none ${offerExpired ? "text-red-1" : getStatusClass(item.status)}`}
+                            >
+                              {offerExpired ? ph("expired") : getStatusLabel(item.status)}
                             </p>
+                          </div>
+
+
+                          {showChatAction ? (
+                            <DoodleButton
+                              type="button"
+                              disabled={Boolean(chattingRequestId)}
+                              onClick={() => {
+                                if (!requestId) return;
+                                void handleChatProvider(providerId, requestId);
+                              }}
+                              className="flex h-[38px] shrink-0 cursor-pointer items-center justify-center gap-2 rounded-[6px] bg-green-1 px-3 text-[14px] font-normal text-white disabled:cursor-not-allowed disabled:opacity-60 sm:px-4"
+                            >
+                              {isThisChatLoading ? (
+                                <BeatLoader color="white" size={8} />
+                              ) : (
+                                <>
+                                  <MessageIcon className="h-5 w-5 shrink-0" />
+                                  {ph("message")}
+                                </>
+                              )}
+                            </DoodleButton>
                           ) : null}
                         </div>
+
+                        {showOfferActions ? (
+                          <div className="mt-4 flex items-center gap-2">
+                            <DoodleButton
+                              type="button"
+                              disabled={isUpdating}
+                              onClick={() => {
+                                if (!requestId) return;
+                                void handleUpdateServiceRequest(
+                                  requestId,
+                                  "accept",
+                                  index,
+                                );
+                              }}
+                              className="flex-1 h-[42px] rounded-[6px] bg-green-1 text-white text-[14px] font-normal cursor-pointer disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center"
+                            >
+                              {isUpdating &&
+                                spinnerAction === "accept" &&
+                                spinnerIndex === index ? (
+                                <BeatLoader color="white" size={8} />
+                              ) : (
+                                ph("accept")
+                              )}
+                            </DoodleButton>
+                            <button
+                              type="button"
+                              disabled={isUpdating}
+                              onClick={() => {
+                                if (!requestId) return;
+                                void handleUpdateServiceRequest(
+                                  requestId,
+                                  "reject",
+                                  index,
+                                );
+                              }}
+                              className="flex-1 h-[42px] rounded-[6px] border border-green-2 text-green-2 text-[14px] font-normal cursor-pointer disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center"
+                            >
+                              {isUpdating &&
+                                spinnerAction === "reject" &&
+                                spinnerIndex === index ? (
+                                <BeatLoader color="#25A1A1" size={8} />
+                              ) : (
+                                ph("decline")
+                              )}
+                            </button>
+                          </div>
+                        ) : null}
                       </div>
-                      {activeFilter === "new_offer" && providerName ? (
-                        <p className="text-[15px] text-green-1 font-medium mt-4 leading-none">
-                          {ph("proposed_new_time").replace(
-                            "{name}",
-                            providerName,
-                          )}
-                        </p>
-                      ) : null}
-                      {offerDateTime ? (
-                        <p className="text-[15px] font-medium mt-2 leading-none text-black-1">
-                          {formatRequestedDateTime(
-                            offerDateTime,
-                            currentLanguage,
-                          )}
-                        </p>
-                      ) : null}
-                      <p
-                        className={`text-[14px] font-normal mt-2 leading-none ${offerExpired ? "text-red-1" : getStatusClass(item.status)}`}
-                      >
-                        {offerExpired ? ph("expired") : getStatusLabel(item.status)}
-                      </p>
-                      {showOfferActions ? (
-                        <div className="mt-4 flex items-center gap-2">
-                          <DoodleButton
-                            type="button"
-                            disabled={isUpdating}
-                            onClick={() => {
-                              if (!requestId) return;
-                              void handleUpdateServiceRequest(
-                                requestId,
-                                "accept",
-                                index,
-                              );
-                            }}
-                            className="flex-1 h-[42px] rounded-[6px] bg-green-1 text-white text-[14px] font-normal cursor-pointer disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center"
-                          >
-                            {isUpdating &&
-                            spinnerAction === "accept" &&
-                            spinnerIndex === index ? (
-                              <BeatLoader color="white" size={8} />
-                            ) : (
-                              ph("accept")
-                            )}
-                          </DoodleButton>
-                          <button
-                            type="button"
-                            disabled={isUpdating}
-                            onClick={() => {
-                              if (!requestId) return;
-                              void handleUpdateServiceRequest(
-                                requestId,
-                                "reject",
-                                index,
-                              );
-                            }}
-                            className="flex-1 h-[42px] rounded-[6px] border border-green-2 text-green-2 text-[14px] font-normal cursor-pointer disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center"
-                          >
-                            {isUpdating &&
-                            spinnerAction === "reject" &&
-                            spinnerIndex === index ? (
-                              <BeatLoader color="#25A1A1" size={8} />
-                            ) : (
-                              ph("decline")
-                            )}
-                          </button>
-                        </div>
-                      ) : null}
+                    );
+                  })}
+                  {hasMore ? (
+                    <div
+                      ref={setSentinelNode}
+                      className="h-4 w-full shrink-0"
+                      aria-hidden
+                    />
+                  ) : null}
+                  {isLoadingMore ? (
+                    <div className="flex justify-center py-6">
+                      <span className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-gray-4 border-t-green-1" />
                     </div>
-                  );
-                })}
-                {hasMore ? (
-                  <div
-                    ref={setSentinelNode}
-                    className="h-4 w-full shrink-0"
-                    aria-hidden
-                  />
-                ) : null}
-                {isLoadingMore ? (
-                  <div className="flex justify-center py-6">
-                    <span className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-gray-4 border-t-green-1" />
-                  </div>
-                ) : null}
-              </>
-            )}
+                  ) : null}
+                </>
+              )}
             </div>
           </div>
         </div>
