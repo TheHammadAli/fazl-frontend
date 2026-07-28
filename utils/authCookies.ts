@@ -50,13 +50,6 @@ export function setProfileCompletedCookie(completed: boolean) {
   });
 }
 
-export function setAdminRoleCookie(isAdmin: boolean) {
-  setCookie("isAdmin", isAdmin ? "true" : "false", {
-    ...baseOptions,
-    maxAge: REFRESH_TOKEN_MAX_AGE,
-  });
-}
-
 export function clearAuthCookies() {
   const opts = { path: COOKIE_PATH };
   deleteCookie("token", opts);

@@ -9,9 +9,9 @@ import { useSentBroadcastMessagesQuery } from "@/store/services/chatService";
 import { useCanInteractAsUser } from "@/custom-hooks/useIsGuest";
 import { parsePositiveInt } from "@/components/Updates/Notifications";
 import AvatarUi from "@/components/Ui/AvatarUi";
-import noImageAvtar from "@/assets/images/no-image-av.png";
 import noImageAvatar from "@/assets/images/profile-placehonder.png";
 import broadcastServiceIcon from "@/assets/icons/broadcast_service.svg";
+import recentBroadImagesIcon from "@/assets/icons/recent-broad-images.svg";
 import "swiper/css";
 
 type BroadcastResponder = {
@@ -32,7 +32,7 @@ type RecentBroadcastItem = {
     recipients?: number;
     responses?: number;
     responseCount?: number;
-    threadsCount?: number;
+    threadCount?: number;
     location?: { description?: string } | string;
     address?: string;
     images?: string[];
@@ -71,15 +71,12 @@ function getBroadcastId(item: RecentBroadcastItem): string {
     return item._id ?? item.id ?? item.threadId ?? "";
 }
 
-function getResponseCount(item: RecentBroadcastItem): number {
-    return item.responses ?? item.responseCount ?? item.recipients ?? item.threadsCount ?? 0;
+function getThreadCount(item: RecentBroadcastItem): number {
+    return item?.threadCount ?? item.recipients ?? 0;
 }
 
-function getBroadcastImage(item: RecentBroadcastItem): string {
-    if (item.imageUrls?.[0]) return item.imageUrls[0];
-    if (typeof item.files?.[0] === "string") return item.files[0];
-    if (item.image) return item.image;
-    return broadcastServiceIcon;
+function getResponseCount(item: RecentBroadcastItem): number {
+    return item.responses ?? item.responseCount ?? 0;
 }
 
 function getBroadcastLocation(item: RecentBroadcastItem): string {
@@ -180,12 +177,14 @@ type BroadcastCardProps = {
 };
 
 function BroadcastCard({ item, onClick, shouldSuppressClick }: BroadcastCardProps) {
+    const { info_messages } = useDictionary();
     const responseCount = getResponseCount(item);
+    const threadCount = getThreadCount(item);
     const responders = getResponders(item);
     const location = getBroadcastLocation(item);
-    const imageUrl = getBroadcastImage(item);
-    const hasCustomImage = Boolean(
-        item.imageUrls?.[0] || (typeof item.files?.[0] === "string") || item.image,
+    const sentToUsersLabel = String(info_messages.sent_to_users ?? "Sent to {count} users").replace(
+        "{count}",
+        String(threadCount),
     );
 
     return (
@@ -211,28 +210,34 @@ function BroadcastCard({ item, onClick, shouldSuppressClick }: BroadcastCardProp
                     width={48}
                     height={48}
                     draggable={false}
-
-                    className={
-
-                        "h-10 w-10"
-                    }
+                    className="h-10 w-10"
                 />
             </div>
 
-            <div className="min-w-0 flex-1 space-y-0  rtl:text-right  ">
-
-                <h1 className="truncate-safe first-letter:uppercase text-[14px] leading-none font-medium text-[#030303]">
+            <div className="min-w-0 flex-1 rtl:text-right ">
+                <p className="truncate-safe text-[12px] text-green-1 font-normal !leading-none text-[#4B514F]">
+                    {sentToUsersLabel}
+                </p>
+                <h1 className="truncate-safe first-letter:uppercase text-[14px] !leading-none font-medium text-[#030303]">
                     {item.message}
                 </h1>
                 {location ? (
-                    <span className="truncate-safe leading-none  text-[13px] font-normal text-[#4B514F]">
+                    <span className="truncate-safe text-[13px] font-normal  !leading-none text-[#4B514F]">
                         {location}
                     </span>
                 ) : null}
             </div>
 
-            <div className="pointer-events-none">
+            <div className="pointer-events-none flex shrink-0 items-center gap-2">
                 <ResponderAvatarStack responders={responders} total={responseCount} />
+                <Image
+                    src={recentBroadImagesIcon}
+                    alt=""
+                    width={40}
+                    height={40}
+                    draggable={false}
+                    className="h-12 w-14 object-contain"
+                />
             </div>
         </div>
     );
@@ -293,6 +298,7 @@ function RecentBroadCasts() {
         { skip: !canInteractAsUser, refetchOnMountOrArgChange: true },
     );
 
+    console.log(data, "check the data ");
     useEffect(() => {
         if (!canInteractAsUser || data == null || isFetching) return;
 
@@ -315,7 +321,7 @@ function RecentBroadCasts() {
             return next;
         });
     }, [canInteractAsUser, data, fulfilledTimeStamp, isFetching, page]);
-
+    console.log(broadcastItems, "checking broadcast items");
     const isInitialLoading = broadcastItems.length === 0 && (isLoading || isFetching);
     const isLoadingMore = isFetching && page > 1;
 

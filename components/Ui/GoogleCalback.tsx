@@ -7,14 +7,17 @@ import Image from "next/image";
 import { useGetUserWithProvidedTokenQuery } from "@/store/services/authService";
 import { useAppDispatch } from "@/store/store";
 import {
+  logout,
   setProfileCompleted,
   setToken,
   setUserId,
 } from "@/store/reducers/authReducer";
 import { useLazyGetUserDetailQuery } from "@/store/services/profileService";
-import { setAdminRoleCookie } from "@/utils/authCookies";
 import { getCookie } from "cookies-next";
 import { i18n } from "@/i18n.config";
+import { isAdminOnlyAccount } from "@/utils/userRoles";
+import toast from "react-hot-toast";
+import { useDictionary } from "@/dictionaries/DictionaryProvider";
 
 function getLocalePrefix() {
   const lang = getCookie("lang");
@@ -33,6 +36,7 @@ function handledStorageKey(token: string) {
 export default function GoogleCallback() {
   const searchParams = useSearchParams();
   const dispatch = useAppDispatch();
+  const { error_messages } = useDictionary();
   const [profileError, setProfileError] = useState(false);
   const [stopQueries, setStopQueries] = useState(false);
 
@@ -97,24 +101,19 @@ export default function GoogleCallback() {
           return;
         }
 
+        if (isAdminOnlyAccount(profile)) {
+          sessionStorage.removeItem(handledStorageKey(token));
+          dispatch(logout());
+          toast.error(error_messages.admin_login_not_allowed);
+          window.location.replace(`${getLocalePrefix()}/signin`);
+          return;
+        }
+
         try {
           localStorage.setItem("user", JSON.stringify({ user: profile }));
         } catch {
           // Ignore storage failures; auth cookies already set.
         }
-
-        const roles = profile?.roles;
-        const isAdmin =
-          Array.isArray(roles) &&
-          roles.some(
-            (role: unknown) =>
-              String(
-                typeof role === "string"
-                  ? role
-                  : (role as { name?: string })?.name,
-              ).toLowerCase() === "admin",
-          );
-        setAdminRoleCookie(isAdmin);
 
         if (!profile.phone) {
           dispatch(setProfileCompleted(false));
@@ -123,9 +122,7 @@ export default function GoogleCallback() {
         }
 
         dispatch(setProfileCompleted(true));
-        window.location.replace(
-          isAdmin ? "/admin/users" : `${getLocalePrefix()}/welcome`,
-        );
+        window.location.replace(`${getLocalePrefix()}/welcome`);
       })
       .catch(() => {
         sessionStorage.removeItem(handledStorageKey(token));

@@ -121,6 +121,7 @@ function BroadCastModal({ setOpenBroadcast }: { setOpenBroadcast: (open: boolean
     const locationRef = useRef<HTMLDivElement | null>(null);
     const [isLocationOpen, setIsLocationOpen] = useState(false);
     const [location, setLocation] = useState<Location>({});
+    const [address, setAddress] = useState("");
     const [locationSearch, setLocationSearch] = useState("");
     const [debouncedLocationSearch] = useDebounce(locationSearch, 500);
     const { data: categories, isLoading: isCategoriesLoading, isFetching: isCategoriesFetching } = useCategoriesQuery("");
@@ -206,6 +207,7 @@ function BroadCastModal({ setOpenBroadcast }: { setOpenBroadcast: (open: boolean
                     fd.append("radius", String(selectedRadius));
                     fd.append("categoryId", selectedCategory._id);
                     fd.append("location", JSON.stringify(pointLocation));
+                    fd.append("address", address);
                     imageFiles.forEach((file) => fd.append("files", file));
                     return fd;
                 })()
@@ -216,6 +218,7 @@ function BroadCastModal({ setOpenBroadcast }: { setOpenBroadcast: (open: boolean
                     radius: selectedRadius,
                     categoryId: selectedCategory._id,
                     location: pointLocation,
+                    address,
                 };
 
         try {
@@ -366,6 +369,7 @@ function BroadCastModal({ setOpenBroadcast }: { setOpenBroadcast: (open: boolean
                                                             type="button"
                                                             onClick={() => {
                                                                 setLocation(item);
+                                                                setAddress(item.description?.trim() ?? "");
                                                                 setIsLocationOpen(false);
                                                                 setLocationSearch("");
                                                             }}
