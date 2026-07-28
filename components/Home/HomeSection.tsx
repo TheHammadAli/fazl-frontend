@@ -192,10 +192,8 @@ function HomeSection() {
     products: <></>,
     services: <></>,
   };
-
   const [search, setSearch] = useState<string>("");
   const [debounceSearch] = useDebounce(search, 500);
-
   const router = useRouter();
   const catRef = useRef<HTMLDivElement>(null);
   const tabs = ["products", "services"];

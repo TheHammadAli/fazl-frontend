@@ -6,15 +6,6 @@ import {
   isGuestRestrictedPathname,
 } from "@/utils/guestAccess";
 
-function isAdminPath(path: string) {
-  return path === "/admin" || path.startsWith("/admin/");
-}
-
-function getLocalizedAdminPath(pathname: string) {
-  const match = pathname.match(/^\/(en|ur)(\/admin(?:\/.*)?)$/);
-  return match ? match[2] : null;
-}
-
 /**
  * Next.js 16+: `proxy.ts` replaces deprecated `middleware.ts`.
  * Runs on Node.js (not Edge), so local @/ imports are safe on Vercel.
@@ -39,27 +30,6 @@ export function proxy(request: NextRequest) {
   const pathnameIsMissingLocale = i18n.locales.every(
     (loc) => !pathname.startsWith(`/${loc}/`) && pathname !== `/${loc}`,
   );
-
-  const localizedAdminPath = getLocalizedAdminPath(pathname);
-  if (localizedAdminPath) {
-    return NextResponse.redirect(
-      new URL(`${localizedAdminPath}${search}`, request.url),
-    );
-  }
-
-  if (isAdminPath(pathname)) {
-    const isAdmin = request.cookies.get("isAdmin")?.value === "true";
-
-    if (!hasSession) {
-      return NextResponse.redirect(new URL(`/${locale}/signin`, request.url));
-    }
-
-    if (!isAdmin) {
-      return NextResponse.redirect(new URL(`/${locale}/home`, request.url));
-    }
-
-    return NextResponse.next();
-  }
 
   const publicRoutes: string[] = [`/${locale}/google/auth/success`];
 

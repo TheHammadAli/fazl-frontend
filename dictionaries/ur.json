@@ -361,6 +361,7 @@
         "recent_services": "حالیہ سروسز",
         "recent_service_ads": "حالیہ سروس اشتہارات",
         "recent_broadcasts": "حالیہ براڈکاسٹس",
+        "sent_to_users": "{count} صارفین کو بھیجا گیا",
         "responses": "جوابات",
         "services_categories": "سروسز کیٹیگریز",
         "see_more_categories": "مزید کیٹیگریز دیکھیں",
@@ -424,6 +425,7 @@
     "error_messages": {
         "future_time": "وقت مستقبل میں ہونا چاہیے",
         "something_went_wrong": "کچھ غلط ہو گیا، براہ کرم بعد میں دوبارہ کوشش کریں",
+        "admin_login_not_allowed": "ایڈمن اکاؤنٹس اس ایپ میں سائن ان نہیں کر سکتے",
         "seller_phone_unavailable": "فروخت کنندہ کا فون نمبر دستیاب نہیں ہے",
         "guest_signin_required": "اس حصے تک رسائی کے لیے سائن ان کریں",
         "name_required": "نام ضروری ہے*",

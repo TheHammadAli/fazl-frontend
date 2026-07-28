@@ -42,9 +42,10 @@ function BroadCatMessages({
     const [receivedPage, setReceivedPage] = useState(1);
     const [filteredSent, setFilteredSent] = useState<BroadcastItem[]>([]);
     const [filteredReceived, setFilteredReceived] = useState<BroadcastItem[]>([]);
+
     const [showBroadcastThreadList, setShowBroadcastThreadList] = useState(false);
     const [selectedBroadcast, setSelectedBroadcast] = useState<BroadcastItem | null>(null);
-
+    console.log(filteredSent, "check the filtered sent ");
     const {
         data: sentItems,
         isLoading: isSentLoading,

@@ -365,6 +365,7 @@
         "recent_services": "Recent services",
         "recent_service_ads": "Recent service ads",
         "recent_broadcasts": "Recent broadcasts",
+        "sent_to_users": "Sent to {count} users",
         "responses": "responses",
         "services_categories": "Services categories",
         "see_more_categories": "See more categories",
@@ -428,6 +429,7 @@
     "error_messages": {
         "future_time": "Time must be in the future",
         "something_went_wrong": "Something went wrong, please try again later",
+        "admin_login_not_allowed": "Admin accounts cannot sign in to this app",
         "seller_phone_unavailable": "Seller phone number is not available",
         "guest_signin_required": "Please sign in to access this section",
         "name_required": "Name is required*",

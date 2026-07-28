@@ -116,6 +116,7 @@ function DirectMessages({
                 ) : filteredThreads?.map((thread: any, index) => {
                     const isActive = thread?._id === chatId;
                     const thread_user = thread?.buyer?.id || thread?.buyer?._id !== userId ? thread?.buyer : thread?.seller;
+                    console.log(thread, "check the thread ");
                     return (
                         <li key={index}>
                             <button
@@ -133,7 +134,7 @@ function DirectMessages({
                                 <div className="min-w-0 flex-1">
                                     <div className="flex items-center justify-between gap-2">
                                         <p className="truncate text-[15px] font-medium text-[#030303] first-letter:capitalize">{thread_user?.name ?? ""}</p>
-                                        <span className="shrink-0 text-[13px] font-normal text-[#4B514F]">{moment(thread.createdAt).locale(currentLanguage).fromNow()}</span>
+                                        <span className="shrink-0 text-[13px] font-normal text-[#4B514F]">{moment(thread?.lastMessageAt).locale(currentLanguage).fromNow()}</span>
                                     </div>
                                     <div className="mt-1 flex items-center justify-between gap-2">
                                         <p className="truncate text-sm text-gray-600">{thread.latestMessage?.text ?? ""}</p>

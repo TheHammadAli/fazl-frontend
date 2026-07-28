@@ -71,6 +71,13 @@ export default function ChatWindow({ thread, onBack, threadType, draftMessage = 
     [placeholders],
   );
 
+  const getMessageTime = useCallback((createdAt?: string) => {
+    if (!createdAt) return "";
+    const date = moment(createdAt);
+    if (!date.isValid()) return "";
+    return date.format("h:mm A");
+  }, []);
+
   const {
     conversationId,
     isBroadcastReceived,
@@ -536,6 +543,7 @@ export default function ChatWindow({ thread, onBack, threadType, draftMessage = 
               const imageUrls = hasFiveImages ? allImageUrls.slice(0, 4) : allImageUrls;
               const hasImages = imageUrls.length > 0;
               const showText = Boolean(textContent != null && String(textContent).trim());
+              const messageTime = getMessageTime(message.createdAt);
               return (
                 <div key={index}>
                   {showDateSeparator ? (
@@ -605,7 +613,7 @@ export default function ChatWindow({ thread, onBack, threadType, draftMessage = 
                         ) : null}
                         {showText ? (
                           <div
-                            className={`break-words text-sm leading-relaxed ${mine ? "text-[#030303]" : "text-gray-900"} ${hasImages ? "px-3 pb-2.5 pt-2" : "px-4 py-2.5"} whitespace-pre-wrap`}
+                            className={`break-words text-sm leading-relaxed ${mine ? "text-[#030303]" : "text-gray-900"} ${hasImages ? "px-3 pt-2" : "px-4 pt-2.5"} whitespace-pre-wrap`}
                           >
                             {String(textContent)
                               .split(/(https?:\/\/[^\s]+)/g)
@@ -624,6 +632,15 @@ export default function ChatWindow({ thread, onBack, threadType, draftMessage = 
                                   <span key={`text-${partIndex}`}>{part}</span>
                                 ),
                               )}
+                          </div>
+                        ) : null}
+                        {messageTime ? (
+                          <div
+                            className={`flex justify-end ${showText || hasImages ? "px-3 pb-1.5 pt-0.5" : "px-3 py-1"}`}
+                          >
+                            <span className="select-none text-[11px] leading-none text-[#667781]">
+                              {messageTime}
+                            </span>
                           </div>
                         ) : null}
                       </div>

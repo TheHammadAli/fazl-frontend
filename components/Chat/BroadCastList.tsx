@@ -28,7 +28,7 @@ function BroadCastList({ items, onScroll, onSelectItem, chatId, activeTab }: Bro
     const ph = (key: PlaceholderKey) => placeholders[key];
     return (
         <div onScroll={onScroll} className="hide-scrollbar flex-1 overflow-y-auto divide-y divide-gray-9 bg-white">
-            {items?.map((item, index) => {
+            {items?.map((item: any, index) => {
                 const isReceivedSelected =
                     activeTab === "received" && !!item?.threadId && chatId === item.threadId;
                 return (
@@ -42,7 +42,7 @@ function BroadCastList({ items, onScroll, onSelectItem, chatId, activeTab }: Bro
                             <p className="first-letter:uppercase leading-[22px] font-normal text-[#3C9197]">
                                 {item.type ?? ph("product")} &#8226; {getFeedCategoryLabel(item?.category, currentLanguage)}
                             </p>
-                            <span className="shrink-0   font-normal text-gray-8">{formatFromNowShort(item?.createdAt ?? "", currentLanguage as "en" | "ur")}</span>
+                            <span className="shrink-0   font-normal text-gray-8">{formatFromNowShort(item?.latestMessage?.createdAt ?? item?.createdAt ?? '', currentLanguage as "en" | "ur")}</span>
                         </div>
                         <div className="mt-1 flex items-center justify-between gap-2">
                             <p className="text-[15px]  font-medium text-black-1">{item.message}</p>

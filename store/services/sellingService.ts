@@ -71,7 +71,7 @@ export const profileService = baseApi.injectEndpoints({
           method: "GET",
         };
       },
-      providesTags: ["CATEGORIES", "ADMIN_CATEGORIES"],
+      providesTags: ["CATEGORIES"],
     }),
     addService: build.mutation({
       query: (body) => ({
