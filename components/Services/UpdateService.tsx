@@ -12,7 +12,7 @@ import Modal from "../Ui/Modals/Modal";
 import DoodleButton from "@/components/Ui/DoodleButton";
 import CategoryModal, {
   categroyTypes,
-  type CategoryParameters,
+  mapCategoryParametersToListingParameters,
 } from "../Services/CategoryModal";
 import PriceModal, { priceTypes } from "../Services/PriceModal";
 import {
@@ -31,24 +31,6 @@ import {
 import ParametersModal from "../Selling/ParametersModal";
 import ParameterTags from "../Selling/ParameterTags";
 import { getFeedCategoryLabel } from "@/utils/getFeedCategoryLabel";
-
-function mapCategoryParametersToServiceParameters(
-  parameters: CategoryParameters | undefined,
-  lang: string,
-): parameterTypes[] {
-  if (!parameters) return [];
-
-  const names =
-    (lang === "ur" ? parameters.ur : parameters.en) ??
-    parameters.en ??
-    parameters.ur ??
-    [];
-
-  return names
-    .map((name) => name.trim())
-    .filter(Boolean)
-    .map((name) => ({ name, variants: [] }));
-}
 
 function UpdateService() {
   const router = useRouter();
@@ -239,7 +221,7 @@ function UpdateService() {
 
     loadedCategoryIdRef.current = categoryId;
     setParameters(
-      mapCategoryParametersToServiceParameters(
+      mapCategoryParametersToListingParameters(
         selectedCategory.parameters,
         currentLanguage,
       ),

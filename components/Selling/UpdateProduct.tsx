@@ -10,7 +10,10 @@ import cameraIcon from "@/assets/icons/camera-icon.svg";
 import { BeatLoader } from "react-spinners";
 import Modal from "../Ui/Modals/Modal";
 import DoodleButton from "@/components/Ui/DoodleButton";
-import CategoryModal, { categroyTypes, type CategoryParameters } from "../Services/CategoryModal";
+import CategoryModal, {
+  categroyTypes,
+  mapCategoryParametersToListingParameters,
+} from "../Services/CategoryModal";
 import PriceModal, { priceTypes } from "../Services/PriceModal";
 import {
   useDeleteProductMediaMutation,
@@ -26,21 +29,6 @@ import { useGetProductDetailQuery } from "@/store/services/homeService";
 import { useRouter } from "next/navigation";
 import { getUserId } from "@/utils/getUserId";
 import { getFeedCategoryLabel } from "@/utils/getFeedCategoryLabel";
-
-function mapCategoryParametersToProductParameters(
-  parameters: CategoryParameters | undefined,
-  lang: string,
-): parameterTypes[] {
-  if (!parameters) return [];
-
-  const names =
-    (lang === "ur" ? parameters.ur : parameters.en) ?? parameters.en ?? parameters.ur ?? [];
-
-  return names
-    .map((name) => name.trim())
-    .filter(Boolean)
-    .map((name) => ({ name, variants: [] }));
-}
 
 function UpdateProduct() {
   const router = useRouter();
@@ -235,7 +223,7 @@ function UpdateProduct() {
 
     loadedCategoryIdRef.current = categoryId;
     setParameters(
-      mapCategoryParametersToProductParameters(
+      mapCategoryParametersToListingParameters(
         selectedCategory.parameters,
         currentLanguage,
       ),

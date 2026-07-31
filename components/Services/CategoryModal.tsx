@@ -3,14 +3,18 @@ import React from "react";
 import Image from "next/image";
 import crossIcon from "@/assets/icons/cross-icon.svg";
 import { useCategoriesQuery } from "@/custom-hooks/useCategoriesQuery";
-import CategoryImg from "@/assets/icons/category-icon.png";
 import chevron from "@/assets/icons/chev-down-icon.svg";
 import CategoriesSkeleton from "./CategoriesSkeleton";
 import { getFeedCategoryLabel } from "@/utils/getFeedCategoryLabel";
 
+export type CategoryParameterEntry = {
+  name: string;
+  values: string[];
+};
+
 export type CategoryParameters = {
-  en: string[];
-  ur: string[];
+  en: CategoryParameterEntry[];
+  ur: CategoryParameterEntry[];
 };
 
 export interface categroyTypes {
@@ -19,6 +23,7 @@ export interface categroyTypes {
   type?: string;
   parameters?: CategoryParameters;
 }
+
 interface CategoryModalRef {
   setIsCatOpen: React.Dispatch<React.SetStateAction<boolean>>;
   selectedCategory: categroyTypes | null;
@@ -27,22 +32,67 @@ interface CategoryModalRef {
   >;
   type?: string;
 }
+
+export function getCategoryParameterEntries(
+  parameters: CategoryParameters | undefined,
+  lang: string,
+): CategoryParameterEntry[] {
+  if (!parameters) return [];
+
+  const entries =
+    ((lang === "ur" ? parameters.ur : parameters.en) ??
+      parameters.en ??
+      parameters.ur ??
+      []) as Array<CategoryParameterEntry | string>;
+
+  return entries
+    .map((entry) => {
+      if (typeof entry === "string") {
+        const name = entry.trim();
+        return name ? { name, values: [] as string[] } : null;
+      }
+
+      const name = entry?.name?.trim() ?? "";
+      if (!name) return null;
+
+      const values = Array.isArray(entry?.values)
+        ? entry.values.map((value) => String(value).trim()).filter(Boolean)
+        : [];
+
+      return { name, values };
+    })
+    .filter((entry): entry is CategoryParameterEntry => entry != null);
+}
+
+export function mapCategoryParametersToListingParameters(
+  parameters: CategoryParameters | undefined,
+  lang: string,
+): { name: string; variants: string[] }[] {
+  return getCategoryParameterEntries(parameters, lang).map((entry) => ({
+    name: entry.name,
+    variants: entry.values,
+  }));
+}
+
 function CategoryModal({
   setIsCatOpen,
   selectedCategory,
   setSelectedCategory,
-  type
+  type,
 }: CategoryModalRef) {
   const { placeholders, error_messages, currentLanguage } = useDictionary();
   const {
     data: categories,
     isLoading: isCategoriesLoading,
     isFetching: isCategoriesFetching,
-  } = useCategoriesQuery({ ...(type ? { type: type, lang: currentLanguage } : {}) });
+  } = useCategoriesQuery({
+    ...(type ? { type: type, lang: currentLanguage } : {}),
+  });
+
   return (
-    <div className="  w-[456px] bg-[white] h-[470px] overflow-scroll hide-scrollbar rounded-[10px]">
-      <div className="sticky bg-white top-0  z-50 px-[15px] py-[16px] flex justify-between items-center border-b-[1px] border-gray-9">
-        <h1 className="leading-none text-black-3 text-[16px] font-medium">
+    <div className="h-[470px] w-[456px] overflow-scroll rounded-[10px] bg-[white] hide-scrollbar">
+      <div className="sticky top-0 z-50 flex items-center justify-between border-b-[1px] border-gray-9 bg-white px-[15px] py-[16px]">
+        <h1 className="text-[16px] font-medium leading-none text-black-3">
           {selectedCategory
             ? getFeedCategoryLabel(selectedCategory.name, currentLanguage)
             : placeholders.choose_category}
@@ -65,10 +115,10 @@ function CategoryModal({
                   setSelectedCategory(category);
                   setIsCatOpen(false);
                 }}
-                key={index}
-                className="cursor-pointer px-[15px] py-[16px] flex justify-between items-center border-b-[1px] border-gray-9"
+                key={category._id || index}
+                className="flex cursor-pointer items-center justify-between border-b-[1px] border-gray-9 px-[15px] py-[16px]"
               >
-                <div className="flex gap-2 items-center">
+                <div className="flex items-center gap-2">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
@@ -90,14 +140,14 @@ function CategoryModal({
                 <Image
                   src={chevron}
                   alt="chevron"
-                  className=" -rotate-90 rtl:rotate-90"
+                  className="-rotate-90 rtl:rotate-90"
                 />
               </div>
             ))}
           </>
         ) : (
-          <div className="h-[410px] w-full flex items-center justify-center">
-            <h1 className="text-black-3 text-[16px] font-medium">
+          <div className="flex h-[410px] w-full items-center justify-center">
+            <h1 className="text-[16px] font-medium text-black-3">
               {error_messages.no_categories}
             </h1>
           </div>

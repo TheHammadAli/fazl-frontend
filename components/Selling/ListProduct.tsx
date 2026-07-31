@@ -10,7 +10,10 @@ import cameraIcon from "@/assets/icons/camera-icon.svg";
 import { BeatLoader } from "react-spinners";
 import Modal from "../Ui/Modals/Modal";
 import DoodleButton from "@/components/Ui/DoodleButton";
-import CategoryModal, { categroyTypes, type CategoryParameters } from "../Services/CategoryModal";
+import CategoryModal, {
+  categroyTypes,
+  type CategoryParameters,
+} from "../Services/CategoryModal";
 import PriceModal, { priceTypes } from "../Services/PriceModal";
 import {
   useGetShopDetailQuery,
@@ -25,6 +28,29 @@ import { useSearchParams } from "next/navigation";
 import ProductListed from "./ProductListed";
 import { getCookie } from "cookies-next";
 import { getFeedCategoryLabel } from "@/utils/getFeedCategoryLabel";
+import { useClickOutside } from "@/custom-hooks/useClickOutside";
+import { useDebounce } from "use-debounce";
+import { useGetLocationsQuery } from "@/store/services/authService";
+import locationIcon from "@/assets/icons/location-icon.svg";
+
+type Location = {
+  description?: string;
+  type?: string;
+  coordinates?: {
+    lat?: number;
+    lng?: number;
+  };
+};
+
+function toPointLocation(location: Location) {
+  const lat = location.coordinates?.lat;
+  const lng = location.coordinates?.lng;
+  if (lat == null || lng == null) return null;
+  return {
+    type: "Point" as const,
+    coordinates: [lat, lng] as [number, number],
+  };
+}
 
 function mapCategoryParametersToProductParameters(
   parameters: CategoryParameters | undefined,
@@ -32,13 +58,29 @@ function mapCategoryParametersToProductParameters(
 ): parameterTypes[] {
   if (!parameters) return [];
 
-  const names =
-    (lang === "ur" ? parameters.ur : parameters.en) ?? parameters.en ?? parameters.ur ?? [];
+  const entries =
+    ((lang === "ur" ? parameters.ur : parameters.en) ??
+      parameters.en ??
+      parameters.ur ??
+      []) as Array<{ name?: string; values?: string[] } | string>;
 
-  return names
-    .map((name) => name.trim())
-    .filter(Boolean)
-    .map((name) => ({ name, variants: [] }));
+  return entries
+    .map((entry) => {
+      if (typeof entry === "string") {
+        const name = entry.trim();
+        return name ? { name, variants: [] as string[] } : null;
+      }
+
+      const name = entry?.name?.trim() ?? "";
+      if (!name) return null;
+
+      const variants = Array.isArray(entry?.values)
+        ? entry.values.map((value) => String(value).trim()).filter(Boolean)
+        : [];
+
+      return { name, variants };
+    })
+    .filter((parameter): parameter is parameterTypes => parameter != null);
 }
 
 function hasMissingParameterValues(parameters: parameterTypes[]): boolean {
@@ -47,6 +89,7 @@ function hasMissingParameterValues(parameters: parameterTypes[]): boolean {
 
 function ListProduct() {
   const categoryRef = useRef<HTMLDivElement | null>(null);
+  const locationRef = useRef<HTMLDivElement | null>(null);
   const { pages, placeholders, info_messages, error_messages, currentLanguage } =
     useDictionary();
   const [listProduct, { data, isLoading, isError, isSuccess, error }] =
@@ -81,12 +124,29 @@ function ListProduct() {
     paymentType: "fixed",
     price: "",
   });
+
   const [parameters, setParameters] = useState<parameterTypes[]>([]);
   const [parameterError, setParameterError] = useState("");
+  const [isLocationOpen, setIsLocationOpen] = useState(false);
+  const [location, setLocation] = useState<Location>({});
+  const [address, setAddress] = useState("");
+  const [locationSearch, setLocationSearch] = useState("");
+  const [locationError, setLocationError] = useState("");
+  const [debouncedLocationSearch] = useDebounce(locationSearch, 500);
   const id = useSearchParams().get("id") || "";
   const productType = useSearchParams().get("type") || "";
   const userId = typeof window !== "undefined" ? getCookie("userId") : "";
   const isShopListing = productType !== "personal";
+  const isPersonalListing = productType === "personal";
+
+  const {
+    data: locationsData,
+    isLoading: isLocationsLoading,
+    isFetching: isLocationsFetching,
+  } = useGetLocationsQuery(
+    { q: debouncedLocationSearch },
+    { skip: !isPersonalListing || locationSearch?.trim() === "" },
+  );
 
   const { data: shop } = useGetShopDetailQuery(id, {
     skip: !id || !isShopListing,
@@ -97,6 +157,10 @@ function ListProduct() {
     : placeholders.private_listing;
 
   const isInitialCategoryRender = useRef(true);
+
+  useClickOutside(locationRef, () => {
+    setIsLocationOpen(false);
+  });
 
   useEffect(() => {
     if (isInitialCategoryRender.current) {
@@ -126,6 +190,7 @@ function ListProduct() {
     setCategoryError("");
     setPriceError("");
     setParameterError("");
+    setLocationError("");
 
     if (title === "") {
       setTitleError(error_messages.title_required);
@@ -139,10 +204,10 @@ function ListProduct() {
     if (selectedPrice.price === "") {
       setPriceError(error_messages.price_required);
     }
-    // if (video === null || video === "") {
-    //   toast.error(error_messages.video_required);
-    //   return null;
-    // }
+    const pointLocation = isPersonalListing ? toPointLocation(location) : null;
+    if (isPersonalListing && !pointLocation) {
+      setLocationError(error_messages.location_required);
+    }
     if (parameters.length === 0) {
       setParameterError(error_messages.parameter_required);
     }
@@ -162,8 +227,7 @@ function ListProduct() {
       description !== "" &&
       selectedCategory !== null &&
       selectedPrice.price !== "" &&
-      // video !== null &&
-      // video !== "" &&
+      (!isPersonalListing || pointLocation) &&
       images?.length > 0 &&
       parameters.length > 0 &&
       !hasMissingParameterValues(parameters) &&
@@ -176,6 +240,10 @@ function ListProduct() {
       formData.append("price", selectedPrice.price);
       formData.append("type", type);
       formData.append("video", video);
+      if (isPersonalListing && pointLocation) {
+        formData.append("location", JSON.stringify(pointLocation));
+        formData.append("address", address);
+      }
       if (parameters.length > 0) {
         formData.append("parameters", JSON.stringify(parameters));
       }
@@ -185,13 +253,15 @@ function ListProduct() {
           formData.append("images", images[i]);
         }
       }
+
       listProduct({
-        id: productType && productType === "personal" ? userId : id,
+        id: isPersonalListing ? userId : id,
         formData,
-        type: productType && productType === "personal" ? "personal" : "shop",
+        type: isPersonalListing ? "personal" : "shop",
       });
     }
   };
+
   useEffect(() => {
     if (isSuccess) {
       toast.success(data?.message);
@@ -210,6 +280,9 @@ function ListProduct() {
       setTitle("");
       setDescription("");
       setParameters([]);
+      setLocation({});
+      setAddress("");
+      setLocationSearch("");
       toast.error(
         (error?.data as { message?: string })?.message ||
         "something went wrong!"
@@ -417,6 +490,99 @@ function ListProduct() {
                     {parameterError}
                   </p>
                 )}
+                {isPersonalListing ? (
+                  <>
+                    <div className="relative border-b-[1px] border-gray-9 bg-white px-4" ref={locationRef}>
+                      <div
+                        className="flex min-h-[50px] cursor-pointer items-start justify-between gap-3 py-3"
+                        onClick={() => setIsLocationOpen((prev) => !prev)}
+                      >
+                        <div className="min-w-0 flex-1">
+                          <h3 className="text-[15px] font-medium leading-tight text-black-1">
+                            {placeholders.choose_location}
+                          </h3>
+                          <p className="mt-1 break-words text-[14px] font-normal leading-snug text-gray-8">
+                            {location?.description
+                              ? location.description
+                              : placeholders.select_your_location}
+                          </p>
+                        </div>
+                        <Image
+                          src={chevron}
+                          alt="chevron"
+                          className="mt-1 w-4 shrink-0 -rotate-90 rtl:rotate-90"
+                        />
+                      </div>
+                      {isLocationOpen ? (
+                        <div className="absolute left-0 right-0 top-full z-20 bg-white pb-2 pt-1">
+                          <input
+                            type="text"
+                            placeholder={placeholders.search_country}
+                            className="w-full rounded-md border border-gray-200 px-4 py-2 text-sm font-light outline-none"
+                            value={locationSearch}
+                            onChange={(e) => setLocationSearch(e.target.value)}
+                          />
+                          <div className="mt-2 max-h-[250px] overflow-scroll rounded-md border border-gray-200 shadow-md hide-scrollbar">
+                            {!isLocationsLoading &&
+                              !isLocationsFetching &&
+                              (locationsData?.data?.length ?? 0) > 0 &&
+                              locationsData?.data?.map((item: Location, index: number) => (
+                                <div
+                                  key={`${item.description}-${index}`}
+                                  onClick={() => {
+                                    setLocation(item);
+                                    setAddress(item.description?.trim() ?? "");
+                                    setIsLocationOpen(false);
+                                    setLocationSearch("");
+                                    setLocationError("");
+                                  }}
+                                  className="cursor-pointer px-4 py-2 text-[15px] font-light text-gray-8 hover:bg-gray-100"
+                                >
+                                  <div className="flex items-start gap-2">
+                                    <Image
+                                      src={locationIcon}
+                                      alt=""
+                                      className="mt-0.5 h-[18px] w-[14px] shrink-0"
+                                    />
+                                    <h2 className="min-w-0 break-words">{item.description}</h2>
+                                  </div>
+                                </div>
+                              ))}
+                            {!isLocationsLoading &&
+                              !isLocationsFetching &&
+                              locationsData?.data?.length === 0 && (
+                                <div className="px-4 py-2 text-[15px] font-light text-gray-8">
+                                  {placeholders.no_locations_found}
+                                </div>
+                              )}
+                            {(isLocationsLoading || isLocationsFetching) && (
+                              <div className="w-full space-y-1">
+                                {Array.from({ length: 5 }).map((_, index) => (
+                                  <div
+                                    key={index}
+                                    className="h-[40px] animate-pulse bg-gray-100"
+                                  />
+                                ))}
+                              </div>
+                            )}
+                            {!locationsData &&
+                              !isLocationsLoading &&
+                              !isLocationsFetching && (
+                                <div className="px-4 py-2 text-[15px] font-light text-gray-8">
+                                  {placeholders.no_locations_found}
+                                </div>
+                              )}
+                          </div>
+                        </div>
+                      ) : null}
+                    </div>
+                    {locationError && (
+                      <p className="text-red-1 text-[14px] font-normal">
+                        {locationError}
+                      </p>
+                    )}
+                  </>
+                ) : null}
                 <div className="bg-gray-12   h-[27px] "></div>
                 {/* price */}
                 <div className="bg-white h-[50px] flex items-center justify-between px-4">
