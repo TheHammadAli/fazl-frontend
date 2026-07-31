@@ -13,7 +13,10 @@ import growBusinessImage from "@/assets/icons/grow-business.svg";
 import { BeatLoader } from "react-spinners";
 import Modal from "../Ui/Modals/Modal";
 import DoodleButton from "@/components/Ui/DoodleButton";
-import CategoryModal, { categroyTypes, type CategoryParameters } from "./CategoryModal";
+import CategoryModal, {
+  categroyTypes,
+  mapCategoryParametersToListingParameters,
+} from "./CategoryModal";
 import PriceModal, { priceTypes } from "./PriceModal";
 import { parameterTypes, hasDuplicateParameterNames } from "../Selling/ParametersModal";
 import ParametersModal from "../Selling/ParametersModal";
@@ -26,21 +29,6 @@ import toast from "react-hot-toast";
 import ServiceCreated from "./ServiceCreated";
 import { getCookie } from "cookies-next";
 import { getFeedCategoryLabel } from "@/utils/getFeedCategoryLabel";
-
-function mapCategoryParametersToServiceParameters(
-  parameters: CategoryParameters | undefined,
-  lang: string,
-): parameterTypes[] {
-  if (!parameters) return [];
-
-  const names =
-    (lang === "ur" ? parameters.ur : parameters.en) ?? parameters.en ?? parameters.ur ?? [];
-
-  return names
-    .map((name) => name.trim())
-    .filter(Boolean)
-    .map((name) => ({ name, variants: [] }));
-}
 
 function CreateService() {
   const categoryRef = useRef<HTMLDivElement | null>(null);
@@ -97,7 +85,7 @@ function CreateService() {
     }
 
     setParameters(
-      mapCategoryParametersToServiceParameters(
+      mapCategoryParametersToListingParameters(
         selectedCategory.parameters,
         currentLanguage,
       ),

@@ -40,6 +40,36 @@ function buildWhatsAppUrl(phone: string, message: string) {
   return `https://api.whatsapp.com/send?phone=${digits}&text=${encodeURIComponent(message)}`;
 }
 
+function getProductMapUrl(product: {
+  address?: string;
+  location?: {
+    coordinates?: number[] | { lat?: number; lng?: number };
+  };
+}): string | null {
+  const coordinates = product?.location?.coordinates;
+
+  if (Array.isArray(coordinates) && coordinates.length >= 2) {
+    const [first, second] = coordinates;
+    if (first != null && second != null) {
+      return `https://www.google.com/maps?q=${first},${second}`;
+    }
+  }
+
+  if (
+    coordinates &&
+    !Array.isArray(coordinates) &&
+    coordinates.lat != null &&
+    coordinates.lng != null
+  ) {
+    return `https://www.google.com/maps?q=${coordinates.lat},${coordinates.lng}`;
+  }
+
+  const address = product?.address?.trim();
+  if (!address) return null;
+
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
+}
+
 function resolveEntityId(value: unknown): string | null {
   if (!value) return null;
   if (typeof value === "string") return value;
@@ -112,6 +142,8 @@ function BuyProductDetail({
   const [imageLightboxOpen, setImageLightboxOpen] = useState(false);
   const isLikePendingRef = React.useRef(false);
   const productId = product?.data?.id ?? product?.data?._id ?? "";
+  const productAddress = product?.data?.address?.trim() || "";
+  const productMapUrl = productAddress ? getProductMapUrl(product.data) : null;
 
   useEffect(() => {
     if (!product?.data?.parameters?.length || !setSelectedVariants) return;
@@ -487,6 +519,27 @@ function BuyProductDetail({
                 <div className="text-[15px] text-[#030303] ">
                   {product?.data?.description ?? ""}
                 </div>
+                {productAddress ? (
+                  <div className="mt-6">
+                    <div className="text-[14px] font-medium text-[#4B514F]">
+                      {placeholders["address" as keyof typeof placeholders] ?? "Address"}
+                    </div>
+                    {productMapUrl ? (
+                      <a
+                        href={productMapUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-1 block break-words text-[15px] font-normal text-green-1 hover:underline"
+                      >
+                        {productAddress}
+                      </a>
+                    ) : (
+                      <p className="mt-1 break-words text-[15px] font-normal text-[#030303]">
+                        {productAddress}
+                      </p>
+                    )}
+                  </div>
+                ) : null}
               </div>
               <div className="w-full md:w-[48%] ">
                 <h3 className="text-[#030303] first-letter:uppercase text-[24px] font-medium">
@@ -495,6 +548,7 @@ function BuyProductDetail({
                 <div className="text-[#3C9197] text-[28px] font-medium mt-2 ">
                   {placeholders.Rs} {product?.data?.price ?? ""}
                 </div>
+
                 <div className="space-y-2 sm:space-y-2 sm:flex sm:flex-wrap sm:justify-between items-center">
 
                   <div className="flex mt-4 items-center gap-2">
