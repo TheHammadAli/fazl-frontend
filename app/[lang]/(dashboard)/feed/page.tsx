@@ -3,7 +3,7 @@ import Feed from "@/components/Feed/Feed";
 
 function page() {
   return (
-    <div className="flex min-h-0 flex-1 flex-col overflow-hidden px-6 pt-2 h-[calc(100dvh-80px)] lg:h-full lg:min-h-0">
+    <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden sm:px-4 sm:pt-2 sm:px-6">
       <Feed />
     </div>
   );
