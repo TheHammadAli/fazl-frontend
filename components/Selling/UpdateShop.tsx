@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import chevDown from "@/assets/icons/chev-down-icon.svg";
 import { BeatLoader } from "react-spinners";
 import chevron from "@/assets/icons/chev-down-icon.svg";
@@ -18,16 +18,45 @@ import {
   useUpdateShopMutation,
 } from "@/store/services/sellingService";
 import { useRouter, useSearchParams } from "next/navigation";
+import Modal from "../Ui/Modals/Modal";
+import CategoryModal, { categroyTypes } from "../Services/CategoryModal";
+import { getFeedCategoryLabel } from "@/utils/getFeedCategoryLabel";
+import { useCategoriesQuery } from "@/custom-hooks/useCategoriesQuery";
 
 interface Location {
   description?: string;
-
   type?: string;
   coordinates?: {
     lat?: number;
     lng?: number;
-  };
+  } | number[];
 }
+
+type ShopSubcategory = {
+  _id?: string;
+  id?: string;
+  name?: string | { en?: string; ur?: string };
+};
+
+type ShopCategory = categroyTypes & {
+  subcategories?: ShopSubcategory[];
+  children?: ShopSubcategory[];
+};
+
+function getSubcategoryId(item: ShopSubcategory): string {
+  return item._id ?? item.id ?? "";
+}
+
+function resolveCategoryId(value: unknown): string {
+  if (!value) return "";
+  if (typeof value === "string") return value;
+  if (typeof value === "object") {
+    const record = value as { _id?: string; id?: string };
+    return record._id ?? record.id ?? "";
+  }
+  return "";
+}
+
 function UpdateShop() {
   const id = useSearchParams().get("id");
   const router = useRouter();
@@ -35,27 +64,49 @@ function UpdateShop() {
     skip: !id,
   });
 
-  const [status, setStatus] = useState("form");
-  const [createdData, setCreatedData] = useState<{ id: string }>({ id: "" });
-  const { placeholders, error_messages, pages, info_messages } =
+  const { placeholders, error_messages, pages, info_messages, currentLanguage } =
     useDictionary();
+  const categoryRef = useRef<HTMLDivElement | null>(null);
   const locationRef = useRef<HTMLDivElement | null>(null);
+  const subcategoryRef = useRef<HTMLDivElement | null>(null);
   const [isLocationOpen, setIsLocationOpen] = useState(false);
+  const [isCatOpen, setIsCatOpen] = useState(false);
+  const [isSubcategoryOpen, setIsSubcategoryOpen] = useState(false);
   const [banner, setBanner] = useState<File | null | string>(null);
   const [location, setLocation] = useState<Location>({});
+  const [address, setAddress] = useState("");
   const [updateShop, { isLoading, isSuccess, isError, error, data }] =
     useUpdateShopMutation();
 
   const [locationError, setLocationError] = useState("");
   const [profile, setProfile] = useState<File | null | string>(null);
   const [locationSearch, setLocationSearch] = useState("");
-  //   const [email, setEmail] = useState("");
-  //   const [emailError, setEmailError] = useState("");
   const [name, setName] = useState("");
   const [nameError, setNameError] = useState("");
   const [debouncedLocationSearch] = useDebounce(locationSearch, 500);
   const [description, setDescription] = useState("");
   const [descriptionError, setDescriptionError] = useState("");
+  const [area, setArea] = useState("");
+  const [areaError, setAreaError] = useState("");
+  const [city, setCity] = useState("");
+  const [cityError, setCityError] = useState("");
+  const [marketName, setMarketName] = useState("");
+  const [marketNameError, setMarketNameError] = useState("");
+  const [contact, setContact] = useState("");
+  const [contactError, setContactError] = useState("");
+  const [openingHours, setOpeningHours] = useState("");
+  const [openingHoursError, setOpeningHoursError] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<ShopCategory | null>(
+    null,
+  );
+  const [categoryError, setCategoryError] = useState("");
+  const [selectedSubcategory, setSelectedSubcategory] =
+    useState<ShopSubcategory | null>(null);
+  const [subcategoryError, setSubcategoryError] = useState("");
+  const loadedShopIdRef = useRef<string | null>(null);
+  const skipNextCategoryResetRef = useRef(false);
+
+  const { data: categoriesData } = useCategoriesQuery({ type: "product" });
 
   const {
     data: locationsData,
@@ -65,12 +116,43 @@ function UpdateShop() {
     {
       q: debouncedLocationSearch,
     },
-    { skip: locationSearch?.trim() == "" || locationSearch == null }
+    { skip: locationSearch?.trim() == "" || locationSearch == null },
   );
+
+  const categoryOptions =
+    (categoriesData?.data as ShopCategory[] | undefined) ?? [];
+
+  const selectedCategoryWithSubs = useMemo(() => {
+    if (!selectedCategory) return null;
+    const fromList = categoryOptions.find(
+      (category) => category._id === selectedCategory._id,
+    );
+    return fromList ?? selectedCategory;
+  }, [categoryOptions, selectedCategory]);
+
+  const subcategoryOptions = useMemo(() => {
+    const category = selectedCategoryWithSubs;
+    if (!category) return [] as ShopSubcategory[];
+    return category.subcategories ?? category.children ?? [];
+  }, [selectedCategoryWithSubs]);
 
   useClickOutside(locationRef, () => {
     setIsLocationOpen(false);
   });
+
+  useClickOutside(subcategoryRef, () => {
+    setIsSubcategoryOpen(false);
+  });
+
+  useEffect(() => {
+    if (skipNextCategoryResetRef.current) {
+      skipNextCategoryResetRef.current = false;
+      return;
+    }
+    setSelectedSubcategory(null);
+    setSubcategoryError("");
+    setIsSubcategoryOpen(false);
+  }, [selectedCategory?._id]);
 
   useEffect(() => {
     if (isSuccess) {
@@ -84,21 +166,62 @@ function UpdateShop() {
     if (isError && "data" in error) {
       toast.error(
         (error?.data as { message?: string })?.message ||
-        "something went wrong!"
+          "something went wrong!",
       );
     }
-  }, [isSuccess, isError, data, error]);
+  }, [isSuccess, isError, data, error, router]);
 
   useEffect(() => {
-    if (shop?.data) {
-      const shopData = shop?.data;
-      setName(shopData?.title ?? "");
-      setDescription(shopData?.description ?? "");
-      setProfile(shopData?.image ?? null);
-      setBanner(shopData?.banner ?? null);
-      setLocation({ ...shopData?.location, description: shopData?.address });
+    if (!shop?.data || !shopSuccess) return;
+
+    const shopData = shop.data;
+    const shopId = shopData?._id ?? shopData?.id ?? id;
+    if (shopId && loadedShopIdRef.current === shopId) return;
+    loadedShopIdRef.current = shopId ?? null;
+
+    setName(shopData?.title ?? "");
+    setDescription(shopData?.description ?? "");
+    setProfile(shopData?.image ?? null);
+    setBanner(shopData?.banner ?? null);
+    setArea(shopData?.area ?? "");
+    setCity(shopData?.city ?? "");
+    setMarketName(shopData?.marketName ?? "");
+    setContact(shopData?.contact ?? "");
+    setOpeningHours(shopData?.openingHours ?? "");
+    setAddress(shopData?.address ?? "");
+    setLocation({
+      ...shopData?.location,
+      description: shopData?.address ?? shopData?.location?.description,
+    });
+
+    const categoryId = resolveCategoryId(
+      shopData?.categoryId ?? shopData?.category,
+    );
+    if (categoryId) {
+      skipNextCategoryResetRef.current = true;
+      const matched =
+        categoryOptions.find((category) => category._id === categoryId) ??
+        ({ _id: categoryId, name: shopData?.category?.name ?? categoryId } as ShopCategory);
+      setSelectedCategory(matched);
+
+      const subcategoryId = resolveCategoryId(
+        shopData?.subcategoryId ?? shopData?.subcategory,
+      );
+      const subs = matched.subcategories ?? matched.children ?? [];
+      if (subcategoryId && subs.length > 0) {
+        const matchedSub =
+          subs.find((item) => getSubcategoryId(item) === subcategoryId) ??
+          ({
+            _id: subcategoryId,
+            name:
+              typeof shopData?.subcategory === "string"
+                ? shopData.subcategory
+                : subcategoryId,
+          } as ShopSubcategory);
+        setSelectedSubcategory(matchedSub);
+      }
     }
-  }, [shop?.data, shopSuccess]);
+  }, [shop?.data, shopSuccess, id, categoryOptions]);
 
   const handleUpdate = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -106,7 +229,7 @@ function UpdateShop() {
     const checkField = (
       value: string,
       setter: React.Dispatch<React.SetStateAction<string>>,
-      message: string
+      message: string,
     ) => {
       if (value?.trim() === "") {
         setter(message);
@@ -120,41 +243,93 @@ function UpdateShop() {
     checkField(
       description,
       setDescriptionError,
-      error_messages.description_required
+      error_messages.description_required,
     );
-    if (Object.keys(location).length === 0) {
+    checkField(
+      area,
+      setAreaError,
+      error_messages["area_required" as keyof typeof error_messages] ??
+        "Area is required*",
+    );
+    checkField(
+      city,
+      setCityError,
+      error_messages["city_required" as keyof typeof error_messages] ??
+        "City is required*",
+    );
+    checkField(
+      marketName,
+      setMarketNameError,
+      error_messages["market_name_required" as keyof typeof error_messages] ??
+        "Market name is required*",
+    );
+    checkField(
+      contact,
+      setContactError,
+      error_messages["contact_required" as keyof typeof error_messages] ??
+        "Contact no is required*",
+    );
+    checkField(
+      openingHours,
+      setOpeningHoursError,
+      error_messages["opening_hours_required" as keyof typeof error_messages] ??
+        "Opening hours are required*",
+    );
+
+    if (Object.keys(location).length === 0 || !address.trim()) {
       setLocationError(error_messages.shop_location_required);
       isValid = false;
     } else {
       setLocationError("");
     }
 
-    // if (email.trim() === "") {
-    //   setEmailError(error_messages.shop_email_required);
-    //   isValid = false;
-    // } else if (!regex.test(email)) {
-    //   setEmailError(error_messages.valid_email);
-    //   isValid = false;
-    // } else {
-    //   setEmailError("");
-    // }
+    if (!selectedCategory) {
+      setCategoryError(error_messages.category_required);
+      isValid = false;
+    } else {
+      setCategoryError("");
+    }
 
-    if (isValid) {
+    if (subcategoryOptions.length > 0 && !selectedSubcategory) {
+      setSubcategoryError(
+        error_messages["subcategory_required" as keyof typeof error_messages] ??
+          "Subcategory is required*",
+      );
+      isValid = false;
+    } else {
+      setSubcategoryError("");
+    }
+
+    if (isValid && selectedCategory) {
+      const subcategoryId = selectedSubcategory
+        ? getSubcategoryId(selectedSubcategory)
+        : "";
+
       const payload = {
         title: name,
-        address: location?.description,
+        address,
+        area: area.trim(),
+        city: city.trim(),
+        marketName: marketName.trim(),
+        contact: contact.trim(),
+        openingHours: openingHours.trim(),
+        category: selectedCategory._id,
+        subcategory: subcategoryId || selectedCategory._id,
         location: {
           type: "Point",
           coordinates: Array.isArray(location?.coordinates)
-            ? location?.coordinates
-            : [location?.coordinates?.lat, location?.coordinates?.lng],
+            ? location.coordinates
+            : [
+                (location?.coordinates as { lat?: number; lng?: number })?.lat,
+                (location?.coordinates as { lat?: number; lng?: number })?.lng,
+              ],
         },
         description: description,
       };
       const formData = new FormData();
       (Object.keys(payload) as (keyof typeof payload)[]).forEach((key) => {
         const value = payload[key];
-        if (value !== undefined) {
+        if (value !== undefined && value !== "") {
           if (key === "location") {
             formData.append(key, JSON.stringify(value));
           } else {
@@ -163,10 +338,8 @@ function UpdateShop() {
         }
       });
 
-      if (profile && profile !== null) {
-        if (typeof profile !== "string") {
-          formData.append("image", profile);
-        }
+      if (profile && profile !== null && typeof profile !== "string") {
+        formData.append("image", profile);
       }
       if (banner && typeof banner !== "string") {
         formData.append("banner", banner);
@@ -175,8 +348,25 @@ function UpdateShop() {
       updateShop({ id: id, formData: formData });
     }
   };
+
   return (
     <div>
+      <Modal
+        editModalRef={categoryRef}
+        open={isCatOpen}
+        setOpen={setIsCatOpen}
+        centered={false}
+      >
+        <div className="flex h-full w-full justify-center pt-[80px]">
+          <CategoryModal
+            setIsCatOpen={setIsCatOpen}
+            selectedCategory={selectedCategory}
+            setSelectedCategory={setSelectedCategory}
+            type="product"
+          />
+        </div>
+      </Modal>
+
       <div className="px-6 h-[61px] border-b-[1px] border-gray-9 bg-white w-full  flex justify-center">
         <div className="w-full   flex items-center gap-[6px] font-normal text-[14px] mt-5">
           <span className="text-gray-8">{pages.selling}</span>
@@ -198,9 +388,6 @@ function UpdateShop() {
           <h1 className="font-medium text-[18px] text-black-1">
             {info_messages.update_shop_details}
           </h1>
-          {/* <h4 className="text-[14px] font-normal text-gray-8">
-              {info_messages.fill_details}
-            </h4> */}
           <label
             htmlFor="shop-banner"
             className="relative mt-4 block w-full cursor-pointer overflow-hidden rounded-[16px] bg-[#E6FBFB]  h-[105px]"
@@ -273,15 +460,15 @@ function UpdateShop() {
               {info_messages.add_logo}
             </label>
           </div>
-          {/*  name */}
+
           <div className="space-y-1 mt-5 w-full">
             <p
-              className={`text-[14px] font-normal  ${nameError ? "text-red-1" : "text-gray-8"
-                }`}
+              className={`text-[14px] font-normal  ${
+                nameError ? "text-red-1" : "text-gray-8"
+              }`}
             >
               {info_messages.shop_name}
             </p>
-
             <input
               type="text"
               value={name}
@@ -295,44 +482,222 @@ function UpdateShop() {
             )}
           </div>
 
-          {/* email address */}
-          {/* <div className="space-y-1 mt-5 w-full">
+          <div className="space-y-1 mt-5 w-full">
             <p
-              className={`text-[14px] font-normal  ${
-                emailError ? "text-red-1" : "text-gray-8"
+              className={`text-[14px] font-normal ${
+                areaError ? "text-red-1" : "text-gray-8"
               }`}
             >
-              {info_messages.shop_email}
+              {info_messages.area ?? "Area"}
             </p>
             <input
-              type="email"
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                setEmail(e.target.value)
-              }
-              value={email}
-              className="h-[28px] text-[15px] text-black-1 disabled:text-gray-6  font-normal focus:outline-none w-full border-gray-9 border-b-[1px] "
+              type="text"
+              value={area}
+              onChange={(e) => setArea(e.target.value)}
+              className="h-[28px] w-full border-b-[1px] border-gray-9 text-[15px] font-normal text-black-1 focus:outline-none"
             />
-            {emailError && (
-              <p className="text-red-1 text-[14px] font-normal">{emailError}</p>
+            {areaError && (
+              <p className="text-[14px] font-normal text-red-1">{areaError}</p>
             )}
-          </div> */}
+          </div>
 
-          {/* location */}
+          <div className="space-y-1 mt-5 w-full">
+            <p
+              className={`text-[14px] font-normal ${
+                cityError ? "text-red-1" : "text-gray-8"
+              }`}
+            >
+              {info_messages.city ?? "City"}
+            </p>
+            <input
+              type="text"
+              value={city}
+              onChange={(e) => setCity(e.target.value)}
+              className="h-[28px] w-full border-b-[1px] border-gray-9 text-[15px] font-normal text-black-1 focus:outline-none"
+            />
+            {cityError && (
+              <p className="text-[14px] font-normal text-red-1">{cityError}</p>
+            )}
+          </div>
+
+          <div className="space-y-1 mt-5 w-full">
+            <p
+              className={`text-[14px] font-normal ${
+                marketNameError ? "text-red-1" : "text-gray-8"
+              }`}
+            >
+              {info_messages["market_name" as keyof typeof info_messages] ??
+                "Market name"}
+            </p>
+            <input
+              type="text"
+              value={marketName}
+              onChange={(e) => setMarketName(e.target.value)}
+              className="h-[28px] w-full border-b-[1px] border-gray-9 text-[15px] font-normal text-black-1 focus:outline-none"
+            />
+            {marketNameError && (
+              <p className="text-[14px] font-normal text-red-1">
+                {marketNameError}
+              </p>
+            )}
+          </div>
+
+          <div className="space-y-1 mt-5 w-full">
+            <p
+              className={`text-[14px] font-normal ${
+                contactError ? "text-red-1" : "text-gray-8"
+              }`}
+            >
+              {info_messages.contact_no ?? "Contact no"}
+            </p>
+            <input
+              type="tel"
+              inputMode="tel"
+              value={contact}
+              onChange={(e) =>
+                setContact(e.target.value.replace(/[^\d+\s-]/g, ""))
+              }
+              placeholder="e.g. +92 300 1234567"
+              className="h-[28px] w-full border-b-[1px] border-gray-9 text-[15px] font-normal text-black-1 focus:outline-none placeholder:text-gray-8"
+            />
+            {contactError && (
+              <p className="text-[14px] font-normal text-red-1">
+                {contactError}
+              </p>
+            )}
+          </div>
+
+          <div className="space-y-1 mt-5 w-full">
+            <p
+              className={`text-[14px] font-normal ${
+                openingHoursError ? "text-red-1" : "text-gray-8"
+              }`}
+            >
+              {info_messages.opening_hours ?? "Opening hours"}
+            </p>
+            <input
+              type="text"
+              value={openingHours}
+              onChange={(e) => setOpeningHours(e.target.value)}
+              placeholder="e.g. 9:00 AM - 9:00 PM"
+              className="h-[28px] w-full border-b-[1px] border-gray-9 text-[15px] font-normal text-black-1 focus:outline-none placeholder:text-gray-8"
+            />
+            {openingHoursError && (
+              <p className="text-[14px] font-normal text-red-1">
+                {openingHoursError}
+              </p>
+            )}
+          </div>
+
           <div className="mt-5 w-full">
             <div
-              className={`text-[14px] font-normal w-full ${locationError ? "text-red-1" : "text-gray-8"
+              className={`text-[14px] font-normal w-full ${
+                categoryError ? "text-red-1" : "text-gray-8"
+              }`}
+            >
+              {placeholders.category}
+            </div>
+            <div
+              className="mt-1 flex w-full cursor-pointer items-center justify-between border-b border-gray-9 pb-1"
+              onClick={() => setIsCatOpen(true)}
+            >
+              <h2 className="text-[15px] font-normal text-black-1">
+                {selectedCategory
+                  ? getFeedCategoryLabel(selectedCategory.name, currentLanguage)
+                  : placeholders.choose_category}
+              </h2>
+              <Image
+                src={chevDown}
+                alt="chev-down"
+                className="h-[16px] w-[12px]"
+                height={100}
+                width={100}
+              />
+            </div>
+            {categoryError && (
+              <p className="text-[14px] font-normal text-red-1">
+                {categoryError}
+              </p>
+            )}
+          </div>
+
+          {subcategoryOptions.length > 0 ? (
+            <div className="mt-5 w-full">
+              <div
+                className={`text-[14px] font-normal w-full ${
+                  subcategoryError ? "text-red-1" : "text-gray-8"
                 }`}
+              >
+                {info_messages.subcategory ?? "Subcategory"}
+              </div>
+              <div ref={subcategoryRef} className="relative w-full">
+                <div
+                  className="mt-1 flex w-full cursor-pointer items-center justify-between border-b border-gray-9 pb-1"
+                  onClick={() => setIsSubcategoryOpen((prev) => !prev)}
+                >
+                  <h2 className="text-[15px] font-normal text-black-1">
+                    {selectedSubcategory
+                      ? getFeedCategoryLabel(
+                          selectedSubcategory.name,
+                          currentLanguage,
+                        )
+                      : info_messages.choose_subcategory ??
+                        "Choose subcategory"}
+                  </h2>
+                  <Image
+                    src={chevDown}
+                    alt="chev-down"
+                    className="h-[16px] w-[12px]"
+                    height={100}
+                    width={100}
+                  />
+                </div>
+                {isSubcategoryOpen ? (
+                  <div className="absolute z-20 mt-1 max-h-[220px] w-full overflow-y-auto rounded-md border border-gray-200 bg-white shadow-md">
+                    {subcategoryOptions.map((item, index) => {
+                      const itemId = getSubcategoryId(item) || String(index);
+                      return (
+                        <button
+                          key={itemId}
+                          type="button"
+                          className="block w-full cursor-pointer px-4 py-2 text-left text-[15px] font-light text-gray-8 hover:bg-gray-100"
+                          onClick={() => {
+                            setSelectedSubcategory(item);
+                            setIsSubcategoryOpen(false);
+                            setSubcategoryError("");
+                          }}
+                        >
+                          {getFeedCategoryLabel(item.name, currentLanguage)}
+                        </button>
+                      );
+                    })}
+                  </div>
+                ) : null}
+              </div>
+              {subcategoryError && (
+                <p className="text-[14px] font-normal text-red-1">
+                  {subcategoryError}
+                </p>
+              )}
+            </div>
+          ) : null}
+
+          <div className="mt-5 w-full">
+            <div
+              className={`text-[14px] font-normal w-full ${
+                locationError ? "text-red-1" : "text-gray-8"
+              }`}
             >
               {info_messages.shop_location}
             </div>
             <div ref={locationRef} className="relative inline-block w-full">
               <div
-                className="pb-1 w-full  flex items-center  justify-between mt-1 cursor-pointer"
+                className="pb-1 w-full  flex items-start justify-between gap-2 mt-1 cursor-pointer"
                 onClick={() => {
                   setIsLocationOpen(!isLocationOpen);
                 }}
               >
-                <h2 className="text-[15px] font-normal text-black-1">
+                <h2 className="min-w-0 flex-1 break-words text-[15px] font-normal text-black-1">
                   {location?.description
                     ? location.description
                     : placeholders.choose_location}
@@ -340,7 +705,7 @@ function UpdateShop() {
                 <Image
                   src={chevDown}
                   alt="chev-down"
-                  className="h-[16px] w-[12px]"
+                  className="mt-1 h-[16px] w-[12px] shrink-0"
                   height={100}
                   width={100}
                 />
@@ -350,12 +715,12 @@ function UpdateShop() {
                 <div className="absolute z-20  w-full bg-white pt-1   ">
                   <input
                     type="text"
-                    placeholder="Search country..."
+                    placeholder={placeholders.search_country}
                     className="w-full px-4 font-light py-2 outline-none  text-sm border border-gray-200 rounded-md  "
                     value={locationSearch}
                     onChange={(e) => setLocationSearch(e.target.value)}
                   />
-                  <div className="max-h-[250px] border overflow-scroll border-gray-200 rounded-md shadow-md mt-2">
+                  <div className="max-h-[250px] border overflow-scroll hide-scrollbar border-gray-200 rounded-md shadow-md mt-2">
                     {!isLocationsLoading &&
                       !isLocationsFetching &&
                       locationsData?.data?.length > 0 &&
@@ -364,29 +729,34 @@ function UpdateShop() {
                           <div
                             onClick={() => {
                               setLocation(data);
+                              setAddress(data.description?.trim() ?? "");
                               setIsLocationOpen(false);
+                              setLocationSearch("");
+                              setLocationError("");
                             }}
                             className="text-[15px]  text-gray-8 px-4 py-2 text-sm cursor-pointer font-light hover:bg-gray-100"
                             key={index}
                           >
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-start gap-2">
                               <Image
                                 src={locationIcon}
                                 alt=""
-                                className="h-[18px] w-[14px]"
+                                className="mt-0.5 h-[18px] w-[14px] shrink-0"
                               />
                               <div>
-                                <h2>{data?.description}</h2>
+                                <h2 className="break-words">
+                                  {data?.description}
+                                </h2>
                               </div>
                             </div>
                           </div>
-                        )
+                        ),
                       )}
                     {!isLocationsLoading &&
                       !isLocationsFetching &&
                       locationsData?.data?.length === 0 && (
                         <div className="text-[15px]  text-gray-8 px-4 py-2 text-sm cursor-pointer font-light hover:bg-gray-100">
-                          {placeholders.no_locations_found || "No locations found"}
+                          {placeholders.no_locations_found}
                         </div>
                       )}
                     {(isLocationsLoading || isLocationsFetching) && (
@@ -403,7 +773,7 @@ function UpdateShop() {
                       !isLocationsLoading &&
                       !isLocationsFetching && (
                         <div className="text-[15px]  text-gray-8 px-4 py-2 text-sm cursor-pointer font-light hover:bg-gray-100">
-                          {placeholders.no_locations_found || "No locations found"}
+                          {placeholders.no_locations_found}
                         </div>
                       )}
                   </div>
@@ -429,8 +799,9 @@ function UpdateShop() {
           </div>
           <div className="space-y-1 mt-5 w-full">
             <p
-              className={`text-[14px] font-normal  ${descriptionError ? "text-red-1" : "text-gray-8"
-                }`}
+              className={`text-[14px] font-normal  ${
+                descriptionError ? "text-red-1" : "text-gray-8"
+              }`}
             >
               {info_messages.describe_shop}
             </p>
@@ -440,7 +811,7 @@ function UpdateShop() {
                 setDescription(e.target.value)
               }
               draggable={false}
-              className="h-[132px] resize-none text-[15px] text-black-1 font-normal focus:outline-none w-full border-gray-9 border-b-[1px] "
+              className="h-[70px] resize-none text-[15px] text-black-1 font-normal focus:outline-none w-full border-gray-9 border-b-[1px] "
             />
             {descriptionError && (
               <p className="text-red-1 text-[14px] font-normal">
@@ -451,7 +822,7 @@ function UpdateShop() {
           <DoodleButton
             type="submit"
             disabled={isLoading}
-            className="mt-6  h-[55px] w-full rounded-[12px] text-white font-medium text-[16px]  bg-green-1 cursor-pointer"
+            className="mt-6 mb-2 h-[55px] w-full rounded-[12px] text-white font-medium text-[16px]  bg-green-1 cursor-pointer"
           >
             {isLoading ? (
               <BeatLoader color="white" size={8} />

@@ -40,10 +40,9 @@ function ProductDetail() {
     isFetching,
   } = useGetProductDetailQuery({ id: id!, userId }, { skip: !id });
 
-  const isClassified = product?.data?.type === "classified";
   const { data: avgReview } = useGetAvgReviewsQuery(
     { type: "product", id: product?.data?.id ?? "" },
-    { skip: !product?.data?.id || isClassified },
+    { skip: !product?.data?.id },
   );
   const reviewCount = avgReview?.data?.count ?? 0;
   const shopData = product?.data?.shopId;
@@ -324,12 +323,10 @@ function ProductDetail() {
                 </div>
               </div>
 
-              {!isClassified && (
-                <h3 className="mt-2 text-[14px] font-light text-[#4B514F]">
+              <h3 className="mt-2 text-[14px] font-light text-[#4B514F]">
                   {reviewCount}{" "}
                   {reviewCount === 1 ? placeholders.review : placeholders.reviews}
                 </h3>
-              )}
 
               <div className="mt-4 flex justify-between border-t border-[#E5E5E5] px-1.5 py-4">
                 <span className="text-[15px] font-medium">
@@ -364,13 +361,11 @@ function ProductDetail() {
             </div>
           </div>
 
-          {!isClassified && (
-            <Reviews
+          <Reviews
               type="product"
               id={product?.data?.id || product?.data?._id}
               allowAddReview={allowedToBuy}
             />
-          )}
 
           {hasShop && shopId && (
             <ShopProductsSlider

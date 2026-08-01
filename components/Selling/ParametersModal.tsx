@@ -95,6 +95,9 @@ function ParametersModal({
   const [editingVariantByParam, setEditingVariantByParam] = useState<
     Record<number, number | null>
   >({});
+  const [showOtherInputByParam, setShowOtherInputByParam] = useState<
+    Record<number, boolean>
+  >({});
 
   const wasOpenRef = useRef(false);
 
@@ -107,6 +110,7 @@ function ParametersModal({
       }
       setNewVariantByParam({});
       setEditingVariantByParam({});
+      setShowOtherInputByParam({});
     }
     wasOpenRef.current = open;
   }, [open, parameters, editIndex, isSingleEdit]);
@@ -132,6 +136,15 @@ function ParametersModal({
     });
     setEditingVariantByParam((prev) => {
       const next: Record<number, number | null> = {};
+      Object.entries(prev).forEach(([key, value]) => {
+        const index = Number(key);
+        if (index < paramIndex) next[index] = value;
+        else if (index > paramIndex) next[index - 1] = value;
+      });
+      return next;
+    });
+    setShowOtherInputByParam((prev) => {
+      const next: Record<number, boolean> = {};
       Object.entries(prev).forEach(([key, value]) => {
         const index = Number(key);
         if (index < paramIndex) next[index] = value;
@@ -185,6 +198,13 @@ function ParametersModal({
       ...prev,
       [paramIndex]: variantIndex,
     }));
+    setShowOtherInputByParam((prev) => ({ ...prev, [paramIndex]: true }));
+  };
+
+  const handleShowOtherInput = (paramIndex: number) => {
+    setShowOtherInputByParam((prev) => ({ ...prev, [paramIndex]: true }));
+    setEditingVariantByParam((prev) => ({ ...prev, [paramIndex]: null }));
+    setNewVariantByParam((prev) => ({ ...prev, [paramIndex]: "" }));
   };
 
   const handleAddVariant = (paramIndex: number) => {
@@ -219,6 +239,7 @@ function ParametersModal({
     });
     setNewVariantByParam((prev) => ({ ...prev, [paramIndex]: "" }));
     setEditingVariantByParam((prev) => ({ ...prev, [paramIndex]: null }));
+    setShowOtherInputByParam((prev) => ({ ...prev, [paramIndex]: false }));
   };
 
   const applyPendingVariants = (items: parameterTypes[]): parameterTypes[] =>
@@ -302,11 +323,10 @@ function ParametersModal({
                   onChange={(e) =>
                     handleParameterNameChange(paramIndex, e.target.value)
                   }
-                  className={`w-full min-w-0 h-[32px] px-2 text-[14px] text-black-1 bg-white rounded-[6px] border focus:outline-none ${
-                    duplicateNameIndexes.has(paramIndex)
-                      ? "border-red-1 focus:border-red-1"
-                      : "border-gray-9 focus:border-green-1"
-                  }`}
+                  className={`w-full min-w-0 h-[32px] px-2 text-[14px] text-black-1 bg-white rounded-[6px] border focus:outline-none ${duplicateNameIndexes.has(paramIndex)
+                    ? "border-red-1 focus:border-red-1"
+                    : "border-gray-9 focus:border-green-1"
+                    }`}
                 />
                 {duplicateNameIndexes.has(paramIndex) && (
                   <p className="mt-1 text-[12px] font-normal text-red-1">
@@ -344,33 +364,55 @@ function ParametersModal({
                     }
                   />
                 ))}
+                {!showOtherInputByParam[paramIndex] ? (
+                  <button
+                    type="button"
+                    onClick={() => handleShowOtherInput(paramIndex)}
+                    className="inline-flex items-center gap-1 h-[28px] px-2.5 rounded-[4px] border border-dashed border-green-1 text-green-1 text-[13px] font-normal cursor-pointer hover:bg-green-4/50"
+                  >
+                    <Image src={plusIcon} className="w-3 h-3" alt="" />
+                    {placeholders.other ?? "Other"}
+                  </button>
+                ) : null}
               </div>
-              <div className="mt-2">
-                <input
-                  type="text"
-                  value={newVariantByParam[paramIndex] ?? ""}
-                  placeholder={placeholders.add_information}
-                  onChange={(e) => {
-                    setNewVariantByParam((prev) => ({
-                      ...prev,
-                      [paramIndex]: e.target.value,
-                    }));
-                    if (!e.target.value.trim()) {
-                      setEditingVariantByParam((prev) => ({
+              {showOtherInputByParam[paramIndex] ? (
+                <div className="mt-2 flex items-center gap-2">
+                  <input
+                    type="text"
+                    autoFocus
+                    value={newVariantByParam[paramIndex] ?? ""}
+                    placeholder={placeholders.add_information}
+                    onChange={(e) => {
+                      setNewVariantByParam((prev) => ({
                         ...prev,
-                        [paramIndex]: null,
+                        [paramIndex]: e.target.value,
                       }));
-                    }
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      handleAddVariant(paramIndex);
-                    }
-                  }}
-                  className="w-full h-[30px] px-1 text-[14px] text-black-1 bg-transparent border-b border-gray-9 focus:outline-none focus:border-green-1 placeholder:text-gray-8"
-                />
-              </div>
+                      if (!e.target.value.trim()) {
+                        setEditingVariantByParam((prev) => ({
+                          ...prev,
+                          [paramIndex]: null,
+                        }));
+                      }
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleAddVariant(paramIndex);
+                      }
+                    }}
+                    className="flex-1 min-w-0 h-[30px] px-1 text-[14px] text-black-1 bg-transparent border-b border-gray-9 focus:outline-none focus:border-green-1 placeholder:text-gray-8"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleAddVariant(paramIndex)}
+                    disabled={!newVariantByParam[paramIndex]?.trim()}
+                    className="shrink-0 p-1.5 cursor-pointer rounded-[6px] hover:bg-green-4/50 disabled:opacity-40 disabled:cursor-not-allowed"
+                    aria-label={placeholders.add_value}
+                  >
+                    <Image src={plusIcon} className="w-3.5 h-3.5" alt="" />
+                  </button>
+                </div>
+              ) : null}
             </div>
           </div>
         ))}

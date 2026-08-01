@@ -205,8 +205,8 @@ function Reviews({ type, id, allowAddReview }: ReviewsProps) {
                 <AddReviewModal setOpen={setReviewModalOpen} onSubmit={handleWriteReview} loading={isLoading} />
             </Modal>
             <div className="mt-8 w-full sm:mt-10 md:max-w-[496px]">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-                    <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center sm:gap-[22px]">
+                <div className="flex  lg:items-center  justify-between sm:gap-4">
+                    <div className="flex min-w-0 flex-col gap-2 lg:flex-row lg:items-center lg:gap-[22px]">
                         <h1 className="text-[17px] font-medium sm:text-[19px]">{ph("reviews")}</h1>
                         <div className="flex flex-wrap items-center gap-1">
                             <div className="pt-0.5 sm:pt-1">
@@ -244,7 +244,7 @@ function Reviews({ type, id, allowAddReview }: ReviewsProps) {
                         </button>
                     )}
                 </div>
-                <div className="mt-6 grid grid-cols-1 gap-5 sm:mt-8 sm:grid-cols-2 sm:gap-6">
+                <div className="mt-6 grid grid-cols-1 gap-5 sm:mt-8 lg:grid-cols-2 sm:gap-6">
                     {isReviewsLoading ? (
                         Array.from({ length: REVIEWS_PAGE_SIZE }).map((_, index) => (
                             <div key={`skeleton-${index}`} className="flex justify-between gap-2 animate-pulse">
