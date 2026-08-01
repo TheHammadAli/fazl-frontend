@@ -54,7 +54,13 @@ export default function ReelsFeed({ reels, onEndReached, isLoadingMore = false, 
 
         const measure = () => {
             const h = el.getBoundingClientRect().height;
-            setItemHeight(Math.max(0, h));
+            if (h > 0) {
+                setItemHeight(h);
+                return;
+            }
+            setItemHeight((prev) =>
+                prev > 0 ? prev : Math.max(320, window.innerHeight - 140),
+            );
         };
 
         measure();
@@ -66,7 +72,7 @@ export default function ReelsFeed({ reels, onEndReached, isLoadingMore = false, 
     return (
         <div
             ref={containerRef}
-            className="mx-auto h-full min-h-0 w-full max-w-full lg:max-w-[456px]"
+            className="mx-auto h-full min-h-[320px] w-full max-w-full lg:max-w-[456px]"
         >
             <Virtuoso
                 data={reels}

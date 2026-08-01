@@ -16,8 +16,8 @@ function Feed() {
 
     return (
         <div className="flex h-full min-h-0 flex-col overflow-hidden">
-            <div className="relative flex min-h-0 flex-1 flex-col justify-center overflow-hidden pt-2 lg:pt-4">
-                <div className="absolute left-1/2 top-15 z-50 flex h-[37px] w-[204px] -translate-x-1/2 -translate-y-1/2 items-center gap-[2px] rounded-lg bg-[#E2E8F080]/50 p-[2px]">
+            <div className="relative flex min-h-0 flex-1 flex-col justify-center overflow-hidden sm:pt-2 lg:pt-4">
+                <div className="absolute left-1/2 top-8 sm:top-15 z-50 flex h-[37px] w-[204px] -translate-x-1/2 -translate-y-1/2 items-center gap-[2px] rounded-lg bg-[#E2E8F080]/50 p-[2px]">
                     {tabs.map((tab) => (
                         <button
                             key={tab}

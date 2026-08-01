@@ -263,7 +263,7 @@ function Layout({ children }: { children: React.ReactNode }) {
         openSidebar={openSidebar}
         setOpenSidebar={setOpenSidebar}
       />
-      <div className="flex min-h-0 w-full flex-col lg:h-screen lg:overflow-y-auto">
+      <div className="flex h-[calc(100dvh-60px)] min-h-0 w-full flex-col overflow-y-auto lg:h-screen">
         {children}
       </div>
     </div>
