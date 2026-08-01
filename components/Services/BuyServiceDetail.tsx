@@ -406,6 +406,13 @@ function BuyServiceDetail({
               <div className="text-[15px] text-[#030303]">
                 {service?.data?.description ?? ""}
               </div>
+              <div className="mt-8">
+                <Reviews
+                  type="service"
+                  id={service?.data?.id || service?.data?._id}
+                  allowAddReview={allowMessageAndReview}
+                />
+              </div>
             </div>
 
             <div className="w-full md:w-[48%]">
@@ -649,12 +656,6 @@ function BuyServiceDetail({
               )}
             </div>
           </div>
-
-          <Reviews
-            type="service"
-            id={service?.data?.id || service?.data?._id}
-            allowAddReview={allowMessageAndReview}
-          />
         </div>
       </div>
 

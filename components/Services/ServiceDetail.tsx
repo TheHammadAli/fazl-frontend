@@ -229,6 +229,13 @@ function ServiceDetail({ serviceData }: { serviceData: ServiceDetailType }) {
               <div className="break-all text-[15px] text-[#030303]">
                 {serviceData?.description ?? ""}
               </div>
+              <div className="mt-8">
+                <Reviews
+                  type="service"
+                  id={serviceData?.id || serviceData?._id}
+                  allowAddReview={allowedToBuy}
+                />
+              </div>
             </div>
 
             <div className="w-full md:w-[48%]">
@@ -326,12 +333,6 @@ function ServiceDetail({ serviceData }: { serviceData: ServiceDetailType }) {
           </div>
 
           <MyServiceRequests />
-
-          <Reviews
-            type="service"
-            id={serviceData?.id || serviceData?._id}
-            allowAddReview={allowedToBuy}
-          />
         </div>
       </div>
     </div>

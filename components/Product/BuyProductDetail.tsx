@@ -167,7 +167,7 @@ function BuyProductDetail({
   const isClassified = product?.data?.type === "classified";
   const { data: avgReview } = useGetAvgReviewsQuery(
     { type: "product", id: product?.data?.id ?? "" },
-    { skip: !product?.data?.id || isClassified },
+    { skip: !product?.data?.id },
   );
 
   const reviewCount = avgReview?.data?.count ?? 0;
@@ -180,7 +180,7 @@ function BuyProductDetail({
     : Boolean(userId) && userId === (ownerData?.id || ownerData?._id);
   const allowedToBuy = !isOwner;
   const allowMessage = allowedToBuy;
-  const allowAddReview = allowedToBuy && !isClassified;
+  const allowAddReview = allowedToBuy;
   const showPurchaseActions = allowedToBuy && !isClassified;
   const showWhatsAppContact = allowedToBuy && isClassified && !hasShop;
   const showShopActions = allowedToBuy;
@@ -540,6 +540,13 @@ function BuyProductDetail({
                     )}
                   </div>
                 ) : null}
+                <div className="mt-8">
+                  <Reviews
+                    type="product"
+                    id={product?.data?.id || product?.data?._id}
+                    allowAddReview={allowAddReview}
+                  />
+                </div>
               </div>
               <div className="w-full md:w-[48%] ">
                 <h3 className="text-[#030303] first-letter:uppercase text-[24px] font-medium">
@@ -608,12 +615,9 @@ function BuyProductDetail({
                   )} */}
                 </div>
 
-                {/* {!isClassified && (
-                  <h3 className="font-light text-[14px] text-[#4B514F] ">
-                    {reviewCount} {reviewCount === 1 ? placeholders.review : placeholders.reviews}
-                  </h3>
-                )} */}
-
+                <h3 className="font-light text-[14px] text-[#4B514F] ">
+                  {reviewCount} {reviewCount === 1 ? placeholders.review : placeholders.reviews}
+                </h3>
 
                 <div className="border-[#E5E5E5]  py-4 px-1.5 border-t-[0.5px] mt-4 flex justify-between">
                   <span className="text-[15px] font-medium">
@@ -815,10 +819,6 @@ function BuyProductDetail({
                 </div>}
               </div>
             </div>
-
-            {/* {!isClassified && (
-              <Reviews type="product" id={product?.data?.id || product?.data?._id} allowAddReview={allowAddReview} />
-            )} */}
 
             {hasShop && shopId && (
               <ShopProductsSlider

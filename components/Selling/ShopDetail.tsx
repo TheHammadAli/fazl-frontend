@@ -29,9 +29,23 @@ function resolveEntityId(value: unknown): string | null {
   return null;
 }
 
+function DetailRow({ label, value }: { label: string; value?: string | null }) {
+  if (!value?.trim()) return null;
+  return (
+    <div className="flex items-start justify-between gap-4 border-b border-gray-9 py-2.5 last:border-b-0">
+      <span className="shrink-0 text-[14px] font-normal text-[#4B514F]">
+        {label}
+      </span>
+      <span className="min-w-0 break-words text-right text-[14px] font-normal text-[#030303]">
+        {value}
+      </span>
+    </div>
+  );
+}
+
 export default function ShopDetail() {
   const router = useRouter();
-  const { pages, placeholders } = useDictionary();
+  const { pages, placeholders, info_messages } = useDictionary();
   const id = useSearchParams().get("id");
   const userData =
     typeof window !== "undefined"
@@ -53,7 +67,8 @@ export default function ShopDetail() {
   });
   const shopOwnerId = resolveEntityId(shop?.data?.ownerId);
   const isShopOwner = Boolean(userId && shopOwnerId && userId === shopOwnerId);
-  console.log(shop)
+  const shopData = shop?.data;
+
   useEffect(() => {
     if (!id) {
       router.back();
@@ -186,7 +201,7 @@ export default function ShopDetail() {
                 </div>
 
                 <div className=" font-light text-[15px] text-black-1 -mt-3">
-                  <p className="leading-tight">{shop?.data?.description}</p>
+                  <p className="leading-tight">{shopData?.description}</p>
                   <div className="mt-3 space-y-1">
                     <div className="flex gap-1.5  items-center">
                       <Image src={tickGray} alt="tick" />
@@ -194,12 +209,44 @@ export default function ShopDetail() {
                         {user?.email ?? ""}
                       </span>
                     </div>
-                    <div className="flex gap-1.5 items-center">
-                      <Image src={locationIcon} alt="location" />
-                      <span className="text-gray-8 font-light text-[14px]">
-                        {shop?.data?.address ?? ""}
-                      </span>
-                    </div>
+                    {shopData?.address ? (
+                      <div className="flex gap-1.5 items-start">
+                        <Image
+                          src={locationIcon}
+                          alt="location"
+                          className="mt-0.5 shrink-0"
+                        />
+                        <span className="break-words text-gray-8 font-light text-[14px]">
+                          {shopData.address}
+                        </span>
+                      </div>
+                    ) : null}
+                  </div>
+
+                  <div className="mt-4 rounded-[12px] border border-gray-9 px-3">
+                    <DetailRow
+                      label={
+                        info_messages["market_name" as keyof typeof info_messages] ??
+                        "Market name"
+                      }
+                      value={shopData?.marketName}
+                    />
+                    <DetailRow
+                      label={info_messages.area ?? "Area"}
+                      value={shopData?.area}
+                    />
+                    <DetailRow
+                      label={info_messages.city ?? "City"}
+                      value={shopData?.city}
+                    />
+                    <DetailRow
+                      label={info_messages.contact_no ?? "Contact no"}
+                      value={shopData?.contact}
+                    />
+                    <DetailRow
+                      label={info_messages.opening_hours ?? "Opening hours"}
+                      value={shopData?.openingHours}
+                    />
                   </div>
                 </div>
 
