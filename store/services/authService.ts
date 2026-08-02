@@ -11,11 +11,10 @@ export const authService = baseApi.injectEndpoints({
         body,
       }),
     }),
-    verifyOtp: build.mutation({
-      query: (body) => ({
-        url: "/auth/verify-otp",
-        method: "POST",
-        body,
+    verifyResetToken: build.query({
+      query: ({token}) => ({
+        url: "/auth/verify-reset-token?token=" + token,
+        method: "GET",
       }),
     }),
     // this is for resed
@@ -98,7 +97,8 @@ export const {
   useVerifyEmailMutation,
   useForgotPasswordMutation,
   useSendOtpMutation,
-  useVerifyOtpMutation,
+  useVerifyResetTokenQuery,
+  useLazyVerifyResetTokenQuery,
   useSignupMutation,
   useSigninMutation,
 } = authService;

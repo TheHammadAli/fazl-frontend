@@ -1,6 +1,5 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import Image from "next/image";
 import AuthImagePanel from "./AuthImagePanel";
 import { parsePhoneNumberFromString } from "libphonenumber-js";
 import { BeatLoader } from "react-spinners";
@@ -9,6 +8,8 @@ import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import Footer from "./Footer";
 import DoodleButton from "@/components/Ui/DoodleButton";
+import { useAppDispatch } from "@/store/store";
+import { setOtpInfo } from "@/store/reducers/authReducer";
 
 export type Body = {
   email?: string;
@@ -22,6 +23,7 @@ export const validatePhone = (phone: string): boolean => {
 
 function ForgetPassword() {
   const router = useRouter();
+  const dispatch = useAppDispatch();
   const [emailError, setEmailError] = useState("");
   const [email, setEmail] = useState("");
 
@@ -51,8 +53,16 @@ function ForgetPassword() {
   useEffect(() => {
     if (isSuccess) {
       toast.success(data?.message);
+      dispatch(
+        setOtpInfo({
+          type: "email",
+          email,
+          phone: "",
+          password: "",
+        }),
+      );
       const timer = setTimeout(() => {
-        router.push("/reset-password?token=" + encodeURIComponent(data?.data));
+        router.push("/verify-otp?email=" + encodeURIComponent(email));
       }, 1500);
 
       return () => clearTimeout(timer);
@@ -60,10 +70,10 @@ function ForgetPassword() {
     if (isError && "data" in error) {
       toast.error(
         (error?.data as { message?: string })?.message ||
-        "something went wrong!"
+          "something went wrong!",
       );
     }
-  }, [isSuccess, isError, data, error]);
+  }, [isSuccess, isError, data, error, dispatch, email, router]);
   return (
     <div className="flex h-screen min-h-[818px] w-full max-w-full overflow-x-hidden pt-[50px] hide-scrollbar lg:flex lg:pt-0">
       {/* Left section */}
@@ -79,8 +89,9 @@ function ForgetPassword() {
           {/* email */}
           <div className="space-y-2 mt-5 w-full ">
             <p
-              className={`text-[14px] font-normal  ${emailError ? "text-red-1" : "text-gray-8"
-                }`}
+              className={`text-[14px] font-normal  ${
+                emailError ? "text-red-1" : "text-gray-8"
+              }`}
             >
               Email
             </p>
@@ -90,8 +101,9 @@ function ForgetPassword() {
               onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                 setEmail(e.target.value)
               }
-              className={`h-[28px]  text-[14px] text-gray-8  font-normal focus:outline-none w-full ${emailError ? "border-red-1" : "border-gray-9"
-                } border-b-[1px] `}
+              className={`h-[28px]  text-[14px] text-gray-8  font-normal focus:outline-none w-full ${
+                emailError ? "border-red-1" : "border-gray-9"
+              } border-b-[1px] `}
             />
             {emailError && (
               <p className="text-red-1 text-[14px] font-normal">{emailError}</p>

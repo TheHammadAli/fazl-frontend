@@ -1,121 +1,124 @@
 "use client";
-import React, { useRef, useState, useEffect } from "react";
-import Image from "next/image";
+import React, { useState, useEffect } from "react";
 import AuthImagePanel from "./AuthImagePanel";
 import InputForOtp from "../Ui/InputForOtp";
 import {
-  useSendOtpMutation,
-  useVerifyOtpMutation,
+  useForgotPasswordMutation,
+  useLazyVerifyResetTokenQuery,
 } from "@/store/services/authService";
 import { Body } from "./SendOtp";
-import { useAppSelector } from "@/store/store";
+import { useAppDispatch, useAppSelector } from "@/store/store";
 import toast from "react-hot-toast";
 import { BeatLoader } from "react-spinners";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Footer from "./Footer";
 import DoodleButton from "@/components/Ui/DoodleButton";
+import { setOtpInfo } from "@/store/reducers/authReducer";
 
 function VerifyOtp() {
   const router = useRouter();
+  const dispatch = useAppDispatch();
+  const searchParams = useSearchParams();
   const [otp, setOtp] = useState("");
   const [timer, setTimer] = useState(12);
   const otpInfo = useAppSelector((state) => state.authReducer.otpInfo);
-  const { phone, email, type } = otpInfo;
-
-  const [
-    sendOtp,
-    {
-      isLoading: isSendOtpLoading,
-      isSuccess: isSendOtpSuccess,
-      isError: isSendOtpError,
-      data: sendOtpData,
-      error: sendOtpError,
-    },
-  ] = useSendOtpMutation();
-  const [
-    verifyOtp,
-    {
-      isLoading: isVerifyLoading,
-      isSuccess: isVerifySuccess,
-      isError: isVerifyError,
-      data: verifyData,
-      error: verifyError,
-    },
-  ] = useVerifyOtpMutation();
+  const emailFromQuery = searchParams.get("email")?.trim() ?? "";
+  const email = otpInfo?.email || emailFromQuery;
+  const type = otpInfo?.type || (emailFromQuery ? "email" : "");
   const [mounted, setMounted] = useState(false);
+  const [emailError, setEmailError] = useState("");
+
+  const [
+    forgotPassword,
+    {
+      isLoading: isForgotLoading,
+      isSuccess: isForgotSuccess,
+      isError: isForgotError,
+      data: forgotData,
+      error: forgotError,
+    },
+  ] = useForgotPasswordMutation();
+
+  const [
+    verifyResetToken,
+    { isFetching: isVerifyLoading },
+  ] = useLazyVerifyResetTokenQuery();
 
   useEffect(() => {
-    if (!otpInfo?.type) {
-      window.location.href = "/send-otp";
-    } else {
+    // Allow forgot-password flow that lands with ?email= even if otpInfo was empty
+    if (emailFromQuery && (!otpInfo?.type || !otpInfo?.email)) {
+      dispatch(
+        setOtpInfo({
+          type: "email",
+          email: emailFromQuery,
+          phone: otpInfo?.phone ?? "",
+          password: otpInfo?.password ?? "",
+        }),
+      );
+    }
+  }, [emailFromQuery, otpInfo, dispatch]);
+
+  useEffect(() => {
+    if (type || emailFromQuery) {
       setMounted(true);
+      return;
     }
-  }, [otpInfo, router]);
-
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (timer > 0) {
-      interval = setInterval(() => {
-        setTimer((prev) => prev - 1);
-      }, 1000);
-    }
-    return () => clearInterval(interval);
-  }, [timer]);
+    window.location.href = "/send-otp";
+  }, [type, emailFromQuery]);
 
   const handleSendOtp = () => {
+    if (isForgotLoading) return;
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    let isValid = true;
     let body: Body = {};
-    if (type === "email") {
-      body = { ...body, email };
+    if (email.trim().length === 0) {
+      setEmailError("Invalid email address*");
+      isValid = false;
+    } else if (regex.test(email) === false) {
+      setEmailError("Please enter a valid email address");
+      isValid = false;
     } else {
-      body = { ...body, phoneNumber: phone };
+      setEmailError("");
+      body = { email };
     }
-    sendOtp(body);
+    if (isValid) {
+      forgotPassword(body);
+    }
   };
 
   useEffect(() => {
-    if (isSendOtpSuccess) {
+    if (isForgotSuccess) {
       setOtp("");
-      toast.success(sendOtpData?.message);
+      toast.success(forgotData?.message);
       setTimer(12);
     }
-    if (isSendOtpError && "data" in sendOtpError) {
+    if (isForgotError && "data" in forgotError) {
       toast.error(
-        (sendOtpError?.data as { message?: string })?.message ||
-        "something went wrong!"
+        (forgotError?.data as { message?: string })?.message ||
+        "something went wrong!",
       );
     }
-  }, [isSendOtpSuccess, isSendOtpError, sendOtpData, sendOtpError]);
+  }, [isForgotSuccess, isForgotError, forgotData, forgotError]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const token = otp.trim();
+    if (!token) return;
 
-    let data: { email?: string; code?: string; phoneNumber?: string } = {
-      code: otp,
-    };
-    if (type === "email") {
-      data = { ...data, email: email };
-    } else {
-      data = { ...data, phoneNumber: phone };
+    try {
+      const result = await verifyResetToken({ token }).unwrap();
+      toast.success(result?.message);
+      const resetToken = result?.data?.token ?? result?.token ?? token;
+      router.push(`/reset-password?token=${encodeURIComponent(resetToken)}`);
+    } catch (err) {
+      const message =
+        err && typeof err === "object" && "data" in err
+          ? ((err as { data?: { message?: string } }).data?.message ??
+            "something went wrong!")
+          : "something went wrong!";
+      toast.error(message);
     }
-    verifyOtp(data);
   };
-  useEffect(() => {
-    if (isVerifySuccess) {
-      toast.success(verifyData?.message);
-
-      const timer = setTimeout(() => {
-        router.push("/set-password");
-      }, 500);
-
-      return () => clearTimeout(timer);
-    }
-    if (isVerifyError && "data" in verifyError) {
-      toast.error(
-        (verifyError?.data as { message?: string })?.message ||
-        "something went wrong!"
-      );
-    }
-  }, [isVerifySuccess, isVerifyError, verifyData, verifyError]);
 
   if (mounted) {
     return (
@@ -137,35 +140,34 @@ function VerifyOtp() {
             </p>
             {mounted && (
               <p className=" text-[16px] font-light text-gray-8 text-center lg:text-left">
-                {(type === "email" ? email || "" : phone) || "-"}
+                {email}
               </p>
             )}
             <div className="flex justify-center  gap-2 mt-6 w-full max-w-[500px] lg:max-w-full">
               <InputForOtp otp={otp} setOtp={setOtp} />
-              {/* <div className="h-[52px] w-[52px] min-w-[52px] bg-gray-4 rounded-[12px] text-[14px] font-normal text-center"></div>
-            <div className="h-[52px] hidden lg:block w-[52px] min-w-[52px] bg-gray-4 rounded-[12px] text-[14px] font-normal text-center"></div> */}
             </div>
-            <div
-              className={`text-center text-[#121212BF] text-[14px] font-semibold mt-5 w-full`}
-            >
-              00:{timer < 10 ? `0${timer}` : timer} Sec
-            </div>
-            <div
-              className={`font-light text-center lg:text-start text-[13px] text-gray-8 mt-5 leading-none w-full ${timer > 0 && "pointer-events-none opacity-50 "
-                }`}
-            >
+            {emailError ? (
+              <p className="mt-2 text-[14px] font-normal text-red-1">{emailError}</p>
+            ) : null}
+            <div className="mt-5 w-full text-center text-[13px] font-light leading-none text-gray-8 lg:text-start">
               Didn’t get the code?{" "}
-              <span
-                onClick={handleSendOtp}
-                className="text-green-1 font-normal hover:underline cursor-pointer"
-              >
-                {" "}
-                Click to resend
-              </span>
+              {isForgotLoading ? (
+                <span className="inline-flex items-center align-middle">
+                  <BeatLoader color="#3C9197" size={6} />
+                </span>
+              ) : (
+                <span
+                  onClick={handleSendOtp}
+                  className="cursor-pointer font-normal text-green-1 hover:underline"
+                >
+                  {" "}
+                  Click to resend
+                </span>
+              )}
             </div>
             <DoodleButton
               type="submit"
-              disabled={otp.length < 6 || isSendOtpLoading}
+              disabled={otp.length < 6 || isForgotLoading || isVerifyLoading}
               className="mt-6 flex h-[52px] w-full max-w-[500px] cursor-pointer items-center justify-center rounded-[12px] bg-green-1 text-[16px] font-medium text-white disabled:cursor-not-allowed disabled:opacity-50 lg:max-w-full"
             >
               {isVerifyLoading ? (
@@ -181,9 +183,9 @@ function VerifyOtp() {
         </form>
       </div>
     );
-  } else {
-    return null;
   }
+
+  return null;
 }
 
 export default VerifyOtp;
