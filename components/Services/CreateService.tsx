@@ -18,7 +18,7 @@ import CategoryModal, {
   mapCategoryParametersToListingParameters,
 } from "./CategoryModal";
 import PriceModal, { priceTypes } from "./PriceModal";
-import { parameterTypes, hasDuplicateParameterNames } from "../Selling/ParametersModal";
+import { parameterTypes, hasDuplicateParameterNames, toApiParameters } from "../Selling/ParametersModal";
 import ParametersModal from "../Selling/ParametersModal";
 import ParameterTags from "../Selling/ParameterTags";
 import {
@@ -151,7 +151,7 @@ function CreateService() {
       formData.append("price", selectedPrice.price);
       formData.append("paymentType", selectedPrice.paymentType);
       if (parameters.length > 0) {
-        formData.append("parameters", JSON.stringify(parameters));
+        formData.append("parameters", JSON.stringify(toApiParameters(parameters)));
       }
       if (video !== null) {
         formData.append("video", video);
@@ -240,6 +240,7 @@ function CreateService() {
             parameters={parameters}
             setParameters={setParameters}
             editIndex={parametersEditIndex}
+            setEditIndex={setParametersEditIndex}
             setOpen={(open) => {
               setIsParametersModalOpen(open);
               if (!open) setParametersEditIndex(null);
