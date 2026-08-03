@@ -13,6 +13,7 @@ import DoodleButton from "@/components/Ui/DoodleButton";
 import CategoryModal, {
   categroyTypes,
   mapCategoryParametersToListingParameters,
+  hydrateListingParametersFromApi,
 } from "../Services/CategoryModal";
 import PriceModal, { priceTypes } from "../Services/PriceModal";
 import {
@@ -20,7 +21,7 @@ import {
   useUpdateProductMutation,
 } from "@/store/services/sellingService";
 import toast from "react-hot-toast";
-import { parameterTypes, hasDuplicateParameterNames } from "./ParametersModal";
+import { parameterTypes, hasDuplicateParameterNames, toApiParameters } from "./ParametersModal";
 import ParametersModal from "./ParametersModal";
 import ParameterTags from "./ParameterTags";
 import { useSearchParams } from "next/navigation";
@@ -29,6 +30,7 @@ import { useGetProductDetailQuery } from "@/store/services/homeService";
 import { useRouter } from "next/navigation";
 import { getUserId } from "@/utils/getUserId";
 import { getFeedCategoryLabel } from "@/utils/getFeedCategoryLabel";
+import { useCategoriesQuery } from "@/custom-hooks/useCategoriesQuery";
 
 function UpdateProduct() {
   const router = useRouter();
@@ -53,6 +55,7 @@ function UpdateProduct() {
   );
 
   const productData = product?.data;
+  const { data: categoriesData } = useCategoriesQuery({ type: "product" });
   const [status, setStatus] = useState("form");
   const [createdData, setCreatedData] = useState<{ id: string }>({ id: "" });
   const tabs = ["photos_tab", "video_tab"];
@@ -99,6 +102,7 @@ function UpdateProduct() {
   const [parameterError, setParameterError] = useState("");
   const loadedCategoryIdRef = useRef<string | null>(null);
   const hasLoadedProductRef = useRef(false);
+  const hasHydratedWithCategoryParamsRef = useRef(false);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -162,7 +166,7 @@ function UpdateProduct() {
         formData.append("video", video);
       }
       if (parameters.length > 0) {
-        formData.append("parameters", JSON.stringify(parameters));
+        formData.append("parameters", JSON.stringify(toApiParameters(parameters)));
       }
       if (images.length > 0) {
         for (let i = 0; i < images.length; i++) {
@@ -194,33 +198,69 @@ function UpdateProduct() {
   }, [isSuccess, isError, data, error]);
 
   useEffect(() => {
-    if (product?.data) {
-      const prouductData = product?.data;
-      setTitle(prouductData?.title ?? "");
-      setDescription(prouductData?.description ?? "");
-      setSelectedCategory(prouductData?.category ?? null);
-      setParameters(prouductData?.parameters ?? []);
-      setSelectedPrice((prev) => ({ ...prev, price: prouductData?.price ?? "" }));
-      setVideo(prouductData?.video ?? null);
-      setImages(prouductData?.images ?? []);
-      loadedCategoryIdRef.current = prouductData?.category?._id ?? null;
-      hasLoadedProductRef.current = true;
+    if (!product?.data) return;
+
+    const prouductData = product.data;
+    const categoryId = prouductData?.category?._id;
+    const fullCategoryFromList = categoriesData?.data?.find(
+      (category: categroyTypes) => category._id === categoryId,
+    ) as categroyTypes | undefined;
+    const resolvedCategory =
+      fullCategoryFromList ?? prouductData?.category ?? null;
+    const hasCategoryParams = Boolean(
+      resolvedCategory?.parameters &&
+        ((resolvedCategory.parameters.en?.length ?? 0) > 0 ||
+          (resolvedCategory.parameters.ur?.length ?? 0) > 0),
+    );
+
+    // First hydrate from product detail (and again once full category params arrive)
+    if (
+      !hasLoadedProductRef.current ||
+      (hasCategoryParams && !hasHydratedWithCategoryParamsRef.current)
+    ) {
+      if (!hasLoadedProductRef.current) {
+        setTitle(prouductData?.title ?? "");
+        setDescription(prouductData?.description ?? "");
+        setSelectedPrice((prev) => ({
+          ...prev,
+          price: prouductData?.price ?? "",
+        }));
+        setVideo(prouductData?.video ?? null);
+        setImages(prouductData?.images ?? []);
+        hasLoadedProductRef.current = true;
+      }
+
+      setSelectedCategory(resolvedCategory);
+      setParameters(
+        hydrateListingParametersFromApi(
+          prouductData?.parameters,
+          resolvedCategory,
+          currentLanguage,
+        ),
+      );
+      loadedCategoryIdRef.current = resolvedCategory?._id ?? null;
+
+      if (hasCategoryParams) {
+        hasHydratedWithCategoryParamsRef.current = true;
+      }
     }
-  }, [product?.data, productSuccess]);
+  }, [product?.data, productSuccess, currentLanguage, categoriesData?.data]);
 
   useEffect(() => {
     if (!hasLoadedProductRef.current) return;
 
     if (!selectedCategory) {
+      // Avoid wiping API params while category state catches up after product load
+      if (loadedCategoryIdRef.current !== null) return;
       setParameters([]);
       setParameterError("");
-      loadedCategoryIdRef.current = null;
       return;
     }
 
     const categoryId = selectedCategory._id;
     if (categoryId === loadedCategoryIdRef.current) return;
 
+    // User changed category after initial load — reset to that category's params
     loadedCategoryIdRef.current = categoryId;
     setParameters(
       mapCategoryParametersToListingParameters(
@@ -281,6 +321,7 @@ function UpdateProduct() {
             parameters={parameters}
             setParameters={setParameters}
             editIndex={parametersEditIndex}
+            setEditIndex={setParametersEditIndex}
             setOpen={(open) => {
               setIsParametersModalOpen(open);
               if (!open) setParametersEditIndex(null);
@@ -420,7 +461,11 @@ function UpdateProduct() {
                   </p>
                 )}
                 <ParameterTags
-                  label={placeholders.add_parameter}
+                  label={
+                    parameters.length > 0
+                      ? placeholders.add_more
+                      : placeholders.add_parameter
+                  }
                   parameters={parameters}
                   onClick={(parameterIndex) => {
                     setParametersEditIndex(parameterIndex);

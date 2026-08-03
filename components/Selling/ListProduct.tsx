@@ -21,7 +21,7 @@ import {
 } from "@/store/services/sellingService";
 import toast from "react-hot-toast";
 import ServiceCreated from "../Services/ServiceCreated";
-import { parameterTypes, hasDuplicateParameterNames } from "./ParametersModal";
+import { parameterTypes, hasDuplicateParameterNames, toApiParameters } from "./ParametersModal";
 import ParametersModal from "./ParametersModal";
 import ParameterTags from "./ParameterTags";
 import { useSearchParams } from "next/navigation";
@@ -64,23 +64,31 @@ function mapCategoryParametersToProductParameters(
       parameters.ur ??
       []) as Array<{ name?: string; values?: string[] } | string>;
 
-  return entries
-    .map((entry) => {
-      if (typeof entry === "string") {
-        const name = entry.trim();
-        return name ? { name, variants: [] as string[] } : null;
-      }
+  const mapped: parameterTypes[] = [];
 
-      const name = entry?.name?.trim() ?? "";
-      if (!name) return null;
+  for (const entry of entries) {
+    if (typeof entry === "string") {
+      const name = entry.trim();
+      if (name) mapped.push({ name, variants: [], options: [], isCustom: false });
+      continue;
+    }
 
-      const variants = Array.isArray(entry?.values)
-        ? entry.values.map((value) => String(value).trim()).filter(Boolean)
-        : [];
+    const name = entry?.name?.trim() ?? "";
+    if (!name) continue;
 
-      return { name, variants };
-    })
-    .filter((parameter): parameter is parameterTypes => parameter != null);
+    const variants = Array.isArray(entry?.values)
+      ? entry.values.map((value) => String(value).trim()).filter(Boolean)
+      : [];
+
+    mapped.push({
+      name,
+      variants: [],
+      options: [...variants],
+      isCustom: false,
+    });
+  }
+
+  return mapped;
 }
 
 function hasMissingParameterValues(parameters: parameterTypes[]): boolean {
@@ -245,7 +253,7 @@ function ListProduct() {
         formData.append("address", address);
       }
       if (parameters.length > 0) {
-        formData.append("parameters", JSON.stringify(parameters));
+        formData.append("parameters", JSON.stringify(toApiParameters(parameters)));
       }
 
       if (images.length > 0) {
@@ -339,6 +347,7 @@ function ListProduct() {
             parameters={parameters}
             setParameters={setParameters}
             editIndex={parametersEditIndex}
+            setEditIndex={setParametersEditIndex}
             setOpen={(open) => {
               setIsParametersModalOpen(open);
               if (!open) setParametersEditIndex(null);

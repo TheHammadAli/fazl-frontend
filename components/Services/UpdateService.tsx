@@ -13,6 +13,7 @@ import DoodleButton from "@/components/Ui/DoodleButton";
 import CategoryModal, {
   categroyTypes,
   mapCategoryParametersToListingParameters,
+  hydrateListingParametersFromApi,
 } from "../Services/CategoryModal";
 import PriceModal, { priceTypes } from "../Services/PriceModal";
 import {
@@ -27,10 +28,12 @@ import ProductListed from "../Selling/ProductListed";
 import {
   parameterTypes,
   hasDuplicateParameterNames,
+  toApiParameters,
 } from "../Selling/ParametersModal";
 import ParametersModal from "../Selling/ParametersModal";
 import ParameterTags from "../Selling/ParameterTags";
 import { getFeedCategoryLabel } from "@/utils/getFeedCategoryLabel";
+import { useCategoriesQuery } from "@/custom-hooks/useCategoriesQuery";
 
 function UpdateService() {
   const router = useRouter();
@@ -54,6 +57,7 @@ function UpdateService() {
   );
 
   const productData = service?.data;
+  const { data: categoriesData } = useCategoriesQuery({ type: "service" });
   const [status, setStatus] = useState("form");
   const tabs = ["photos_tab", "video_tab"];
   const [activeTab, setActiveTab] = useState<string>(tabs[0]);
@@ -95,6 +99,7 @@ function UpdateService() {
   const [parameterError, setParameterError] = useState("");
   const loadedCategoryIdRef = useRef<string | null>(null);
   const hasLoadedServiceRef = useRef(false);
+  const hasHydratedWithCategoryParamsRef = useRef(false);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -148,7 +153,7 @@ function UpdateService() {
       formData.append("price", selectedPrice.price);
       formData.append("paymentType", selectedPrice.paymentType);
       if (parameters.length > 0) {
-        formData.append("parameters", JSON.stringify(parameters));
+        formData.append("parameters", JSON.stringify(toApiParameters(parameters)));
       }
       if (typeof video !== "string") {
         if (video) {
@@ -189,30 +194,60 @@ function UpdateService() {
   }, [isSuccess, isError, data, error, router]);
 
   useEffect(() => {
-    if (service?.data) {
-      const serviceData = service?.data;
-      setTitle(serviceData?.title ?? "");
-      setDescription(serviceData?.description ?? "");
-      setSelectedCategory(serviceData?.category ?? null);
-      setParameters(serviceData?.parameters ?? []);
-      setSelectedPrice((prev) => ({
-        ...prev,
-        price: serviceData?.price != null ? String(serviceData.price) : "",
-      }));
-      setVideo(serviceData?.video ?? null);
-      setImages(serviceData?.images ?? []);
-      loadedCategoryIdRef.current = serviceData?.category?._id ?? null;
-      hasLoadedServiceRef.current = true;
+    if (!service?.data) return;
+
+    const serviceData = service.data;
+    const categoryId = serviceData?.category?._id;
+    const fullCategoryFromList = categoriesData?.data?.find(
+      (category: categroyTypes) => category._id === categoryId,
+    ) as categroyTypes | undefined;
+    const resolvedCategory =
+      fullCategoryFromList ?? serviceData?.category ?? null;
+    const hasCategoryParams = Boolean(
+      resolvedCategory?.parameters &&
+        ((resolvedCategory.parameters.en?.length ?? 0) > 0 ||
+          (resolvedCategory.parameters.ur?.length ?? 0) > 0),
+    );
+
+    if (
+      !hasLoadedServiceRef.current ||
+      (hasCategoryParams && !hasHydratedWithCategoryParamsRef.current)
+    ) {
+      if (!hasLoadedServiceRef.current) {
+        setTitle(serviceData?.title ?? "");
+        setDescription(serviceData?.description ?? "");
+        setSelectedPrice((prev) => ({
+          ...prev,
+          price: serviceData?.price != null ? String(serviceData.price) : "",
+        }));
+        setVideo(serviceData?.video ?? null);
+        setImages(serviceData?.images ?? []);
+        hasLoadedServiceRef.current = true;
+      }
+
+      setSelectedCategory(resolvedCategory);
+      setParameters(
+        hydrateListingParametersFromApi(
+          serviceData?.parameters,
+          resolvedCategory,
+          currentLanguage,
+        ),
+      );
+      loadedCategoryIdRef.current = resolvedCategory?._id ?? null;
+
+      if (hasCategoryParams) {
+        hasHydratedWithCategoryParamsRef.current = true;
+      }
     }
-  }, [service?.data, serviceSuccess]);
+  }, [service?.data, serviceSuccess, currentLanguage, categoriesData?.data]);
 
   useEffect(() => {
     if (!hasLoadedServiceRef.current) return;
 
     if (!selectedCategory) {
+      if (loadedCategoryIdRef.current !== null) return;
       setParameters([]);
       setParameterError("");
-      loadedCategoryIdRef.current = null;
       return;
     }
 
@@ -276,6 +311,7 @@ function UpdateService() {
             parameters={parameters}
             setParameters={setParameters}
             editIndex={parametersEditIndex}
+            setEditIndex={setParametersEditIndex}
             setOpen={(open) => {
               setIsParametersModalOpen(open);
               if (!open) setParametersEditIndex(null);

@@ -67,11 +67,94 @@ export function getCategoryParameterEntries(
 export function mapCategoryParametersToListingParameters(
   parameters: CategoryParameters | undefined,
   lang: string,
-): { name: string; variants: string[] }[] {
+): { name: string; variants: string[]; options: string[]; isCustom: false }[] {
   return getCategoryParameterEntries(parameters, lang).map((entry) => ({
     name: entry.name,
-    variants: entry.values,
+    variants: [],
+    options: [...entry.values],
+    isCustom: false,
   }));
+}
+
+/** Keep API listing params; attach category options so mapped params use the list modal. */
+export function hydrateListingParametersFromApi(
+  apiParameters:
+    | Array<{ name?: string; variants?: string[] }>
+    | undefined,
+  category: categroyTypes | null | undefined,
+  lang: string,
+): {
+  name: string;
+  variants: string[];
+  options?: string[];
+  isCustom: boolean;
+}[] {
+  const api = (apiParameters ?? [])
+    .map((p) => ({
+      name: (p.name ?? "").trim(),
+      variants: Array.isArray(p.variants)
+        ? p.variants.map((v) => String(v).trim()).filter(Boolean)
+        : [],
+    }))
+    .filter((p) => p.name !== "");
+
+  if (api.length === 0) return [];
+
+  const enEntries = mapCategoryParametersToListingParameters(
+    category?.parameters,
+    "en",
+  );
+  const urEntries = mapCategoryParametersToListingParameters(
+    category?.parameters,
+    "ur",
+  );
+  const preferredEntries =
+    lang === "ur"
+      ? urEntries.length > 0
+        ? urEntries
+        : enEntries
+      : enEntries.length > 0
+        ? enEntries
+        : urEntries;
+
+  const categoryByName = new Map<string, (typeof preferredEntries)[number]>();
+  const pairCount = Math.max(enEntries.length, urEntries.length);
+  for (let i = 0; i < pairCount; i++) {
+    const preferred = preferredEntries[i] ?? enEntries[i] ?? urEntries[i];
+    if (!preferred) continue;
+    const enName = enEntries[i]?.name?.trim().toLowerCase();
+    const urName = urEntries[i]?.name?.trim().toLowerCase();
+    if (enName) categoryByName.set(enName, preferred);
+    if (urName) categoryByName.set(urName, preferred);
+  }
+
+  return api.map((p) => {
+    const match = categoryByName.get(p.name.toLowerCase());
+    // Listing params allow a single selected value
+    const selected = p.variants.slice(0, 1);
+    if (match) {
+      const options = [...(match.options ?? [])];
+      const otherValue =
+        selected[0] && !options.includes(selected[0])
+          ? selected[0]
+          : undefined;
+      return {
+        name: match.name || p.name,
+        variants: selected,
+        options,
+        ...(otherValue ? { otherValue } : {}),
+        isCustom: false,
+      };
+    }
+
+    return {
+      name: p.name,
+      variants: selected,
+      options: [],
+      ...(selected[0] ? { otherValue: selected[0] } : {}),
+      isCustom: false,
+    };
+  });
 }
 
 function CategoryModal({
