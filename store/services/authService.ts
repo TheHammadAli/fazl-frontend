@@ -18,11 +18,11 @@ export const authService = baseApi.injectEndpoints({
       }),
     }),
     // this is for resed
-    verifyEmail: build.mutation({
-      query: (body) => ({
-        url: "/auth/verify-email",
-        method: "POST",
-        body,
+    verifyEmail: build.query({
+      query: ({token}) => ({
+        url: "/auth/verify-email?token=" + token,
+        method: "GET",
+    
       }),
     }),
     signup: build.mutation({
@@ -86,15 +86,23 @@ export const authService = baseApi.injectEndpoints({
         method: "DELETE",
       }),
     }),
+    sendEmailVerificationLink: build.mutation({
+      query: (body) => ({
+        url: "/auth/send-email-verification",
+        method: "POST",
+        body,
+      }),
+    }),
   }),
 });
 export const {
+  useSendEmailVerificationLinkMutation,
   useDeleteAccountMutation,
   useGetProductOwnerDetailQuery,
   useGetUserWithProvidedTokenQuery,
   useGetLocationsQuery,
   useResetPasswordMutation,
-  useVerifyEmailMutation,
+  useLazyVerifyEmailQuery,
   useForgotPasswordMutation,
   useSendOtpMutation,
   useVerifyResetTokenQuery,

@@ -9,7 +9,7 @@ import GoogleIcon from "@/assets/icons/google-icon.svg";
 import mailIcon from "@/assets/icons/email-icon.svg";
 import { parsePhoneNumberFromString } from "libphonenumber-js";
 import { BeatLoader } from "react-spinners";
-import { useSendOtpMutation } from "@/store/services/authService";
+import { useSendEmailVerificationLinkMutation, useSendOtpMutation } from "@/store/services/authService";
 import toast from "react-hot-toast";
 import { useAppDispatch } from "@/store/store";
 import { setOtpInfo } from "@/store/reducers/authReducer";
@@ -33,8 +33,8 @@ function Signup() {
   const dispatch = useAppDispatch();
   const optionsRef = useRef<HTMLDivElement | null>(null);
   const [search, setSearch] = useState("");
-  const [withEmail, setWithEmail] = useState(false);
-  const [withPhone, setWithPhone] = useState(true);
+  const [withEmail, setWithEmail] = useState(true);
+  const [withPhone, setWithPhone] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const allCountries = countries.getAll();
   const [emailError, setEmailError] = useState("");
@@ -48,8 +48,8 @@ function Signup() {
     name,
     dial_code,
   }));
-  const [sendOtp, { isLoading, isSuccess, isError, data, error }] =
-    useSendOtpMutation();
+  const [sendEmailVerificationLink, { isLoading, isSuccess, isError, data, error }] =
+    useSendEmailVerificationLinkMutation();
   useClickOutside(optionsRef, () => {
     setIsOpen(false);
   });
@@ -92,7 +92,7 @@ function Signup() {
       }
     }
     if (isValid) {
-      sendOtp(body);
+      sendEmailVerificationLink(body);
     }
   };
 
@@ -107,7 +107,7 @@ function Signup() {
         })
       );
       const timer = setTimeout(() => {
-        router.push("/verify-otp");
+        router.push("/verify-otp?type=register");
       }, 1500);
 
       return () => clearTimeout(timer);
@@ -270,7 +270,7 @@ function Signup() {
             <h3>Continue with Google</h3>
           </DoodleButton>
 
-          <button
+          {/* <button
             disabled={isLoading}
             onClick={() => {
               setWithEmail(!withEmail);
@@ -280,7 +280,7 @@ function Signup() {
           >
             <Image src={mailIcon} alt="mail_icon" />{" "}
             <h3>Continue with {withEmail ? "Phone" : "Email"}</h3>
-          </button>
+          </button> */}
 
           <div className="w-full text-center font-normal text-[12px] text-gray-8 mt-5">
             Already have an account?{" "}

@@ -5,6 +5,8 @@ import InputForOtp from "../Ui/InputForOtp";
 import {
   useForgotPasswordMutation,
   useLazyVerifyResetTokenQuery,
+  useSendEmailVerificationLinkMutation,
+  useLazyVerifyEmailQuery,
 } from "@/store/services/authService";
 import { Body } from "./SendOtp";
 import { useAppDispatch, useAppSelector } from "@/store/store";
@@ -23,8 +25,10 @@ function VerifyOtp() {
   const [timer, setTimer] = useState(12);
   const otpInfo = useAppSelector((state) => state.authReducer.otpInfo);
   const emailFromQuery = searchParams.get("email")?.trim() ?? "";
+  const flowType = searchParams.get("type")?.trim() ?? "";
+  const isRegisterFlow = flowType === "register";
   const email = otpInfo?.email || emailFromQuery;
-  const type = otpInfo?.type || (emailFromQuery ? "email" : "");
+  const contactType = otpInfo?.type || (emailFromQuery ? "email" : "");
   const [mounted, setMounted] = useState(false);
   const [emailError, setEmailError] = useState("");
 
@@ -40,9 +44,23 @@ function VerifyOtp() {
   ] = useForgotPasswordMutation();
 
   const [
-    verifyResetToken,
-    { isFetching: isVerifyLoading },
-  ] = useLazyVerifyResetTokenQuery();
+    sendEmailVerificationLink,
+    {
+      isLoading: isResendRegisterLoading,
+      isSuccess: isResendRegisterSuccess,
+      isError: isResendRegisterError,
+      data: resendRegisterData,
+      error: resendRegisterError,
+    },
+  ] = useSendEmailVerificationLinkMutation();
+
+  const [verifyResetToken, { isFetching: isVerifyResetLoading }] =
+    useLazyVerifyResetTokenQuery();
+  const [verifyEmail, { isLoading: isVerifyEmailLoading }] =
+    useLazyVerifyEmailQuery();
+
+  const isResendLoading = isForgotLoading || isResendRegisterLoading;
+  const isVerifyLoading = isVerifyResetLoading || isVerifyEmailLoading;
 
   useEffect(() => {
     // Allow forgot-password flow that lands with ?email= even if otpInfo was empty
@@ -59,15 +77,15 @@ function VerifyOtp() {
   }, [emailFromQuery, otpInfo, dispatch]);
 
   useEffect(() => {
-    if (type || emailFromQuery) {
+    if (contactType || emailFromQuery || (isRegisterFlow && email)) {
       setMounted(true);
       return;
     }
     window.location.href = "/send-otp";
-  }, [type, emailFromQuery]);
+  }, [contactType, emailFromQuery, isRegisterFlow, email]);
 
   const handleSendOtp = () => {
-    if (isForgotLoading) return;
+    if (isResendLoading) return;
     const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     let isValid = true;
     let body: Body = {};
@@ -81,7 +99,11 @@ function VerifyOtp() {
       setEmailError("");
       body = { email };
     }
-    if (isValid) {
+    if (!isValid) return;
+
+    if (isRegisterFlow) {
+      sendEmailVerificationLink(body);
+    } else {
       forgotPassword(body);
     }
   };
@@ -92,7 +114,7 @@ function VerifyOtp() {
       toast.success(forgotData?.message);
       setTimer(12);
     }
-    if (isForgotError && "data" in forgotError) {
+    if (isForgotError && forgotError && "data" in forgotError) {
       toast.error(
         (forgotError?.data as { message?: string })?.message ||
         "something went wrong!",
@@ -100,12 +122,41 @@ function VerifyOtp() {
     }
   }, [isForgotSuccess, isForgotError, forgotData, forgotError]);
 
+  useEffect(() => {
+    if (isResendRegisterSuccess) {
+      setOtp("");
+      toast.success(resendRegisterData?.message);
+      setTimer(12);
+    }
+    if (
+      isResendRegisterError &&
+      resendRegisterError &&
+      "data" in resendRegisterError
+    ) {
+      toast.error(
+        (resendRegisterError?.data as { message?: string })?.message ||
+        "something went wrong!",
+      );
+    }
+  }, [
+    isResendRegisterSuccess,
+    isResendRegisterError,
+    resendRegisterData,
+    resendRegisterError,
+  ]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const token = otp.trim();
     if (!token) return;
 
     try {
+      if (isRegisterFlow) {
+        const result = await verifyEmail({ token: token }).unwrap();
+        toast.success(result?.message);
+        router.push("/set-password");
+        return;
+      }
       const result = await verifyResetToken({ token }).unwrap();
       toast.success(result?.message);
       const resetToken = result?.data?.token ?? result?.token ?? token;
@@ -147,11 +198,13 @@ function VerifyOtp() {
               <InputForOtp otp={otp} setOtp={setOtp} />
             </div>
             {emailError ? (
-              <p className="mt-2 text-[14px] font-normal text-red-1">{emailError}</p>
+              <p className="mt-2 text-[14px] font-normal text-red-1">
+                {emailError}
+              </p>
             ) : null}
             <div className="mt-5 w-full text-center text-[13px] font-light leading-none text-gray-8 lg:text-start">
               Didn’t get the code?{" "}
-              {isForgotLoading ? (
+              {isResendLoading ? (
                 <span className="inline-flex items-center align-middle">
                   <BeatLoader color="#3C9197" size={6} />
                 </span>
@@ -167,7 +220,7 @@ function VerifyOtp() {
             </div>
             <DoodleButton
               type="submit"
-              disabled={otp.length < 6 || isForgotLoading || isVerifyLoading}
+              disabled={otp.length < 6 || isResendLoading || isVerifyLoading}
               className="mt-6 flex h-[52px] w-full max-w-[500px] cursor-pointer items-center justify-center rounded-[12px] bg-green-1 text-[16px] font-medium text-white disabled:cursor-not-allowed disabled:opacity-50 lg:max-w-full"
             >
               {isVerifyLoading ? (
