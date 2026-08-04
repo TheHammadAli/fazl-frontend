@@ -57,7 +57,10 @@ const DROPDOWN_PANEL_CLASS =
     "absolute left-0 right-0 top-full z-20 mt-1 max-h-[200px] overflow-y-auto rounded-[8px] border border-gray-9 bg-white shadow-md hide-scrollbar";
 
 const MAX_BROADCAST_PHOTOS = 5;
-const PURPOSE_TABS: any[] = ["Selling", "Buying"];
+const PURPOSE_OPTIONS: { value: BroadcastPurpose; labelKey: "selling" | "buying" }[] = [
+    { value: "selling", labelKey: "selling" },
+    { value: "buying", labelKey: "buying" },
+];
 const NO_BUYERS_MESSAGES = [
     "دیے گئے دائرے میں کوئی خریدار نہیں ملا",
     "No buyers found in given radius",
@@ -115,7 +118,8 @@ function BroadCastModal({ setOpenBroadcast }: { setOpenBroadcast: (open: boolean
     const [selectedRadius, setSelectedRadius] = useState<number | null>(null);
     const [isTypeOpen, setIsTypeOpen] = useState(false);
     const [selectedType, setSelectedType] = useState<BroadcastType | null>(null);
-    const [selectedPurpose, setSelectedPurpose] = useState<any>("Selling");
+    const [isPurposeOpen, setIsPurposeOpen] = useState(false);
+    const [selectedPurpose, setSelectedPurpose] = useState<BroadcastPurpose | null>(null);
     const [isCategoryOpen, setIsCategoryOpen] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState<CategoryItem | null>(null);
     const locationRef = useRef<HTMLDivElement | null>(null);
@@ -148,7 +152,7 @@ function BroadCastModal({ setOpenBroadcast }: { setOpenBroadcast: (open: boolean
     const buildSentDescription = () => {
         const categoryName = selectedCategory?.name?.trim() || "";
         const locationName = location?.description?.trim() || "";
-        const isBuying = String(selectedPurpose).toLowerCase() === "buying";
+        const isBuying = selectedPurpose === "buying";
         const template = isBuying
             ? ph("broadcast_sent_buying")
             : ph("broadcast_sent_selling");
@@ -185,6 +189,10 @@ function BroadCastModal({ setOpenBroadcast }: { setOpenBroadcast: (open: boolean
             toast.error(eh("type_required"));
             return;
         }
+        if (selectedPurpose === null) {
+            toast.error(eh("purpose_required"));
+            return;
+        }
         if (selectedCategory === null) {
             toast.error(eh("category_required"));
             return;
@@ -195,6 +203,9 @@ function BroadCastModal({ setOpenBroadcast }: { setOpenBroadcast: (open: boolean
             return;
         }
 
+        const purposePayload =
+            selectedPurpose.charAt(0).toUpperCase() + selectedPurpose.slice(1);
+
         const imageFiles = images.filter((img): img is File => img instanceof File);
 
         const payload =
@@ -202,7 +213,7 @@ function BroadCastModal({ setOpenBroadcast }: { setOpenBroadcast: (open: boolean
                 ? (() => {
                     const fd = new FormData();
                     fd.append("type", selectedType);
-                    fd.append("purpose", selectedPurpose);
+                    fd.append("purpose", purposePayload);
                     fd.append("message", message.trim());
                     fd.append("radius", String(selectedRadius));
                     fd.append("categoryId", selectedCategory._id);
@@ -213,7 +224,7 @@ function BroadCastModal({ setOpenBroadcast }: { setOpenBroadcast: (open: boolean
                 })()
                 : {
                     type: selectedType,
-                    purpose: selectedPurpose,
+                    purpose: purposePayload,
                     message: message.trim(),
                     radius: selectedRadius,
                     categoryId: selectedCategory._id,
@@ -315,23 +326,6 @@ function BroadCastModal({ setOpenBroadcast }: { setOpenBroadcast: (open: boolean
                     </div>
                 </div>
 
-                <div className="flex text-sm">
-                    {PURPOSE_TABS.map((tab) => (
-                        <button
-                            key={tab}
-                            type="button"
-                            disabled={isBroadcastLoading}
-                            onClick={() => setSelectedPurpose(tab)}
-                            className={`w-1/2 cursor-pointer py-2.5 disabled:cursor-not-allowed disabled:opacity-60 ${selectedPurpose === tab
-                                ? "border-b-2 border-[#3C9197] font-medium text-[#007781]"
-                                : "border-b border-[#E5E5E5] font-normal text-[#4B514F]"
-                                }`}
-                        >
-                            {ph(tab.toLowerCase())}
-                        </button>
-                    ))}
-                </div>
-
                 <div className={`space-y-2  py-3 ${isBroadcastLoading ? "pointer-events-none opacity-70" : ""}`}>
                     <div className="px-5">
                         <div className="px-2">
@@ -347,6 +341,7 @@ function BroadCastModal({ setOpenBroadcast }: { setOpenBroadcast: (open: boolean
                                             setIsLocationOpen((prev) => !prev);
                                             setIsRadiusOpen(false);
                                             setIsTypeOpen(false);
+                                            setIsPurposeOpen(false);
                                             setIsCategoryOpen(false);
                                         }}
                                     />
@@ -427,6 +422,7 @@ function BroadCastModal({ setOpenBroadcast }: { setOpenBroadcast: (open: boolean
                                     onClick={() => {
                                         setIsRadiusOpen((prev) => !prev);
                                         setIsTypeOpen(false);
+                                        setIsPurposeOpen(false);
                                         setIsCategoryOpen(false);
                                         setIsLocationOpen(false);
                                     }}
@@ -464,6 +460,7 @@ function BroadCastModal({ setOpenBroadcast }: { setOpenBroadcast: (open: boolean
                                     onClick={() => {
                                         setIsTypeOpen((prev) => !prev);
                                         setIsRadiusOpen(false);
+                                        setIsPurposeOpen(false);
                                         setIsCategoryOpen(false);
                                         setIsLocationOpen(false);
                                     }}
@@ -492,6 +489,46 @@ function BroadCastModal({ setOpenBroadcast }: { setOpenBroadcast: (open: boolean
 
                             <div className="relative border-b border-gray-9 pt-2">
                                 <BroadcastFieldRow
+                                    icon={selectTypeIcon}
+                                    label={ph("purpose")}
+                                    value={
+                                        selectedPurpose
+                                            ? ph(selectedPurpose)
+                                            : null
+                                    }
+                                    placeholder={ph("choose_purpose")}
+                                    disabled={isBroadcastLoading}
+                                    onClick={() => {
+                                        setIsPurposeOpen((prev) => !prev);
+                                        setIsRadiusOpen(false);
+                                        setIsTypeOpen(false);
+                                        setIsCategoryOpen(false);
+                                        setIsLocationOpen(false);
+                                    }}
+                                />
+                                {isPurposeOpen ? (
+                                    <div className={DROPDOWN_PANEL_CLASS}>
+                                        {PURPOSE_OPTIONS.map((purpose) => (
+                                            <button
+                                                key={purpose.value}
+                                                type="button"
+                                                className="w-full cursor-pointer border-b border-gray-9 px-3 py-2 text-left text-[14px] text-black-1 last:border-b-0 hover:bg-gray-10"
+                                                onClick={() => {
+                                                    setSelectedPurpose(purpose.value);
+                                                    setIsPurposeOpen(false);
+                                                }}
+                                            >
+                                                <p className="first-letter:uppercase rtl:text-right ltr:text-left">
+                                                    {ph(purpose.labelKey)}
+                                                </p>
+                                            </button>
+                                        ))}
+                                    </div>
+                                ) : null}
+                            </div>
+
+                            <div className="relative border-b border-gray-9 pt-2">
+                                <BroadcastFieldRow
                                     icon={chooseCatIcon}
                                     label={ph("category")}
                                     value={selectedCategory?.name}
@@ -501,6 +538,7 @@ function BroadCastModal({ setOpenBroadcast }: { setOpenBroadcast: (open: boolean
                                         setIsCategoryOpen((prev) => !prev);
                                         setIsRadiusOpen(false);
                                         setIsTypeOpen(false);
+                                        setIsPurposeOpen(false);
                                         setIsLocationOpen(false);
                                     }}
                                 />
@@ -589,20 +627,12 @@ function BroadCastModal({ setOpenBroadcast }: { setOpenBroadcast: (open: boolean
                             </p>
                         </div>
                     </div>
-                    <div className="flex items-center px-6 pb-2 justify-end gap-3 pt-4">
-                        <button
-                            onClick={() => setOpenBroadcast(false)}
-                            disabled={isBroadcastLoading}
-                            type="button"
-                            className="h-[38px] cursor-pointer min-w-[83px] rounded-[8px] border border-green-2 px-5 text-[15px] font-normal text-green-2 disabled:cursor-not-allowed disabled:opacity-60"
-                        >
-                            {ph("cancel")}
-                        </button>
+                    <div className="px-5 pb-4 pt-4">
                         <DoodleButton
                             type="button"
                             disabled={isBroadcastLoading}
                             onClick={handleSendMessage}
-                            className="flex h-[38px] min-w-[114px] cursor-pointer items-center justify-center rounded-[8px] bg-green-1 px-5 text-[15px] font-normal text-white disabled:cursor-not-allowed disabled:opacity-80"
+                            className="flex h-[48px] md:h-[52px] w-full cursor-pointer flex-col items-center justify-center rounded-[10px] bg-green-1 px-5 text-white shadow-[0_4px_12px_rgba(0,119,129,0.28)] disabled:cursor-not-allowed disabled:opacity-80"
                         >
                             {isBroadcastLoading ? (
                                 <span className="flex items-center gap-1">
@@ -611,7 +641,16 @@ function BroadCastModal({ setOpenBroadcast }: { setOpenBroadcast: (open: boolean
                                     <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-white [animation-delay:240ms]" />
                                 </span>
                             ) : (
-                                ph("send")
+                                <span className="flex flex-col items-center leading-tight">
+                                    <span className="text-[14px]  font-semibold">
+                                        {ph("send_broadcast")}
+                                    </span>
+                                    <span className="mt-0.5 text-[12px]  font-normal text-white/90">
+                                        {selectedPurpose === "selling"
+                                            ? ph("reach_nearby_buyers_now")
+                                            : ph("reach_nearby_sellers_now")}
+                                    </span>
+                                </span>
                             )}
                         </DoodleButton>
                     </div>

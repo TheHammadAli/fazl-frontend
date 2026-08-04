@@ -60,7 +60,10 @@ export function clearAuthCookies() {
   deleteCookie("isAdmin", opts);
 }
 
-/** Reads accessToken + refreshToken from refresh/login response. */
+/** Reads accessToken + refreshToken from refresh/login response.
+ * Prefer `data.accessToken` / `data.refreshToken` — not `data.user.refreshToken`
+ * (user may still hold a rotated/stale refresh token).
+ */
 export function extractAuthTokens(data: unknown): {
   accessToken: string;
   refreshToken?: string;
@@ -72,38 +75,27 @@ export function extractAuthTokens(data: unknown): {
     root.data && typeof root.data === "object"
       ? (root.data as Record<string, unknown>)
       : null;
-  const deeper =
-    nested?.data && typeof nested.data === "object"
-      ? (nested.data as Record<string, unknown>)
-      : null;
 
-  const pick = (...sources: Array<Record<string, unknown> | null>) => {
-    const accessKeys = ["accessToken", "access_token"];
-    const refreshKeys = ["refreshToken", "refresh_token"];
-
-    let accessToken: string | undefined;
-    let refreshToken: string | undefined;
-
-    for (const source of sources) {
-      if (!source) continue;
-      for (const key of accessKeys) {
-        const value = source[key];
-        if (!accessToken && typeof value === "string" && value.trim()) {
-          accessToken = value.trim();
-        }
-      }
-      for (const key of refreshKeys) {
-        const value = source[key];
-        if (!refreshToken && typeof value === "string" && value.trim()) {
-          refreshToken = value.trim();
-        }
-      }
+  const readString = (
+    source: Record<string, unknown> | null,
+    ...keys: string[]
+  ) => {
+    if (!source) return undefined;
+    for (const key of keys) {
+      const value = source[key];
+      if (typeof value === "string" && value.trim()) return value.trim();
     }
-
-    return { accessToken, refreshToken };
+    return undefined;
   };
 
-  const { accessToken, refreshToken } = pick(deeper, nested, root);
+  const accessToken =
+    readString(nested, "accessToken", "access_token") ||
+    readString(root, "accessToken", "access_token");
+
+  // Only from data / root — never from data.user
+  const refreshToken =
+    readString(nested, "refreshToken", "refresh_token") ||
+    readString(root, "refreshToken", "refresh_token");
 
   if (!accessToken) return null;
   return refreshToken ? { accessToken, refreshToken } : { accessToken };
