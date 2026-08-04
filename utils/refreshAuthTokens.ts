@@ -14,6 +14,9 @@ let inFlight: Promise<RefreshedTokens | null> | null = null;
  * POST /auth/refreshToken with `{ token: refreshToken }`.
  * Saves BOTH new accessToken and refreshToken cookies immediately
  * (backend rotates refresh token — old one becomes invalid after first use).
+ *
+ * Response shape: `{ data: { accessToken, refreshToken, user } }`
+ * Persist `data.refreshToken` — not `data.user.refreshToken`.
  */
 export function refreshAuthTokens(
   refreshTokenOverride?: string,
@@ -37,18 +40,39 @@ export function refreshAuthTokens(
     if (!response.ok) return null;
 
     const json = await response.json();
+    const payload =
+      json?.data && typeof json.data === "object"
+        ? (json.data as Record<string, unknown>)
+        : null;
+
+    const accessToken =
+      typeof payload?.accessToken === "string"
+        ? payload.accessToken.trim()
+        : "";
+    // Must come from data.refreshToken, never data.user.refreshToken
+    const apiRefresh =
+      typeof payload?.refreshToken === "string"
+        ? payload.refreshToken.trim()
+        : "";
+
+    if (accessToken) {
+      const nextRefresh = apiRefresh || currentRefresh;
+      setAuthTokens({
+        accessToken,
+        refreshToken: nextRefresh,
+      });
+      return { accessToken, refreshToken: nextRefresh };
+    }
+
+    // Fallback for alternate response shapes
     const tokens = extractAuthTokens(json);
     if (!tokens?.accessToken) return null;
 
-    // Backend rotates refresh tokens — must persist the NEW refreshToken.
-    // Falling back to the old one only if API omits it.
     const nextRefresh = tokens.refreshToken?.trim() || currentRefresh;
-
     setAuthTokens({
       accessToken: tokens.accessToken,
       refreshToken: nextRefresh,
     });
-
     return {
       accessToken: tokens.accessToken,
       refreshToken: nextRefresh,
