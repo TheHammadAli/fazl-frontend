@@ -18,7 +18,8 @@ export type ChatThread = {
   previewKey?: string;
   timeLabel: string;
   avatar: string;
-  unread?: boolean;
+  unread?: boolean | number;
+  unreadCount?: number;
   createdAt?: string;
   buyer?: ChatThreadParticipant | string;
   seller?: ChatThreadParticipant;

@@ -45,7 +45,6 @@ function BroadCatMessages({
 
     const [showBroadcastThreadList, setShowBroadcastThreadList] = useState(false);
     const [selectedBroadcast, setSelectedBroadcast] = useState<BroadcastItem | null>(null);
-    console.log(filteredSent, "check the filtered sent ");
     const {
         data: sentItems,
         isLoading: isSentLoading,
@@ -132,6 +131,12 @@ function BroadCatMessages({
             return !!chatId && itemThreadId === chatId;
         });
         if (currentExistsInReceived) return;
+
+        // Auto-open first received broadcast on large screens only
+        const isLargeScreen =
+            typeof window !== "undefined" &&
+            window.matchMedia("(min-width: 1024px)").matches;
+        if (!isLargeScreen) return;
 
         const first = filteredReceived[0] as any;
         onSelectChat({ ...first, type: "broadcast_received" } as any);
