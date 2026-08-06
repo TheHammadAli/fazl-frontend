@@ -153,8 +153,10 @@ function Layout({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!userId) return;
 
-    const socket = initializeSocket();
-    if (!socket) return;
+    const defaultSocket = initializeSocket("default");
+    const chatSocket = initializeSocket("chat");
+    const broadcastSocket = initializeSocket("broadcast");
+    if (!defaultSocket && !chatSocket && !broadcastSocket) return;
 
     // DirectMessages treats `data` as Thread[]; Layout previously only read
     // `data.conversations`, so join never ran until ChatWindow opened a room.
@@ -164,9 +166,9 @@ function Layout({ children }: { children: React.ReactNode }) {
     );
 
     const joinConversationRooms = () => {
-      if (!socket.connected || conversationIds.length === 0) return;
+      if (!chatSocket?.connected || conversationIds.length === 0) return;
       conversationIds.forEach((conversationId) => {
-        socket.emit("joinConversation", { conversationId });
+        chatSocket.emit("joinConversation", { conversationId });
       });
     };
 
@@ -226,16 +228,16 @@ function Layout({ children }: { children: React.ReactNode }) {
     };
 
     joinConversationRooms();
-    socket.on("connect", joinConversationRooms);
-    socket.on("notification", onNotification);
-    socket.on("receiveMessage", onReceiveMessage);
-    socket.on("receiveBroadcastMessage", onReceiveBroadcastMessage);
+    chatSocket?.on("connect", joinConversationRooms);
+    defaultSocket?.on("notification", onNotification);
+    chatSocket?.on("receiveMessage", onReceiveMessage);
+    broadcastSocket?.on("receiveBroadcastMessage", onReceiveBroadcastMessage);
 
     return () => {
-      socket.off("connect", joinConversationRooms);
-      socket.off("notification", onNotification);
-      socket.off("receiveMessage", onReceiveMessage);
-      socket.off("receiveBroadcastMessage", onReceiveBroadcastMessage);
+      chatSocket?.off("connect", joinConversationRooms);
+      defaultSocket?.off("notification", onNotification);
+      chatSocket?.off("receiveMessage", onReceiveMessage);
+      broadcastSocket?.off("receiveBroadcastMessage", onReceiveBroadcastMessage);
     };
   }, [
     dispatch,

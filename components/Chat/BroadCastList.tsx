@@ -4,6 +4,7 @@ import chevron from '@/assets/icons/chev-down-icon.svg'
 import formatFromNowShort from '@/utils/formatFromNowShort';
 import { useDictionary } from '@/dictionaries/DictionaryProvider';
 import { getFeedCategoryLabel } from '@/utils/getFeedCategoryLabel';
+
 type BroadcastItem = {
     type: "Product" | "Service";
     category: { name: { en: string; ur: string } };
@@ -26,6 +27,7 @@ function BroadCastList({ items, onScroll, onSelectItem, chatId, activeTab }: Bro
     const { currentLanguage, placeholders } = useDictionary();
     type PlaceholderKey = keyof typeof placeholders;
     const ph = (key: PlaceholderKey) => placeholders[key];
+
     return (
         <div onScroll={onScroll} className="hide-scrollbar flex-1 overflow-y-auto divide-y divide-gray-9 bg-white">
             {items?.map((item: any, index) => {
@@ -61,6 +63,7 @@ function BroadCastList({ items, onScroll, onSelectItem, chatId, activeTab }: Bro
             })}
         </div>
     )
+
 }
 
 export default BroadCastList

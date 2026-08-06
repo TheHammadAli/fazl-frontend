@@ -62,7 +62,7 @@ function DirectMessages({
     }, []);
 
     useEffect(() => {
-        const socket = initializeSocket();
+        const socket = initializeSocket("chat");
         if (!socket) return;
         socket.on("receiveMessage", (data) => {
             dispatch(baseApi.util.invalidateTags(["Chat"]));
@@ -75,7 +75,11 @@ function DirectMessages({
         if (chatId && matchedConversation) {
             onSelectChat(matchedConversation);
         }
-        if (!chatId && firstConversation) {
+        // Auto-open first chat on large screens only (sidebar + window layout)
+        const isLargeScreen =
+            typeof window !== "undefined" &&
+            window.matchMedia("(min-width: 1024px)").matches;
+        if (!chatId && firstConversation && isLargeScreen) {
             onSelectChat(firstConversation);
         }
         if (page === 1) {
@@ -116,7 +120,14 @@ function DirectMessages({
                 ) : filteredThreads?.map((thread: any, index) => {
                     const isActive = thread?._id === chatId;
                     const thread_user = thread?.buyer?.id || thread?.buyer?._id !== userId ? thread?.buyer : thread?.seller;
-                    console.log(thread, "check the thread ");
+                    const unreadCount =
+                        typeof thread.unreadCount === "number"
+                            ? thread.unreadCount
+                            : typeof thread.unread === "number"
+                                ? thread.unread
+                                : thread.unread
+                                    ? 1
+                                    : 0;
                     return (
                         <li key={index}>
                             <button
@@ -138,7 +149,11 @@ function DirectMessages({
                                     </div>
                                     <div className="mt-1 flex items-center justify-between gap-2">
                                         <p className="truncate text-sm text-gray-600">{thread.latestMessage?.text ?? ""}</p>
-                                        {thread.unread ? <span className="h-2 w-2 shrink-0 rounded-full bg-[#3C9197]" /> : null}
+                                        {unreadCount > 0 ? (
+                                            <span className="flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-[#3C9197] px-1.5 text-[11px] font-medium leading-none text-white">
+                                                {unreadCount > 99 ? "99+" : unreadCount}
+                                            </span>
+                                        ) : null}
                                     </div>
                                 </div>
                             </button>

@@ -242,7 +242,7 @@ export default function ChatWindow({ thread, onBack, threadType, draftMessage = 
           toast.error("Unable to send message");
           return;
         }
-        const socket = initializeSocket();
+        const socket = initializeSocket("broadcast");
         if (!socket) {
           toast.error("Unable to send message");
           return;
@@ -323,7 +323,7 @@ export default function ChatWindow({ thread, onBack, threadType, draftMessage = 
         }
       });
       try {
-        const socket = initializeSocket();
+        const socket = initializeSocket("chat");
         if (!socket) {
           toast.error("Unable to send message");
           return;
@@ -393,8 +393,8 @@ export default function ChatWindow({ thread, onBack, threadType, draftMessage = 
   }, [threadType, incomingMessages, page]);
 
   useEffect(() => {
-    const socket = initializeSocket();
-    if (!socket) return;
+    const chatSocket = initializeSocket("chat");
+    const broadcastSocket = initializeSocket("broadcast");
     setPage(1);
     setSelectedFile(null);
     setMessageText(draftMessage.trim());
@@ -409,12 +409,13 @@ export default function ChatWindow({ thread, onBack, threadType, draftMessage = 
     }
     shouldStickToBottomRef.current = true;
     prevScrollHeightRef.current = 0;
-    socket?.emit('joinConversation', { conversationId });
-    socket?.emit('joinBroadcast', {
+    chatSocket?.emit('joinConversation', { conversationId });
+    broadcastSocket?.emit('joinBroadcast', {
       threadId: broadcastThreadId,
       broadcastId: isBroadcastReceived ? thread?._id : thread?.broadcastId,
     });
-    if (conversationId && userId && threadType === "direct_messages") {
+
+    if (conversationId && userId) {
       markMessagesAsRead({ conversationId, userId }).unwrap().catch(() => {
         // Keep chat usable even if marking read fails.
       });
@@ -456,19 +457,19 @@ export default function ChatWindow({ thread, onBack, threadType, draftMessage = 
     }
   }, [page, sortedFilteredMessages]);
   useEffect(() => {
-    const socket = initializeSocket();
-    if (!socket) return;
+    const chatSocket = initializeSocket("chat");
+    const broadcastSocket = initializeSocket("broadcast");
     const onReceiveMessage = () => {
       dispatch(baseApi.util.invalidateTags(["Chat"]));
     };
     const onReceiveBroadcastMessage = () => {
       dispatch(baseApi.util.invalidateTags(["BROADCAST"]));
     };
-    socket.on("receiveMessage", onReceiveMessage);
-    socket.on("receiveBroadcastMessage", onReceiveBroadcastMessage);
+    chatSocket?.on("receiveMessage", onReceiveMessage);
+    broadcastSocket?.on("receiveBroadcastMessage", onReceiveBroadcastMessage);
     return () => {
-      socket.off("receiveMessage", onReceiveMessage);
-      socket.off("receiveBroadcastMessage", onReceiveBroadcastMessage);
+      chatSocket?.off("receiveMessage", onReceiveMessage);
+      broadcastSocket?.off("receiveBroadcastMessage", onReceiveBroadcastMessage);
     };
   }, [dispatch]);
   return (

@@ -58,9 +58,10 @@ function BroadCastThreadList({
         setIsMounted(true);
     }, []);
     useEffect(() => {
-        const socket = initializeSocket();
+        const socket = initializeSocket("broadcast");
         if (!socket) return;
-        socket.on("receiveBroadcastMessage", () => {
+        socket.on("receiveBroadcastMessage", (message) => {
+            console.log(message, "check the message ");
             dispatch(baseApi.util.invalidateTags(["BROADCAST"]));
         });
     }, [dispatch]);
@@ -68,12 +69,15 @@ function BroadCastThreadList({
     useEffect(() => {
         const threadList = (conversations?.data as ChatThread[] | undefined) ?? [];
         const firstConversation = threadList[0];
+        const isLargeScreen =
+            typeof window !== "undefined" &&
+            window.matchMedia("(min-width: 1024px)").matches;
 
         // When user opens a different broadcast from sent list,
-        // always activate the first thread for that broadcast.
+        // always activate the first thread for that broadcast (desktop only).
         if (broadcastId && lastBroadcastIdRef.current !== broadcastId) {
             lastBroadcastIdRef.current = broadcastId;
-            if (firstConversation) {
+            if (firstConversation && isLargeScreen) {
                 onSelectChat(withBroadcastId(firstConversation));
             }
             return;
@@ -86,7 +90,7 @@ function BroadCastThreadList({
             onSelectChat(withBroadcastId(matchedConversation));
             return;
         }
-        if (firstConversation) {
+        if (firstConversation && isLargeScreen) {
             onSelectChat(withBroadcastId(firstConversation));
         }
     }, [broadcastId, chatId, conversations?.data, onSelectChat, withBroadcastId]);
@@ -125,6 +129,11 @@ function BroadCastThreadList({
                 ) : conversations?.data?.map((thread: any, index: number) => {
                     const isActive = (thread?._id ?? thread?.id) === chatId;
                     const thread_user = thread?.buyer?.id || thread?.buyer?._id !== userId ? thread?.buyer : thread?.seller;
+                    const unreadCount =
+                        typeof thread.unreadCount === "number"
+                            ? thread.unreadCount
+                            : 0;
+                    console.log(thread, "check the d ");
 
                     return (
                         <li key={index}>
@@ -149,7 +158,12 @@ function BroadCastThreadList({
                                     </div>
                                     <div className="mt-1 flex items-center justify-between gap-2">
                                         <p className="truncate text-sm text-gray-600">{thread.latestMessage?.message ?? ""}</p>
-                                        {thread.unread ? <span className="h-2 w-2 shrink-0 rounded-full bg-[#3C9197]" /> : null}
+
+                                        {unreadCount > 0 ? (
+                                            <span className="flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-[#3C9197] px-1.5 text-[11px] font-medium leading-none text-white">
+                                                {unreadCount > 99 ? "99+" : unreadCount}
+                                            </span>
+                                        ) : null}
                                     </div>
                                 </div>
                             </button>
