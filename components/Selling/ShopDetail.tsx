@@ -1,5 +1,4 @@
 "use client";
-
 import Image from "next/image";
 import { useDictionary } from "@/dictionaries/DictionaryProvider";
 import DoodleButton from "@/components/Ui/DoodleButton";
@@ -27,6 +26,37 @@ function resolveEntityId(value: unknown): string | null {
     return record.id ?? record._id ?? null;
   }
   return null;
+}
+
+function getShopMapUrl(shop: {
+  address?: string;
+  location?: {
+    coordinates?: number[] | { lat?: number; lng?: number };
+  };
+}): string | null {
+  const coordinates = shop?.location?.coordinates;
+
+  // Shops store GeoJSON Point coords as [lng, lat]; Google Maps expects lat,lng
+  if (Array.isArray(coordinates) && coordinates.length >= 2) {
+    const [lng, lat] = coordinates;
+    if (lat != null && lng != null) {
+      return `https://www.google.com/maps?q=${lat},${lng}&z=17`;
+    }
+  }
+
+  if (
+    coordinates &&
+    !Array.isArray(coordinates) &&
+    coordinates.lat != null &&
+    coordinates.lng != null
+  ) {
+    return `https://www.google.com/maps?q=${coordinates.lat},${coordinates.lng}&z=17`;
+  }
+
+  const address = shop?.address?.trim();
+  if (!address) return null;
+
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
 }
 
 function DetailRow({ label, value }: { label: string; value?: string | null }) {
@@ -210,16 +240,21 @@ export default function ShopDetail() {
                       </span>
                     </div>
                     {shopData?.address ? (
-                      <div className="flex gap-1.5 items-start">
+                      <a
+                        href={getShopMapUrl(shopData) ?? undefined}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex gap-1.5 items-start cursor-pointer"
+                      >
                         <Image
                           src={locationIcon}
                           alt="location"
                           className="mt-0.5 shrink-0"
                         />
-                        <span className="break-words text-gray-8 font-light text-[14px]">
+                        <span className="break-words text-green-1 font-light text-[14px] hover:underline">
                           {shopData.address}
                         </span>
-                      </div>
+                      </a>
                     ) : null}
                   </div>
 
