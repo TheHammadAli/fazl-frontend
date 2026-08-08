@@ -166,7 +166,7 @@ function UpdateShop() {
     if (isError && "data" in error) {
       toast.error(
         (error?.data as { message?: string })?.message ||
-          "something went wrong!",
+        "something went wrong!",
       );
     }
   }, [isSuccess, isError, data, error, router]);
@@ -249,31 +249,31 @@ function UpdateShop() {
       area,
       setAreaError,
       error_messages["area_required" as keyof typeof error_messages] ??
-        "Area is required*",
+      "Area is required*",
     );
     checkField(
       city,
       setCityError,
       error_messages["city_required" as keyof typeof error_messages] ??
-        "City is required*",
+      "City is required*",
     );
     checkField(
       marketName,
       setMarketNameError,
       error_messages["market_name_required" as keyof typeof error_messages] ??
-        "Market name is required*",
+      "Market name is required*",
     );
     checkField(
       contact,
       setContactError,
       error_messages["contact_required" as keyof typeof error_messages] ??
-        "Contact no is required*",
+      "Contact no is required*",
     );
     checkField(
       openingHours,
       setOpeningHoursError,
       error_messages["opening_hours_required" as keyof typeof error_messages] ??
-        "Opening hours are required*",
+      "Opening hours are required*",
     );
 
     if (Object.keys(location).length === 0 || !address.trim()) {
@@ -293,7 +293,7 @@ function UpdateShop() {
     if (subcategoryOptions.length > 0 && !selectedSubcategory) {
       setSubcategoryError(
         error_messages["subcategory_required" as keyof typeof error_messages] ??
-          "Subcategory is required*",
+        "Subcategory is required*",
       );
       isValid = false;
     } else {
@@ -320,9 +320,9 @@ function UpdateShop() {
           coordinates: Array.isArray(location?.coordinates)
             ? location.coordinates
             : [
-                (location?.coordinates as { lat?: number; lng?: number })?.lat,
-                (location?.coordinates as { lat?: number; lng?: number })?.lng,
-              ],
+              (location?.coordinates as { lat?: number; lng?: number })?.lng,
+              (location?.coordinates as { lat?: number; lng?: number })?.lat,
+            ],
         },
         description: description,
       };
@@ -463,9 +463,8 @@ function UpdateShop() {
 
           <div className="space-y-1 mt-5 w-full">
             <p
-              className={`text-[14px] font-normal  ${
-                nameError ? "text-red-1" : "text-gray-8"
-              }`}
+              className={`text-[14px] font-normal  ${nameError ? "text-red-1" : "text-gray-8"
+                }`}
             >
               {info_messages.shop_name}
             </p>
@@ -484,9 +483,8 @@ function UpdateShop() {
 
           <div className="space-y-1 mt-5 w-full">
             <p
-              className={`text-[14px] font-normal ${
-                areaError ? "text-red-1" : "text-gray-8"
-              }`}
+              className={`text-[14px] font-normal ${areaError ? "text-red-1" : "text-gray-8"
+                }`}
             >
               {info_messages.area ?? "Area"}
             </p>
@@ -503,9 +501,8 @@ function UpdateShop() {
 
           <div className="space-y-1 mt-5 w-full">
             <p
-              className={`text-[14px] font-normal ${
-                cityError ? "text-red-1" : "text-gray-8"
-              }`}
+              className={`text-[14px] font-normal ${cityError ? "text-red-1" : "text-gray-8"
+                }`}
             >
               {info_messages.city ?? "City"}
             </p>
@@ -522,9 +519,8 @@ function UpdateShop() {
 
           <div className="space-y-1 mt-5 w-full">
             <p
-              className={`text-[14px] font-normal ${
-                marketNameError ? "text-red-1" : "text-gray-8"
-              }`}
+              className={`text-[14px] font-normal ${marketNameError ? "text-red-1" : "text-gray-8"
+                }`}
             >
               {info_messages["market_name" as keyof typeof info_messages] ??
                 "Market name"}
@@ -544,9 +540,8 @@ function UpdateShop() {
 
           <div className="space-y-1 mt-5 w-full">
             <p
-              className={`text-[14px] font-normal ${
-                contactError ? "text-red-1" : "text-gray-8"
-              }`}
+              className={`text-[14px] font-normal ${contactError ? "text-red-1" : "text-gray-8"
+                }`}
             >
               {info_messages.contact_no ?? "Contact no"}
             </p>
@@ -569,9 +564,8 @@ function UpdateShop() {
 
           <div className="space-y-1 mt-5 w-full">
             <p
-              className={`text-[14px] font-normal ${
-                openingHoursError ? "text-red-1" : "text-gray-8"
-              }`}
+              className={`text-[14px] font-normal ${openingHoursError ? "text-red-1" : "text-gray-8"
+                }`}
             >
               {info_messages.opening_hours ?? "Opening hours"}
             </p>
@@ -591,9 +585,8 @@ function UpdateShop() {
 
           <div className="mt-5 w-full">
             <div
-              className={`text-[14px] font-normal w-full ${
-                categoryError ? "text-red-1" : "text-gray-8"
-              }`}
+              className={`text-[14px] font-normal w-full ${categoryError ? "text-red-1" : "text-gray-8"
+                }`}
             >
               {placeholders.category}
             </div>
@@ -624,9 +617,8 @@ function UpdateShop() {
           {subcategoryOptions.length > 0 ? (
             <div className="mt-5 w-full">
               <div
-                className={`text-[14px] font-normal w-full ${
-                  subcategoryError ? "text-red-1" : "text-gray-8"
-                }`}
+                className={`text-[14px] font-normal w-full ${subcategoryError ? "text-red-1" : "text-gray-8"
+                  }`}
               >
                 {info_messages.subcategory ?? "Subcategory"}
               </div>
@@ -638,11 +630,11 @@ function UpdateShop() {
                   <h2 className="text-[15px] font-normal text-black-1">
                     {selectedSubcategory
                       ? getFeedCategoryLabel(
-                          selectedSubcategory.name,
-                          currentLanguage,
-                        )
+                        selectedSubcategory.name,
+                        currentLanguage,
+                      )
                       : info_messages.choose_subcategory ??
-                        "Choose subcategory"}
+                      "Choose subcategory"}
                   </h2>
                   <Image
                     src={chevDown}
@@ -684,9 +676,8 @@ function UpdateShop() {
 
           <div className="mt-5 w-full">
             <div
-              className={`text-[14px] font-normal w-full ${
-                locationError ? "text-red-1" : "text-gray-8"
-              }`}
+              className={`text-[14px] font-normal w-full ${locationError ? "text-red-1" : "text-gray-8"
+                }`}
             >
               {info_messages.shop_location}
             </div>
@@ -799,9 +790,8 @@ function UpdateShop() {
           </div>
           <div className="space-y-1 mt-5 w-full">
             <p
-              className={`text-[14px] font-normal  ${
-                descriptionError ? "text-red-1" : "text-gray-8"
-              }`}
+              className={`text-[14px] font-normal  ${descriptionError ? "text-red-1" : "text-gray-8"
+                }`}
             >
               {info_messages.describe_shop}
             </p>

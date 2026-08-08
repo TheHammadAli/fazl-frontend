@@ -244,10 +244,11 @@ function CreateShop() {
         subcategory: selectedCategory?._id,
         location: {
           type: "Point",
-          coordinates: [location?.coordinates?.lat, location?.coordinates?.lng],
+          coordinates: [location?.coordinates?.lng, location?.coordinates?.lat],
         },
         description: description,
       };
+
       const formData = new FormData();
       (Object.keys(payload) as (keyof typeof payload)[]).forEach((key) => {
         const value = payload[key];
