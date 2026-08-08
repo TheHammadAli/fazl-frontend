@@ -13,6 +13,7 @@ import copyRight from "@/assets/icons/copyright.svg";
 import LangSwitcher from "../Ui/LangSwitcher";
 import { useGetUserDetailQuery } from "@/store/services/profileService";
 import { useAppSelector } from "@/store/store";
+import { withImageCacheBust } from "@/utils/withImageCacheBust";
 import { getLinksForGuest } from "@/utils/guestAccess";
 import { useIsGuest } from "@/custom-hooks/useIsGuest";
 import GuestAuthNav from "./GuestAuthNav";
@@ -198,7 +199,11 @@ export default function MobileHeader({
                         src={
                           profileData?.data?.image &&
                           !profileData?.data?.image.includes("default-avatar")
-                            ? `${profileData?.data?.image}?t=${new Date().getTime()}`
+                            ? withImageCacheBust(
+                                profileData.data.image,
+                                profileData.data.imageCacheKey ??
+                                  profileData.data.updatedAt,
+                              )
                             : dummyProfile
                         }
                         height={100}

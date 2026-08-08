@@ -169,8 +169,8 @@ function CreateService() {
       toast.success(data?.message);
       const timer = setTimeout(() => {
         setStatus("success");
-        console.log(data,"data");
-        setCreatedData({title:title,price:selectedPrice.price,image:images[0]});
+        console.log(data, "data");
+        setCreatedData({ title: title, price: selectedPrice.price, image: images[0] });
       }, 500);
 
       return () => clearTimeout(timer);
@@ -189,6 +189,7 @@ function CreateService() {
       );
     }
   }, [isSuccess, isError, data, error]);
+  console.log(selectedPrice, "selectedPrice");
   return (
     <>
       <Modal
@@ -432,7 +433,9 @@ function CreateService() {
                     onClick={() => setIsPriceOpen(true)}
                   >
                     <h4 className="text-[15px] font-normal text-gray-8 leading-none">
-                      {selectedPrice?.price}
+                      {selectedPrice?.paymentType === "call_for_price"
+                        ? placeholders.call_for_price
+                        : selectedPrice?.price}
                     </h4>
                     <Image
                       src={chevron}

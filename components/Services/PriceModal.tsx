@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import Image from "next/image";
 import crossIcon from "@/assets/icons/cross-icon.svg";
 import DoodleButton from "@/components/Ui/DoodleButton";
-import chevron from "@/assets/icons/chev-down-icon.svg";
+
 export type priceTypes = {
   paymentType: string;
   price: string;
@@ -14,6 +14,8 @@ export type PriceModalTypes = {
   setIsPriceOpen: (price: boolean) => void;
   type?: string;
 };
+
+const CALL_FOR_PRICE = "call_for_price";
 
 function normalizePriceValue(value: unknown): string {
   if (value == null || value === "") return "";
@@ -37,11 +39,40 @@ function PriceModal({
   type,
 }: PriceModalTypes) {
   const { placeholders, error_messages, info_messages } = useDictionary();
-  const [price, setPrice] = useState(() => formatPriceInput(selectedPrice.price));
+  const isCallForPrice = selectedPrice?.paymentType === CALL_FOR_PRICE;
+  const [price, setPrice] = useState(() =>
+    isCallForPrice ? "0" : formatPriceInput(selectedPrice.price),
+  );
   const [priceError, setPriceError] = useState("");
+
+  const selectPaymentType = (paymentType: string) => {
+    if (paymentType === CALL_FOR_PRICE) {
+      setPrice("0");
+      setPriceError("");
+      setSelectedPrice({ paymentType: CALL_FOR_PRICE, price: "0" });
+      return;
+    }
+    setSelectedPrice({
+      ...selectedPrice,
+      paymentType,
+      price:
+        selectedPrice.paymentType === CALL_FOR_PRICE
+          ? ""
+          : selectedPrice.price,
+    });
+    if (selectedPrice.paymentType === CALL_FOR_PRICE) {
+      setPrice("");
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (selectedPrice.paymentType === CALL_FOR_PRICE) {
+      setSelectedPrice({ paymentType: CALL_FOR_PRICE, price: "0" });
+      setIsPriceOpen(false);
+      return;
+    }
+
     const rawPrice = stripPriceFormatting(price);
     if (rawPrice === "") {
       setPriceError(error_messages.price_required);
@@ -82,9 +113,7 @@ function PriceModal({
                   ? "border-[4px] border-green-1"
                   : "border-[1px] border-gray-9"
               } rounded-full cursor-pointer`}
-              onClick={() =>
-                setSelectedPrice({ ...selectedPrice, paymentType: "fixed" })
-              }
+              onClick={() => selectPaymentType("fixed")}
             ></div>
             <div className="text-[15px] text-black-1">
               {placeholders.fix_rate}
@@ -100,52 +129,68 @@ function PriceModal({
                   ? "border-[4px] border-green-1"
                   : "border-[1px] border-gray-9"
               } rounded-full cursor-pointer`}
-              onClick={() =>
-                setSelectedPrice({ ...selectedPrice, paymentType: "hourly" })
-              }
+              onClick={() => selectPaymentType("hourly")}
             ></div>
             <div className="text-[15px] text-black-1">
               {placeholders.hourly_basis}
             </div>
           </div>
         )}
+        {/* call for price */}
+        {type === "service" && (
+          <div className="flex gap-2 items-center mt-2">
+            <div
+              className={`h-[18px] w-[18px] ${
+                selectedPrice?.paymentType === CALL_FOR_PRICE
+                  ? "border-[4px] border-green-1"
+                  : "border-[1px] border-gray-9"
+              } rounded-full cursor-pointer`}
+              onClick={() => selectPaymentType(CALL_FOR_PRICE)}
+            ></div>
+            <div className="text-[15px] text-black-1">
+              {placeholders.call_for_price}
+            </div>
+          </div>
+        )}
 
-        <div className="space-y-1 mt-5 w-full">
-          <p
-            className={`text-[14px] font-normal  ${
-              priceError ? "text-red-1" : "text-gray-8"
-            }`}
-          >
-            {placeholders.price}
-          </p>
-          <div className="relative border-gray-9 border-b-[1px] pb-1">
-            <input
-              type="text"
-              inputMode="numeric"
-              value={price}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                setPrice(formatPriceInput(e.target.value));
-                if (priceError) setPriceError("");
-              }}
-              placeholder={`${placeholders.Rs}0.00`}
-              className="h-[28px] rtl:pl-12 ltr:pr-14 text-[15px] text-black-1 placeholder:text-black-1 font-normal focus:outline-none w-full [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none "
-            />
-            {type === "service" && (
-              <p className="absolute top-1/2 rtl:left-0  -translate-y-1/2  ltr:right-0">
-                -/
-                {
-                  placeholders?.[
-                    selectedPrice?.paymentType as keyof typeof placeholders
-                  ]
-                }
-              </p>
+        {!isCallForPrice ? (
+          <div className="space-y-1 mt-5 w-full">
+            <p
+              className={`text-[14px] font-normal  ${
+                priceError ? "text-red-1" : "text-gray-8"
+              }`}
+            >
+              {placeholders.price}
+            </p>
+            <div className="relative border-gray-9 border-b-[1px] pb-1">
+              <input
+                type="text"
+                inputMode="numeric"
+                value={price}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                  setPrice(formatPriceInput(e.target.value));
+                  if (priceError) setPriceError("");
+                }}
+                placeholder={`${placeholders.Rs}0.00`}
+                className="h-[28px] rtl:pl-12 ltr:pr-14 text-[15px] text-black-1 placeholder:text-black-1 font-normal focus:outline-none w-full [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none "
+              />
+              {type === "service" && (
+                <p className="absolute top-1/2 rtl:left-0  -translate-y-1/2  ltr:right-0">
+                  -/
+                  {
+                    placeholders?.[
+                      selectedPrice?.paymentType as keyof typeof placeholders
+                    ]
+                  }
+                </p>
+              )}
+            </div>
+
+            {priceError && (
+              <p className="text-red-1 text-[14px] font-normal">{priceError}</p>
             )}
           </div>
-
-          {priceError && (
-            <p className="text-red-1 text-[14px] font-normal">{priceError}</p>
-          )}
-        </div>
+        ) : null}
 
         <div className="flex justify-end py-6">
           <DoodleButton

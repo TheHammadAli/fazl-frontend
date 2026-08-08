@@ -6,6 +6,7 @@ import {
   getFeedCategoryLabel,
   type ReelCategory,
 } from "@/utils/getFeedCategoryLabel";
+import { useDictionary } from "@/dictionaries/DictionaryProvider";
 
 export type CatalogCategory = ReelCategory & {
   parent?: ReelCategory;
@@ -59,6 +60,7 @@ export default function CatalogListCard({
   currentLanguage,
   onButtonClick,
 }: CatalogListCardProps) {
+  const { placeholders } = useDictionary()
   const imageCount = item?.images?.length ?? 0;
   const categoryLabel = getFeedCategoryLabel(item?.category, currentLanguage);
   const parentCategoryLabel = getFeedCategoryLabel(
@@ -93,9 +95,9 @@ export default function CatalogListCard({
         <h2 className="text-black-1 text-[13px] font-semibold line-clamp-1 first-letter:capitalize sm:text-[16px]">
           {item?.title}
         </h2>
-        <p className="text-green-1 text-[15px] font-medium sm:text-[18px]">
+        {item?.price && Number(item?.price) > 0 ? <p className="text-green-1 text-[15px] font-medium sm:text-[18px]">
           {currencyLabel} {item?.price}
-        </p>
+        </p> : <p className="text-green-1 text-[15px] font-medium sm:text-[18px]">{placeholders.call_for_price}</p>}
         {parentCategoryLabel ? (
           <p className="text-[12px] font-normal text-black-1 line-clamp-1 sm:hidden">
             {parentCategoryLabel}

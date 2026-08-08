@@ -419,10 +419,10 @@ function BuyServiceDetail({
               <h3 className="text-[24px] font-medium capitalize text-[#030303]">
                 {service?.data?.title ?? ""}
               </h3>
-              <div className="mt-2 text-[28px] font-medium text-[#3C9197]">
+              {service?.data?.price && Number(service?.data?.price) > 0 ? <div className="mt-2 text-[28px] font-medium text-[#3C9197]">
                 {placeholders.Rs} {service?.data?.price ?? ""}
                 {paymentTypeLabel ? `/${paymentTypeLabel}` : ""}
-              </div>
+              </div> : <div className="mt-2 text-[28px] font-medium text-[#3C9197]">{placeholders.call_for_price}</div>}
 
               <div className="mt-4 flex items-center gap-2">
                 <Image

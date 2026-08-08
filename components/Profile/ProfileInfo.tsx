@@ -1,6 +1,6 @@
 "use client";
 import { useDictionary } from "@/dictionaries/DictionaryProvider";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import chevron from "@/assets/icons/chev-down-icon.svg";
 import Image from "next/image";
 import toast from "react-hot-toast";
@@ -18,6 +18,7 @@ import {
   useGetUserDetailQuery,
   useUpdateProfileMutation,
 } from "@/store/services/profileService";
+import { withImageCacheBust } from "@/utils/withImageCacheBust";
 import dynamic from "next/dynamic";
 const ProfileInfoSkeleton = dynamic(
   () => import("@/components/Profile/ProfileInfoSkelton"),
@@ -43,9 +44,7 @@ function ProfileInfo({ toggle, setToggle }: ProfileInfoTypes) {
   const {
     data: profileData,
     isLoading: profileLoading,
-    isFetching: profileFetching,
     isError: profileError,
-    refetch,
   } = useGetUserDetailQuery(userId, { skip: userId === "" });
 
   const { placeholders, error_messages } = useDictionary();
@@ -56,7 +55,7 @@ function ProfileInfo({ toggle, setToggle }: ProfileInfoTypes) {
     useUpdateProfileMutation();
 
   const [locationError, setLocationError] = useState("");
-  const [profile, setProfile] = useState<File | null>(null);
+  const [localProfileFile, setLocalProfileFile] = useState<File | null>(null);
   const [locationSearch, setLocationSearch] = useState("");
   const [email, setEmail] = useState("");
   const [emailError, setEmailError] = useState("");
@@ -82,7 +81,7 @@ function ProfileInfo({ toggle, setToggle }: ProfileInfoTypes) {
 
   useEffect(() => {
     if (profileData?.data) {
-      const { email, name, address, location, image } = profileData?.data;
+      const { email, name, address, location } = profileData?.data;
 
       setEmail(email ?? "");
       setName(name ?? "");
@@ -98,29 +97,54 @@ function ProfileInfo({ toggle, setToggle }: ProfileInfoTypes) {
           }
           : {}
       );
-      if (!image || image.includes("default-avatar")) {
-        setProfile(null);
-      } else {
-        setProfile(image);
-      }
     }
-  }, [profileData, profileData?.data?.image]);
+  }, [profileData]);
 
   useEffect(() => {
     if (isSuccess) {
       toast.success(data?.message);
-      refetch();
+      setLocalProfileFile(null);
     }
-    if (isError && "data" in error) {
+    if (isError && error && "data" in error) {
       toast.error(
         (error?.data as { message?: string })?.message ||
         "something went wrong!"
       );
     }
-  }, [isSuccess, isError, data, error, refetch]);
+  }, [isSuccess, isError, data, error]);
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  const serverImage = profileData?.data?.image as string | undefined;
+  const hasServerImage =
+    !!serverImage && !String(serverImage).includes("default-avatar");
+
+  const profileSrc = useMemo(() => {
+    if (localProfileFile) return URL.createObjectURL(localProfileFile);
+    if (!hasServerImage || !serverImage) return "";
+    if (serverImage.startsWith("blob:")) return serverImage;
+    return withImageCacheBust(
+      serverImage,
+      (profileData?.data?.imageCacheKey as string | number | undefined) ??
+        (profileData?.data?.updatedAt as string | undefined),
+    );
+  }, [
+    localProfileFile,
+    hasServerImage,
+    serverImage,
+    profileData?.data?.imageCacheKey,
+    profileData?.data?.updatedAt,
+  ]);
+
+  useEffect(() => {
+    return () => {
+      if (profileSrc.startsWith("blob:")) {
+        URL.revokeObjectURL(profileSrc);
+      }
+    };
+  }, [profileSrc]);
+
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -177,8 +201,8 @@ function ProfileInfo({ toggle, setToggle }: ProfileInfoTypes) {
         }
       });
 
-      if (profile && typeof profile !== "string") {
-        formData.append("image", profile);
+      if (localProfileFile) {
+        formData.append("image", localProfileFile);
       }
 
       updateProfile({ formData, id: userId });
@@ -187,7 +211,8 @@ function ProfileInfo({ toggle, setToggle }: ProfileInfoTypes) {
   if (!mounted) {
     return null;
   }
-  if (profileLoading || profileFetching) {
+  // Only block UI on the first load — background refetch must not flash a skeleton
+  if (profileLoading && !profileData) {
     return <div className="w-full  h-max">{<ProfileInfoSkeleton />} </div>;
   }
   if (profileError) {
@@ -238,16 +263,10 @@ function ProfileInfo({ toggle, setToggle }: ProfileInfoTypes) {
         >
           <div className="mt-5 flex gap-[14px] items-center  w-full ">
             <div className="h-[62px] overflow-hidden  font-medium text-[16px] text-black-2 rounded-[22px] w-[62px] bg-[#E6FBFB] flex items-center justify-center">
-              {mounted && profile !== null ? (
+              {mounted && profileSrc ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
-                  src={
-                    profile !== null
-                      ? typeof profile === "string"
-                        ? `${profile}?t=${new Date().getTime()}`
-                        : URL.createObjectURL(profile)
-                      : ""
-                  }
+                  src={profileSrc}
                   alt=""
                   className="object-cover h-full w-full"
                 />
@@ -267,7 +286,7 @@ function ProfileInfo({ toggle, setToggle }: ProfileInfoTypes) {
               className="hidden"
               onChange={(e) => {
                 if (e.target.files && e.target.files.length > 0) {
-                  setProfile(e.target.files[0]);
+                  setLocalProfileFile(e.target.files[0]);
                 }
               }}
               id="profile-photo"

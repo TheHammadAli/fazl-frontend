@@ -31,7 +31,6 @@ function BookService() {
   });
 
   const loading = isLoading || isFetching;
-
   const isServiceNotFound =
     !id ||
     (isError &&
@@ -41,7 +40,6 @@ function BookService() {
         (error.data as { message?: string })?.message === "Service not found"));
 
   const [selectedVariants, setSelectedVariants] = useState({});
-
   useEffect(() => {
     if (isGuest && step === "request") {
       router.push("/signin");
@@ -75,6 +73,7 @@ function BookService() {
 
   return (
     <div>
+
       <Modal
         editModalRef={modalRef}
         open={openPciker}
@@ -88,6 +87,7 @@ function BookService() {
           setDate={setDate}
         />
       </Modal>
+
       {step === "service" &&
         (loading ? (
           <ServiceDetailSkeleton />
@@ -100,9 +100,11 @@ function BookService() {
             setOpenPciker={handleSetOpenPicker}
           />
         ))}
+
       {step === "request" && (
         <ServiceCart service={service} date={date} />
       )}
+
     </div>
   );
 }
