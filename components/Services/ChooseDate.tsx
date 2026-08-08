@@ -3,7 +3,6 @@ import Image from "next/image";
 import { useDictionary } from "@/dictionaries/DictionaryProvider";
 import Calendar from "react-calendar";
 import chevronIcon from "@/assets/icons/chevron.svg";
-import "moment/locale/ur";
 function ChooseDateModal({
   dateValue,
   setDateValue,

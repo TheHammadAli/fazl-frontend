@@ -22,6 +22,8 @@ import { useAppSelector } from "@/store/store";
 
 import { useGetUserDetailQuery } from "@/store/services/profileService";
 
+import { withImageCacheBust } from "@/utils/withImageCacheBust";
+
 import { getLinksForGuest } from "@/utils/guestAccess";
 
 import { useIsGuest } from "@/custom-hooks/useIsGuest";
@@ -231,7 +233,15 @@ function Sidebar({
 
                     !profileData?.data?.image.includes("default-avatar")
 
-                    ? `${profileData?.data?.image}?t=${new Date().getTime()}`
+                    ? withImageCacheBust(
+
+                        profileData.data.image,
+
+                        profileData.data.imageCacheKey ??
+
+                          profileData.data.updatedAt,
+
+                      )
 
                     : dummyProfile
 

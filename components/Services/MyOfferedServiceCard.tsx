@@ -114,9 +114,9 @@ function MyOfferedServiceCard({ serviceData }: Props) {
               <p className="text-[12px] font-normal text-gray-8">
                 {placeholders.starting_from ?? "Starting from"}
               </p>
-              <p className="text-[18px] font-semibold text-green-1">
+              {serviceData?.price ? <p className="text-[18px] font-semibold text-green-1">
                 {placeholders.Rs} {serviceData?.price ?? ""}
-              </p>
+              </p> : <p className="text-[18px] font-semibold text-green-1">{placeholders.call_for_price}</p>}
             </div>
           </div>
 

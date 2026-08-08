@@ -218,6 +218,7 @@ function UpdateService() {
         setDescription(serviceData?.description ?? "");
         setSelectedPrice((prev) => ({
           ...prev,
+          paymentType: serviceData?.paymentType ?? prev.paymentType ?? "fixed",
           price: serviceData?.price != null ? String(serviceData.price) : "",
         }));
         setVideo(serviceData?.video ?? null);
@@ -471,7 +472,9 @@ function UpdateService() {
                     onClick={() => setIsPriceOpen(true)}
                   >
                     <h4 className="text-[15px] font-normal text-gray-8 leading-none">
-                      {selectedPrice?.price}
+                      {selectedPrice?.paymentType === "call_for_price"
+                        ? placeholders.call_for_price
+                        : selectedPrice?.price}
                     </h4>
                     <Image
                       src={chevron}

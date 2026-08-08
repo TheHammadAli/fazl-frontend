@@ -18,6 +18,9 @@ import { useRouter } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/store/store";
 import { logout } from "@/store/reducers/authReducer";
 import { useGetUserDetailQuery } from "@/store/services/profileService";
+import AvatarUi from "@/components/Ui/AvatarUi";
+import { withImageCacheBust } from "@/utils/withImageCacheBust";
+
 interface Tab {
   title: string;
   icon: StaticImageData;
@@ -45,12 +48,22 @@ function Navigations({
   const {
     data: profileData,
     isLoading: profileLoading,
-    isFetching: profileFetching,
-    isError: profileError,
   } = useGetUserDetailQuery(userId, { skip: userId === "" });
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Prefer optimistic blob from cache (instant); otherwise CDN URL with stable bust key
+  const rawImage = profileData?.data?.image;
+  const profileImageSrc =
+    rawImage && !String(rawImage).includes("default-avatar")
+      ? String(rawImage).startsWith("blob:")
+        ? String(rawImage)
+        : withImageCacheBust(
+          String(rawImage),
+          profileData?.data?.imageCacheKey ?? profileData?.data?.updatedAt,
+        )
+      : dummyProfile.src;
   return (
     <div
       className={`w-full md:min-w-[160px] lg:w-[322px] h-full ltr:border-r-[1px] rtl:border-l-[1px] border-gray-9 pt-8 `}
@@ -71,25 +84,17 @@ function Navigations({
           className={`flex justify-between md:justify-center lg:justify-between  `}
         >
           <div className={`flex  md:flex-col lg:flex-row items-center gap-2 `}>
-            {mounted && (profileLoading || profileFetching) ? (
+            {mounted && profileLoading && !profileData ? (
               <div className="rounded-full bg-gray-200 h-12 w-12"></div>
             ) : (
-              <Image
-                src={
-                  profileData?.data?.image &&
-                    !profileData?.data?.image.includes("default-avatar")
-                    ? `${profileData?.data?.image}?t=${new Date().getTime()}`
-                    : dummyProfile
-                }
-                alt="profile"
-                height={100}
-                unoptimized
-                width={100}
-                className="h-12 w-12 rounded-full object-cover"
+              <AvatarUi
+                image={profileImageSrc}
+                name={profileData?.data?.name ?? ""}
+                className="h-12 w-12 rounded-full object-cover bg-[#e7f4f5] !text-green-1"
               />
             )}
             <div>
-              {mounted && (profileLoading || profileFetching) ? (
+              {mounted && profileLoading && !profileData ? (
                 <div className="w-[80px] h-[15px] rounded-full bg-gray-200 animate-pulse"></div>
               ) : (
                 <h2 className="text-black-1 font-medium text-[15px]">
@@ -165,7 +170,7 @@ function Navigations({
       >
         <Image src={WhatsAppIcon} alt="icon" className="h-[22px] w-[22px]" />
         <h2 className="font-medium text-black-1 text-[15px] first-letter:capitalize">
-          {placeholders.contact_us}
+          {placeholders.report_a_problem}
         </h2>
       </div>
       <div className="bg-gray-12 border-t-[1px] border-gray-9 h-[27px]"></div>
@@ -182,7 +187,7 @@ function Navigations({
           {placeholders.settings}
         </h2>
       </div>
-      <div
+      {/* <div
         className={`px-4 xl:px-6 py-4 flex items-center gap-2 cursor-pointer `}
         onClick={() => router.push("/about")}
       >
@@ -190,7 +195,7 @@ function Navigations({
         <h2 className="font-medium text-black-1 text-[15px] first-letter:capitalize">
           {placeholders.about_market}
         </h2>
-      </div>
+      </div> */}
       <div
         className={`px-4 xl:px-6 py-4 flex items-center gap-2 cursor-pointer `}
         onClick={() => {

@@ -11,8 +11,7 @@ import { BeatLoader } from "react-spinners";
 import DoodleButton from "@/components/Ui/DoodleButton";
 import addIcon from "@/assets/icons/add.svg";
 import noImageAvtar from "@/assets/images/no-image-av.png";
-import moment from "moment";
-import "moment/locale/ur";
+import moment from "moment/min/moment-with-locales";
 import { useRequireSignIn } from "@/custom-hooks/useRequireSignIn";
 
 function ServiceCart({
@@ -49,7 +48,8 @@ function ServiceCart({
       ? JSON.parse(localStorage.getItem("user") || "{}")
       : "";
 
-  const totalAmount = service?.data?.price + 90;
+  const isCallForPrice = service?.data?.paymentType === "call_for_price";
+  const totalAmount = isCallForPrice ? 0 : service?.data?.price + 90;
 
   useEffect(() => {
     if (isGuest) {
@@ -64,6 +64,7 @@ function ServiceCart({
         serviceId: service?.data?._id || service?.data?.id,
         customerId: user?.id,
         requestedDateTime: date.toISOString(),
+        price: isCallForPrice ? 0 : service?.data?.price,
         // message: "string",
       };
       serviceBookRequest(body);
@@ -206,23 +207,29 @@ function ServiceCart({
                       : placeholders.price}
                   </span>
                   <span>
-                    {placeholders.Rs} {service?.data?.price}{" "}
+                    {isCallForPrice
+                      ? placeholders.call_for_price
+                      : `${placeholders.Rs} ${service?.data?.price}`}
                   </span>
                 </div>
 
-                <div className="flex justify-between">
-                  <span> {placeholders.sale_tax}</span>
-                  <span>{placeholders.Rs} 90</span>
-                </div>
+                {!isCallForPrice && (
+                  <div className="flex justify-between">
+                    <span> {placeholders.sale_tax}</span>
+                    <span>{placeholders.Rs} 90</span>
+                  </div>
+                )}
               </div>
 
               {/* Total */}
-              <div className="flex justify-between font-medium text-[15px] mt-3">
-                <span>{placeholders.total_pay}</span>
-                <span>
-                  {placeholders.Rs} {totalAmount}
-                </span>
-              </div>
+              {!isCallForPrice && (
+                <div className="flex justify-between font-medium text-[15px] mt-3">
+                  <span>{placeholders.total_pay}</span>
+                  <span>
+                    {placeholders.Rs} {totalAmount}
+                  </span>
+                </div>
+              )}
               <DoodleButton
                 disabled={isLoading}
                 type="submit"
