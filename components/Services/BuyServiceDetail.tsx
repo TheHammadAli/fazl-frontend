@@ -81,6 +81,7 @@ function BuyServiceDetail({
   setOpenPciker,
   selectedVariants,
   setSelectedVariants,
+  checkReview,
 }: any) {
   const userId = getUserId() ?? "";
   const { requireSignIn } = useRequireSignIn();
@@ -410,7 +411,7 @@ function BuyServiceDetail({
                 <Reviews
                   type="service"
                   id={service?.data?.id || service?.data?._id}
-                  allowAddReview={allowMessageAndReview}
+                  allowAddReview={checkReview?.canReview}
                 />
               </div>
             </div>
