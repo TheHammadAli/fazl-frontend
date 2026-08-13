@@ -235,13 +235,13 @@ function Sidebar({
 
                     ? withImageCacheBust(
 
-                        profileData.data.image,
+                      profileData.data.image,
 
-                        profileData.data.imageCacheKey ??
+                      profileData.data.imageCacheKey ??
 
-                          profileData.data.updatedAt,
+                      profileData.data.updatedAt,
 
-                      )
+                    )
 
                     : dummyProfile
 
@@ -302,60 +302,29 @@ function Sidebar({
 
       <div className=" px-[14px] pb-20 ">
 
-        <div className="flex items-center gap-[6px] text-[12px] font-normal">
+        <div className="flex items-center gap-[6px] text-[14px] font-normal">
 
-          <span
-            onClick={() =>
-              window.open(PRIVACY_POLICY_URL, "_blank", "noopener,noreferrer")
-            }
-            className="text-green-1 underline cursor-pointer"
-          >
 
-            {placeholders.company}
-
-          </span>
-
-          <div className="h-1 w-1 rounded-full bg-gray-7"></div>
 
           <span
             onClick={() =>
               window.open(getSupportWhatsAppUrl(), "_blank", "noopener,noreferrer")
             }
-            className="inline-flex items-center gap-1 text-green-1 underline cursor-pointer"
+            className="inline-flex items-center gap-2 text-green-1 underline cursor-pointer"
           >
             <Image
               src={WhatsAppIcon}
               alt=""
-              className="h-3.5 w-3.5 shrink-0"
+              className="h-4 w-4 shrink-0"
             />
-            {placeholders.contact}
+            {placeholders.report_a_problem}
           </span>
 
-          <div className="h-1 w-1 rounded-full bg-gray-7"></div>
 
-          <span
-            onClick={() =>
-              window.open(TERMS_AND_CONDITIONS_URL, "_blank", "noopener,noreferrer")
-            }
-            className="text-green-1 underline cursor-pointer"
-          >
-
-            {placeholders.terms}
-
-          </span>
 
         </div>
 
-        <div
-          onClick={() =>
-            window.open(PRIVACY_POLICY_URL, "_blank", "noopener,noreferrer")
-          }
-          className="text-green-1 underline cursor-pointer text-[12px] font-normal -mt-[2px]"
-        >
 
-          {placeholders.privacy}
-
-        </div>
 
         <div className="flex items-center gap-2">
 

@@ -23,9 +23,17 @@ export const reviewService = baseApi.injectEndpoints({
       }),
       providesTags: ["REVIEW"],
     }),
+    checkReview: build.query({
+      query: ({ serviceId ,userId}) => ({
+        url: `/services/${serviceId}/check-review?userId=${userId}`,
+        method: "GET",
+      }),
+      providesTags: ["REVIEW"],
+    }),
   }),
 });
 export const {
+  useCheckReviewQuery,
   useWriteReviewMutation,
   useGetAvgReviewsQuery,
   useGetReviewsListQuery,

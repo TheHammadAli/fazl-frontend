@@ -9,6 +9,8 @@ import DateTimePickerModal from "./DateTimePickerModal";
 import ServiceDetailSkeleton from "../Ui/ServiceDetailPageSkelton";
 import { useRequireSignIn } from "@/custom-hooks/useRequireSignIn";
 import { useDictionary } from "@/dictionaries/DictionaryProvider";
+import { useCheckReviewQuery } from "@/store/services/reviewService";
+import { getUserId } from "@/utils/getUserId";
 
 function BookService() {
   const router = useRouter();
@@ -29,8 +31,8 @@ function BookService() {
   } = useGetServiceDetailQuery(id, {
     skip: !id,
   });
-
-  const loading = isLoading || isFetching;
+  const { data: checkReview, isLoading: isCheckReviewLoading } = useCheckReviewQuery({ serviceId: id, userId: getUserId() });
+  const loading = isLoading || isFetching || isCheckReviewLoading;
   const isServiceNotFound =
     !id ||
     (isError &&
@@ -98,6 +100,7 @@ function BookService() {
             setSelectedVariants={setSelectedVariants}
             service={service}
             setOpenPciker={handleSetOpenPicker}
+            checkReview={checkReview?.data}
           />
         ))}
 
