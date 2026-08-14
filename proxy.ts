@@ -27,6 +27,16 @@ export function proxy(request: NextRequest) {
   const urlParams = "?" + new URLSearchParams(params);
   let pathname = request.nextUrl.pathname;
   const locale = request.cookies.get("lang")?.value || "en";
+  const iconFile = pathname.match(
+    /\/(favicon\.(?:ico|png)|icon\.(?:svg|png|ico))$/i,
+  );
+  if (iconFile) {
+    const dest =
+      iconFile[1].toLowerCase() === "favicon.ico"
+        ? "/favicon.ico"
+        : "/favicon.png";
+    return NextResponse.rewrite(new URL(dest, request.url));
+  }
   const pathnameIsMissingLocale = i18n.locales.every(
     (loc) => !pathname.startsWith(`/${loc}/`) && pathname !== `/${loc}`,
   );
@@ -121,5 +131,7 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|notifications/).*)"],
+  matcher: [
+    "/((?!api|_next/static|_next/image|favicon.ico|favicon.png|icon.svg|icon.png|notifications/).*)",
+  ],
 };
