@@ -147,7 +147,7 @@ function CatalogCard({
                 </span>
             </div> */}
             <h2 className="text-[16px] font-normal text-green-1">
-                {currencyLabel} {item.price}
+                {currencyLabel} {Number(item.price).toLocaleString("en-US")}
             </h2>
         </div>
     );

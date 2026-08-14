@@ -7,7 +7,7 @@ import { useDictionary } from "@/dictionaries/DictionaryProvider";
 import camIcon from "@/assets/icons/cam-icon.svg";
 import whiteArrowIcon from "@/assets/icons/white-arrow.svg";
 import { getUserId } from "@/utils/getUserId";
-import { useGetBroadcastThreadMessagesQuery, useGetConversationMessagesQuery, useMarkMessagesAsReadMutation, useSendBroadcastMessageMutation, useSendMessageMutation } from "@/store/services/chatService";
+import { useGetBroadcastThreadMessagesQuery, useGetConversationMessagesQuery, useMarkBroadcastMessagesAsReadMutation, useMarkMessagesAsReadMutation, useSendBroadcastMessageMutation, useSendMessageMutation } from "@/store/services/chatService";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { parsePositiveInt } from "../Updates/Notifications";
@@ -115,6 +115,7 @@ export default function ChatWindow({ thread, onBack, threadType, draftMessage = 
   const [imageLightboxIndex, setImageLightboxIndex] = useState(0);
   const [imageLightboxSlides, setImageLightboxSlides] = useState<{ src: string }[]>([]);
   const [markMessagesAsRead] = useMarkMessagesAsReadMutation();
+  const [markBroadcastMessagesAsRead] = useMarkBroadcastMessagesAsReadMutation();
   const [sendMessage, { isLoading: isSendingMessage }] = useSendMessageMutation();
   const [sendBroadcastMessage, { isLoading: isSendingBroadcastMessage }] = useSendBroadcastMessageMutation();
 
@@ -415,8 +416,13 @@ export default function ChatWindow({ thread, onBack, threadType, draftMessage = 
       broadcastId: isBroadcastReceived ? thread?._id : thread?.broadcastId,
     });
 
-    if (conversationId && userId) {
+    if (conversationId && userId && threadType === "direct_messages") {
       markMessagesAsRead({ conversationId, userId }).unwrap().catch(() => {
+        // Keep chat usable even if marking read fails.
+      });
+    }
+    if (broadcastRequestId && userId && threadType === "broadcast_messages") {
+      markBroadcastMessagesAsRead({ id: broadcastRequestId, threadId: broadcastThreadId }).unwrap().catch(() => {
         // Keep chat usable even if marking read fails.
       });
     }

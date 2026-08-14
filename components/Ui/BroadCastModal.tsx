@@ -18,6 +18,7 @@ import { useGetLocationsQuery } from "@/store/services/authService";
 import { toast } from "react-hot-toast";
 import { useBroadcastMessageMutation } from "@/store/services/chatService";
 import { useDictionary } from "@/dictionaries/DictionaryProvider";
+import { getFeedCategoryLabel } from "@/utils/getFeedCategoryLabel";
 import ChooseImagesTab from "@/components/Services/ChooseImagesTab";
 import { useClickOutside } from "@/custom-hooks/useClickOutside";
 import { useDebounce } from "use-debounce";
@@ -109,7 +110,7 @@ function BroadcastFieldRow({
 }
 
 function BroadCastModal({ setOpenBroadcast }: { setOpenBroadcast: (open: boolean) => void }) {
-    const { placeholders, error_messages, info_messages } = useDictionary();
+    const { placeholders, error_messages, info_messages, currentLanguage } = useDictionary();
     type PlaceholderKey = keyof typeof placeholders;
     type ErrorKey = keyof typeof error_messages;
     const ph = (key: PlaceholderKey) => placeholders[key];
@@ -128,7 +129,11 @@ function BroadCastModal({ setOpenBroadcast }: { setOpenBroadcast: (open: boolean
     const [address, setAddress] = useState("");
     const [locationSearch, setLocationSearch] = useState("");
     const [debouncedLocationSearch] = useDebounce(locationSearch, 500);
-    const { data: categories, isLoading: isCategoriesLoading, isFetching: isCategoriesFetching } = useCategoriesQuery("");
+    const { data: categories, isLoading: isCategoriesLoading, isFetching: isCategoriesFetching } =
+        useCategoriesQuery(
+            { type: selectedType ?? undefined },
+            { skip: !selectedType },
+        );
     const {
         data: locationsData,
         isLoading: isLocationsLoading,
@@ -148,6 +153,11 @@ function BroadCastModal({ setOpenBroadcast }: { setOpenBroadcast: (open: boolean
     useEffect(() => {
         setMounted(true);
     }, []);
+
+    useEffect(() => {
+        setSelectedCategory(null);
+        setIsCategoryOpen(false);
+    }, [selectedType]);
 
     const buildSentDescription = () => {
         const categoryName = selectedCategory?.name?.trim() || "";
@@ -477,6 +487,8 @@ function BroadCastModal({ setOpenBroadcast }: { setOpenBroadcast: (open: boolean
                                                 className="w-full cursor-pointer border-b border-gray-9 px-3 py-2 text-left text-[14px] text-black-1 last:border-b-0 hover:bg-gray-10"
                                                 onClick={() => {
                                                     setSelectedType(type.value);
+                                                    setSelectedCategory(null);
+                                                    setIsCategoryOpen(false);
                                                     setIsTypeOpen(false);
                                                 }}
                                             >
@@ -531,10 +543,20 @@ function BroadCastModal({ setOpenBroadcast }: { setOpenBroadcast: (open: boolean
                                 <BroadcastFieldRow
                                     icon={chooseCatIcon}
                                     label={ph("category")}
-                                    value={selectedCategory?.name}
-                                    placeholder={ph("choose_category")}
-                                    disabled={isBroadcastLoading}
+                                    value={
+                                        selectedCategory
+                                            ? getFeedCategoryLabel(selectedCategory.name, currentLanguage)
+                                            : null
+                                    }
+                                    placeholder={
+                                        selectedType ? ph("choose_category") : ph("choose_type")
+                                    }
+                                    disabled={isBroadcastLoading || !selectedType}
                                     onClick={() => {
+                                        if (!selectedType) {
+                                            toast.error(eh("type_required"));
+                                            return;
+                                        }
                                         setIsCategoryOpen((prev) => !prev);
                                         setIsRadiusOpen(false);
                                         setIsTypeOpen(false);
@@ -542,7 +564,7 @@ function BroadCastModal({ setOpenBroadcast }: { setOpenBroadcast: (open: boolean
                                         setIsLocationOpen(false);
                                     }}
                                 />
-                                {isCategoryOpen ? (
+                                {isCategoryOpen && selectedType ? (
                                     <div className={DROPDOWN_PANEL_CLASS}>
                                         {isCategoriesLoading || isCategoriesFetching ? (
                                             <p className="px-3 py-2 text-[14px] text-gray-8">{ph("loading_categories")}</p>
@@ -557,7 +579,7 @@ function BroadCastModal({ setOpenBroadcast }: { setOpenBroadcast: (open: boolean
                                                         setIsCategoryOpen(false);
                                                     }}
                                                 >
-                                                    {category.name}
+                                                    {getFeedCategoryLabel(category.name, currentLanguage)}
                                                 </button>
                                             ))
                                         ) : (

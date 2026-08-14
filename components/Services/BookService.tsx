@@ -41,7 +41,6 @@ function BookService() {
       (error.status === 404 ||
         (error.data as { message?: string })?.message === "Service not found"));
 
-  const [selectedVariants, setSelectedVariants] = useState({});
   useEffect(() => {
     if (isGuest && step === "request") {
       router.push("/signin");
@@ -96,8 +95,6 @@ function BookService() {
         ) : (
           <BuyServiceDetail
             setStep={handleSetStep}
-            selectedVariants={selectedVariants}
-            setSelectedVariants={setSelectedVariants}
             service={service}
             setOpenPciker={handleSetOpenPicker}
             checkReview={checkReview?.data}

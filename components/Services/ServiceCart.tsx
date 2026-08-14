@@ -49,7 +49,7 @@ function ServiceCart({
       : "";
 
   const isCallForPrice = service?.data?.paymentType === "call_for_price";
-  const totalAmount = isCallForPrice ? 0 : service?.data?.price + 90;
+  const totalAmount = isCallForPrice ? 0 : service?.data?.price;
 
   useEffect(() => {
     if (isGuest) {
@@ -213,12 +213,12 @@ function ServiceCart({
                   </span>
                 </div>
 
-                {!isCallForPrice && (
+                {/* {!isCallForPrice && (
                   <div className="flex justify-between">
                     <span> {placeholders.sale_tax}</span>
                     <span>{placeholders.Rs} 90</span>
                   </div>
-                )}
+                )} */}
               </div>
 
               {/* Total */}
