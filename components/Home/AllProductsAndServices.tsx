@@ -27,6 +27,7 @@ type CatalogItem = {
     _id: string;
     title: string;
     price: string | number;
+    paymentType?: string;
     images: string[];
     reviewCount: number;
     averageRating: number;
@@ -104,8 +105,9 @@ function CatalogCard({
     onSelect,
     shouldSuppressClick,
 }: CatalogCardProps) {
+    const { placeholders } = useDictionary();
     const itemId = item.id || item._id;
-
+    const isCallForPrice = item.paymentType === "call_for_price";
     return (
         <div
             role="button"
@@ -147,7 +149,9 @@ function CatalogCard({
                 </span>
             </div> */}
             <h2 className="text-[16px] font-normal text-green-1">
-                {currencyLabel} {Number(item.price).toLocaleString("en-US")}
+                {isCallForPrice
+                    ? placeholders.call_for_price
+                    : `${currencyLabel} ${Number(item.price).toLocaleString("en-US")}`}
             </h2>
         </div>
     );
