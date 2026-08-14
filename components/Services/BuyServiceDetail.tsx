@@ -10,7 +10,6 @@ import Reviews from "../Ui/Reviews";
 import { useGetAvgReviewsQuery } from "@/store/services/reviewService";
 import { getFeedCategoryLabel } from "@/utils/getFeedCategoryLabel";
 import { useRequireSignIn } from "@/custom-hooks/useRequireSignIn";
-import { useClickOutside } from "@/custom-hooks/useClickOutside";
 import Modal from "../Ui/Modals/Modal";
 import SharePostModal from "../Ui/SharePostModal";
 import detailShareIcon from "@/assets/icons/detial-share-icon.svg";
@@ -79,19 +78,15 @@ function TrustSafetyIcon() {
 function BuyServiceDetail({
   service,
   setOpenPciker,
-  selectedVariants,
-  setSelectedVariants,
   checkReview,
 }: any) {
   const userId = getUserId() ?? "";
   const { requireSignIn } = useRequireSignIn();
   const { pages, placeholders, currentLanguage, error_messages, info_messages } =
     useDictionary();
-  const ref = useRef<HTMLDivElement>(null);
   const sharePostRef = useRef<HTMLDivElement>(null);
   const [type, setType] = useState("image");
   const [typeIndex, setTypeIndex] = useState(0);
-  const [toggle, setToggle] = useState(-1);
   const [shareModal, setShareModal] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
   const [imageLightboxOpen, setImageLightboxOpen] = useState(false);
@@ -146,10 +141,6 @@ function BuyServiceDetail({
     placeholders?.[
       service?.data?.paymentType as keyof typeof placeholders
     ]?.toString().toLowerCase() ?? service?.data?.paymentType ?? "";
-
-  useClickOutside(ref, () => {
-    setToggle(-1);
-  });
 
   useEffect(() => {
     setMounted(true);
@@ -252,9 +243,6 @@ function BuyServiceDetail({
   };
 
   const parameters = service?.data?.parameters ?? [];
-  const hasAllVariantsSelected =
-    parameters.length === 0 ||
-    Object.keys(selectedVariants ?? {}).length === parameters.length;
 
   const joinedDateLabel = formatJoinedDate(ownerData?.createdAt, currentLanguage);
 
@@ -475,51 +463,9 @@ function BuyServiceDetail({
                       <span className="text-[15px] font-medium leading-none">
                         {parameter?.name}
                       </span>
-                      <div className="relative">
-                        <div
-                          className="flex cursor-pointer gap-2"
-                          onClick={() => setToggle(index)}
-                        >
-                          <span className="text-[15px] font-light leading-none">
-                            {String(
-                              selectedVariants?.[
-                              parameter?.name as keyof typeof selectedVariants
-                              ] ?? placeholders.choose,
-                            )}
-                          </span>
-                          <Image
-                            src={chevron}
-                            alt="chevron"
-                            className="h-4 w-3"
-                          />
-                        </div>
-                        {toggle === index && (
-                          <div
-                            ref={ref}
-                            className="absolute right-0 z-50 mt-2 w-[130px] rounded-lg border border-gray-4 bg-white shadow-xl"
-                          >
-                            {parameter?.variants?.map(
-                              (variant: string, variantIndex: number) => (
-                                <div
-                                  key={variantIndex}
-                                  onClick={() => {
-                                    if (setSelectedVariants) {
-                                      setSelectedVariants((prev: Record<string, string>) => ({
-                                        ...prev,
-                                        [parameter?.name]: variant,
-                                      }));
-                                    }
-                                    setToggle(-1);
-                                  }}
-                                  className="cursor-pointer border-b border-gray-4 px-2 py-1 hover:bg-green-4"
-                                >
-                                  {variant}
-                                </div>
-                              ),
-                            )}
-                          </div>
-                        )}
-                      </div>
+                      <span className="max-w-[55%] text-right text-[15px] font-light leading-none">
+                        {parameter?.variants?.join(", ")}
+                      </span>
                     </div>
                   ),
                 )}
@@ -555,7 +501,6 @@ function BuyServiceDetail({
                 (
                   <DoodleButton
                     type="button"
-                    // disabled={!hasAllVariantsSelected}
                     onClick={() => requireSignIn(() => setOpenPciker?.(true))}
                     className="mt-4 flex h-[46px] w-full cursor-pointer items-center justify-center rounded-xl border border-green-1 bg-green-1 text-[16px] font-medium text-white hover:bg-white hover:text-green-1 disabled:pointer-events-none disabled:opacity-50"
                   >

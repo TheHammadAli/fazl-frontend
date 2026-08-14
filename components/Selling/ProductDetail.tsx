@@ -214,11 +214,10 @@ function ProductDetail() {
                       setTypeIndex(index);
                       setType("image");
                     }}
-                    className={`h-[96px] w-[96px] md:w-[154px] cursor-pointer overflow-hidden rounded-[10px] border ${
-                      typeIndex === index && type === "image"
-                        ? "border-green-1"
-                        : "border-transparent"
-                    }`}
+                    className={`h-[96px] w-[96px] md:w-[154px] cursor-pointer overflow-hidden rounded-[10px] border ${typeIndex === index && type === "image"
+                      ? "border-green-1"
+                      : "border-transparent"
+                      }`}
                   >
                     <Image
                       src={image}
@@ -236,9 +235,8 @@ function ProductDetail() {
                     key={`${videoSrc}?v=${product?.data?.updatedAt}`}
                     src={`${videoSrc}?v=${product?.data?.updatedAt}`}
                     controls={false}
-                    className={`h-[96px] w-[96px] md:w-[154px] cursor-pointer rounded-[10px] border object-cover ${
-                      type === "video" ? "border-green-1" : "border-transparent"
-                    }`}
+                    className={`h-[96px] w-[96px] md:w-[154px] cursor-pointer rounded-[10px] border object-cover ${type === "video" ? "border-green-1" : "border-transparent"
+                      }`}
                   />
                 ) : null}
               </div>
@@ -323,10 +321,10 @@ function ProductDetail() {
                 </div>
               </div>
 
-              <h3 className="mt-2 text-[14px] font-light text-[#4B514F]">
-                  {reviewCount}{" "}
-                  {reviewCount === 1 ? placeholders.review : placeholders.reviews}
-                </h3>
+              {/* <h3 className="mt-2 text-[14px] font-light text-[#4B514F]">
+                {reviewCount}{" "}
+                {reviewCount === 1 ? placeholders.review : placeholders.reviews}
+              </h3> */}
 
               <div className="mt-4 flex justify-between border-t border-[#E5E5E5] px-1.5 py-4">
                 <span className="text-[15px] font-medium">
@@ -361,11 +359,11 @@ function ProductDetail() {
             </div>
           </div>
 
-          <Reviews
+          {/* <Reviews
               type="product"
               id={product?.data?.id || product?.data?._id}
               allowAddReview={allowedToBuy}
-            />
+            /> */}
 
           {hasShop && shopId && (
             <ShopProductsSlider

@@ -80,6 +80,21 @@ export const chatService = baseApi.injectEndpoints({
       },
       invalidatesTags: ["Chat"],
     }),
+    markBroadcastMessagesAsRead: build.mutation({
+      query: ({
+        id,
+        threadId
+      }: {
+        id: string;
+        threadId: string;
+      }) => {
+        return {
+          url: `/broadcast/${id}/threads/${threadId}/read`,
+          method: "PATCH",
+        };
+      },
+      invalidatesTags: ["BROADCAST"],
+    }),
     broadcastMessage: build.mutation({
       query: (body) => {
         return {
@@ -152,6 +167,7 @@ export const {
   useReceivedBroadcastMessagesQuery,
   useSentBroadcastMessagesQuery,
   useMarkMessagesAsReadMutation,
+  useMarkBroadcastMessagesAsReadMutation,
   useUnreadMessagesCountQuery,
   useSendMessageMutation,
   useGetAllConversationsForUserQuery,

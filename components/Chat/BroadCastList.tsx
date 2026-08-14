@@ -13,6 +13,8 @@ type BroadcastItem = {
     radius: number;
     createdAt: string;
     threadId?: string;
+    unreadCount?: number;
+    unread?: number | boolean;
 };
 
 type BroadCastListProps = {
@@ -27,12 +29,20 @@ function BroadCastList({ items, onScroll, onSelectItem, chatId, activeTab }: Bro
     const { currentLanguage, placeholders } = useDictionary();
     type PlaceholderKey = keyof typeof placeholders;
     const ph = (key: PlaceholderKey) => placeholders[key];
-
     return (
         <div onScroll={onScroll} className="hide-scrollbar flex-1 overflow-y-auto divide-y divide-gray-9 bg-white">
             {items?.map((item: any, index) => {
                 const isReceivedSelected =
                     activeTab === "received" && !!item?.threadId && chatId === item.threadId;
+                const unreadCount =
+                    typeof item.unreadCount === "number"
+                        ? item.unreadCount
+                        : typeof item.unread === "number"
+                            ? item.unread
+                            : item.unread
+                                ? 1
+                                : 0;
+
                 return (
                     <button
                         key={index}
@@ -47,8 +57,14 @@ function BroadCastList({ items, onScroll, onSelectItem, chatId, activeTab }: Bro
                             <span className="shrink-0   font-normal text-gray-8">{formatFromNowShort(item?.latestMessage?.createdAt ?? item?.createdAt ?? '', currentLanguage as "en" | "ur")}</span>
                         </div>
                         <div className="mt-1 flex items-center justify-between gap-2">
-                            <p className="text-[15px]  font-medium text-black-1">{item.message}</p>
-                            <Image src={chevron} alt="chevron" className="w-3 h-3 ltr:-rotate-90 rtl:rotate-90 shrink-0" />
+                            <p className="min-w-0 truncate text-[15px] font-medium text-black-1">{item.message}</p>
+                            {unreadCount > 0 ? (
+                                <span className="flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-[#3C9197] px-1.5 text-[11px] font-medium leading-none text-white">
+                                    {unreadCount > 99 ? "99+" : unreadCount}
+                                </span>
+                            ) : (
+                                <Image src={chevron} alt="chevron" className="w-3 h-3 ltr:-rotate-90 rtl:rotate-90 shrink-0" />
+                            )}
                         </div>
 
                         <p className="mt-1 text-[14px] rtl:text-right ltr:text-left  font-normal text-black-1">

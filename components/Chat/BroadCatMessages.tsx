@@ -68,6 +68,7 @@ function BroadCatMessages({
     const currentPage = activeTab === "sent" ? sentPage : receivedPage;
     const items = activeTab === "sent" ? filteredSent : filteredReceived;
 
+
     const sentTotalPages = parsePositiveInt(sentItems?.meta?.totalPages);
     const sentLastBatch = (sentItems?.data as BroadcastItem[] | undefined) ?? [];
     const canLoadMoreSent = sentTotalPages != null ? sentPage < sentTotalPages : sentLastBatch.length >= PAGE_LIMIT;
@@ -126,17 +127,21 @@ function BroadCatMessages({
         if (activeTab !== "received") return;
         if (!filteredReceived.length) return;
 
-        const currentExistsInReceived = filteredReceived.some((item: any) => {
+        const matched = filteredReceived.find((item: any) => {
             const itemThreadId = item?.threadId ?? item?._id ?? item?.id ?? "";
-            return !!chatId && itemThreadId === chatId;
+            return !!chatId && String(itemThreadId) === String(chatId);
         });
-        if (currentExistsInReceived) return;
+
+        if (matched) {
+            onSelectChat({ ...matched, type: "broadcast_received" } as any);
+            return;
+        }
 
         // Auto-open first received broadcast on large screens only
         const isLargeScreen =
             typeof window !== "undefined" &&
             window.matchMedia("(min-width: 1024px)").matches;
-        if (!isLargeScreen) return;
+        if (!isLargeScreen || chatId) return;
 
         const first = filteredReceived[0] as any;
         onSelectChat({ ...first, type: "broadcast_received" } as any);
@@ -225,6 +230,7 @@ function BroadCatMessages({
                     onScroll={handleScrollNearBottom}
                     onSelectItem={(broadcast) => handleSelectBroadcastMessage(broadcast)}
                 />
+
             )}
         </div>
     );

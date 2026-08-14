@@ -80,6 +80,31 @@ function getNotificationPayload(item: NotificationApiItem): NotificationPayload 
     return raw;
 }
 
+function getNotificationId(item: NotificationApiItem): string | undefined {
+    return item._id ?? item.id;
+}
+
+function mergeNotificationPages(
+    previous: NotificationApiItem[],
+    incoming: NotificationApiItem[],
+    replace: boolean,
+) {
+    const rows = replace ? incoming : [...previous, ...incoming];
+    const seen = new Set<string>();
+    const unique: NotificationApiItem[] = [];
+
+    for (const item of rows) {
+        const id = getNotificationId(item);
+        if (id) {
+            if (seen.has(id)) continue;
+            seen.add(id);
+        }
+        unique.push(item);
+    }
+
+    return unique;
+}
+
 function getPayloadTargetId(payload: NotificationPayload | null): string | undefined {
     if (!payload) return undefined;
     return payload.serviceId ?? payload.productId ?? payload.id ?? payload._id ?? payload?.request?.service;
@@ -117,9 +142,10 @@ function Notifications({ setOpenSidebar, unreadCount = 0, setReadCount }: Notifi
             },
         );
     function handleNavigation(item: any) {
+        console.log(item, "thred item");
         setOpenSidebar?.(false);
         if (item.type === "PROMOTION") {
-            router.push(`/chat?tab=broadcast_messages&type=received`);
+            router.push(`/chat?tab=broadcast_messages&type=received&chatId=${item.payload.threadId}`);
             return;
         }
         const targetId = getPayloadTargetId(getNotificationPayload(item));
@@ -187,9 +213,9 @@ function Notifications({ setOpenSidebar, unreadCount = 0, setReadCount }: Notifi
         lastMergedKeyRef.current = mergeKey;
 
         if (page === 1) {
-            setNotificationItems(rows);
+            setNotificationItems(mergeNotificationPages([], rows, true));
         } else {
-            setNotificationItems((prev) => [...prev, ...rows]);
+            setNotificationItems((prev) => mergeNotificationPages(prev, rows, false));
         }
     }, [data, page, userId, isFetching, fulfilledTimeStamp]);
 
@@ -288,52 +314,55 @@ function Notifications({ setOpenSidebar, unreadCount = 0, setReadCount }: Notifi
                         className="min-h-0 flex-1 overflow-y-auto"
                         onScroll={handleScrollNearBottom}
                     >
-                        {notificationItems.map((item, index) => (
-                            <li
-                                key={item._id ?? item.id ?? index}
-                                onClick={() => {
-                                    void handleNotificationClick(item);
-                                }}
-                                className="flex px-5 items-center gap-3 py-2 first:pt-2 hover:bg-green-4 cursor-pointer"
-                            >
-                                <div className="relative h-[42px] w-[42px] shrink-0 overflow-hidden rounded-[10px] bg-gray-5 p-1">
-                                    <Image
-                                        src={NotificationIcon}
-                                        alt=""
-                                        width={42}
-                                        height={42}
-                                        className="h-full w-full object-cover"
-                                        unoptimized={typeof item.image === "string"}
-                                    />
-                                </div>
-
-                                <div className="min-w-0 flex-1">
-                                    <p className="text-[13px] font-normal leading-snug text-[#727272]">
-                                        {item?.payload?.action === "propose" ? item.message + " " +
-                                            formatRequestedDateTime(
-                                                item?.payload?.proposedDateTime,
-                                                currentLanguage,
-                                            )
-                                            : item.message ?? ""}
-                                    </p>
-                                    <p
-                                        className="mt-1 text-[12px] font-normal text-[#414E51]"
-                                        suppressHydrationWarning
-                                    >
-                                        {moment(item.createdAt).locale(currentLanguage).fromNow()}
-                                    </p>
-                                </div>
-
-                                {!item.read && (
-                                    <div className="flex shrink-0 items-center">
-                                        <span
-                                            className="h-2.5 w-2.5 rounded-full bg-green-1"
-                                            aria-hidden
+                        {notificationItems.map((item, index) => {
+                            const itemId = getNotificationId(item);
+                            return (
+                                <li
+                                    key={itemId ? `${itemId}-${index}` : `notification-${index}`}
+                                    onClick={() => {
+                                        void handleNotificationClick(item);
+                                    }}
+                                    className="flex px-5 items-center gap-3 py-2 first:pt-2 hover:bg-green-4 cursor-pointer"
+                                >
+                                    <div className="relative h-[42px] w-[42px] shrink-0 overflow-hidden rounded-[10px] bg-gray-5 p-1">
+                                        <Image
+                                            src={NotificationIcon}
+                                            alt=""
+                                            width={42}
+                                            height={42}
+                                            className="h-full w-full object-cover"
+                                            unoptimized={typeof item.image === "string"}
                                         />
                                     </div>
-                                )}
-                            </li>
-                        ))}
+
+                                    <div className="min-w-0 flex-1">
+                                        <p className="text-[13px] font-normal leading-snug text-[#727272]">
+                                            {item?.payload?.action === "propose" ? item.message + " " +
+                                                formatRequestedDateTime(
+                                                    item?.payload?.proposedDateTime,
+                                                    currentLanguage,
+                                                )
+                                                : item.message ?? ""}
+                                        </p>
+                                        <p
+                                            className="mt-1 text-[12px] font-normal text-[#414E51]"
+                                            suppressHydrationWarning
+                                        >
+                                            {moment(item.createdAt).locale(currentLanguage).fromNow()}
+                                        </p>
+                                    </div>
+
+                                    {!item.read && (
+                                        <div className="flex shrink-0 items-center">
+                                            <span
+                                                className="h-2.5 w-2.5 rounded-full bg-green-1"
+                                                aria-hidden
+                                            />
+                                        </div>
+                                    )}
+                                </li>
+                            );
+                        })}
                         {isFetching && notificationItems.length > 0 && (
                             <li className="flex justify-center py-3" aria-hidden>
                                 <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-gray-4 border-t-green-1" />

@@ -165,12 +165,12 @@ function BuyProductDetail({
   }, [product?.data?.parameters, setSelectedVariants]);
 
   const isClassified = product?.data?.type === "classified";
-  const { data: avgReview } = useGetAvgReviewsQuery(
-    { type: "product", id: product?.data?.id ?? "" },
-    { skip: !product?.data?.id },
-  );
+  // const { data: avgReview } = useGetAvgReviewsQuery(
+  //   { type: "product", id: product?.data?.id ?? "" },
+  //   { skip: !product?.data?.id },
+  // );
 
-  const reviewCount = avgReview?.data?.count ?? 0;
+  // const reviewCount = avgReview?.data?.count ?? 0;
   const shopId =
     resolveEntityId(product?.data?.shopId) ?? resolveEntityId(shopData);
   const hasShop = Boolean(shopId) || Boolean(product?.data?.shopId);
@@ -540,13 +540,13 @@ function BuyProductDetail({
                     )}
                   </div>
                 ) : null}
-                <div className="mt-8">
+                {/* <div className="mt-8">
                   <Reviews
                     type="product"
                     id={product?.data?.id || product?.data?._id}
                     allowAddReview={allowAddReview}
                   />
-                </div>
+                </div> */}
               </div>
               <div className="w-full md:w-[48%] ">
                 <h3 className="text-[#030303] first-letter:uppercase text-[24px] font-medium">
@@ -615,9 +615,9 @@ function BuyProductDetail({
                   )} */}
                 </div>
 
-                <h3 className="font-light text-[14px] text-[#4B514F] ">
+                {/* <h3 className="font-light text-[14px] text-[#4B514F] ">
                   {reviewCount} {reviewCount === 1 ? placeholders.review : placeholders.reviews}
-                </h3>
+                </h3> */}
 
                 <div className="border-[#E5E5E5]  py-4 px-1.5 border-t-[0.5px] mt-4 flex justify-between">
                   <span className="text-[15px] font-medium">

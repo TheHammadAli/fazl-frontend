@@ -54,6 +54,13 @@ export default function ChatPage() {
     const chatIdParam = params.get("chatId");
     if (chatIdParam) {
       setChatId(chatIdParam);
+      setSelectedThread((prev) => {
+        if (!prev) return prev;
+        const prevIds = [prev.threadId, prev._id, prev.id]
+          .filter(Boolean)
+          .map(String);
+        return prevIds.includes(chatIdParam) ? prev : null;
+      });
     }
 
     const tab = params.get("tab");
@@ -110,6 +117,11 @@ export default function ChatPage() {
         <div className={`${mobileShowConversation ? "block" : "hidden lg:block"} h-full flex-1`}>
           {selectedThread ? (
             <ChatWindow
+              key={
+                selectedThread.threadId ??
+                selectedThread._id ??
+                selectedThread.id
+              }
               threadType={threadType}
               thread={selectedThread}
               draftMessage={params.get("draft") ?? ""}
