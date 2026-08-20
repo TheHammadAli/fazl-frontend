@@ -13,7 +13,7 @@ import Image from "next/image";
 import noImageIcon from "@/assets/images/new-no-image-placeholder.png";
 import AllCategoriesModal from "./AllCategoriesModal";
 
-const INITIAL_SERVICE_CATEGORY_COUNT = 7;
+const INITIAL_SERVICE_CATEGORY_COUNT = 3;
 
 type CategoryItem = {
     _id: string;
@@ -39,24 +39,24 @@ const SERVICE_MORE_STYLE: ServiceCategoryStyle = {
 
 const SERVICE_SWIPER_BREAKPOINTS = {
     0: {
-        slidesPerView: 2.2,
+        slidesPerView: 1.5,
         spaceBetween: 12,
     },
     640: {
-        slidesPerView: 3.5,
+        slidesPerView: 3,
         spaceBetween: 12,
         slidesOffsetBefore: 0,
         slidesOffsetAfter: 0,
     },
     1024: {
-        slidesPerView: 5,
+        slidesPerView: 4,
         spaceBetween: 16,
         slidesOffsetBefore: 0,
         slidesOffsetAfter: 0,
         freeMode: false,
     },
-    1280: {
-        slidesPerView: 7,
+    1300: {
+        slidesPerView: 6,
         spaceBetween: 16,
         slidesOffsetBefore: 0,
         slidesOffsetAfter: 0,

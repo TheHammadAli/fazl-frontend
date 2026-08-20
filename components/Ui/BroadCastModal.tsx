@@ -47,7 +47,7 @@ function toPointLocation(location: Location) {
     if (lat == null || lng == null) return null;
     return {
         type: "Point" as const,
-        coordinates: [lat, lng] as [number, number],
+        coordinates: [lng, lat] as [number, number],
     };
 }
 
