@@ -233,7 +233,16 @@ function Signin() {
 
           <DoodleButton
             type="button"
-            onClick={() => router.push(`${BASE_URL}/auth/google`)}
+            onClick={() => {
+              if (!BASE_URL) {
+                toast.error(error_messages.something_went_wrong);
+                return;
+              }
+              // Cross-origin redirect to the backend's OAuth flow — a real
+              // navigation, not a client-side route (which wouldn't exist
+              // on this app anyway).
+              window.location.href = `${BASE_URL}/auth/google`;
+            }}
             className="mt-6 flex h-[52px] w-full cursor-pointer items-center justify-center gap-2 rounded-[12px] bg-blue-1 text-white"
           >
             <Image src={GoogleIcon} alt="google_icon" />
