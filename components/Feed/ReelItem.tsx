@@ -10,6 +10,8 @@ import { useRouter } from "next/navigation";
 import Modal from "../Ui/Modals/Modal";
 import SharePostModal from "../Ui/SharePostModal";
 import { useLikedVideoByUserQuery, useLikeVideoMutation, useUnlikeVideoMutation } from "@/store/services/feedService";
+import { useTrackProductViewMutation } from "@/store/services/homeService";
+import { useTrackServiceViewMutation } from "@/store/services/sellingService";
 import { getUserId } from "@/utils/getUserId";
 import shareSimpleIcon from "@/assets/icons/share-white-icon.svg";
 import DoodleButton from "@/components/Ui/DoodleButton";
@@ -51,6 +53,9 @@ export default function ReelItem({
     );
     const [likeVideo, { isLoading: isLikeLoading }] = useLikeVideoMutation();
     const [unlikeVideo, { isLoading: isUnlikeLoading }] = useUnlikeVideoMutation();
+    const [trackProductView] = useTrackProductViewMutation();
+    const [trackServiceView] = useTrackServiceViewMutation();
+    const trackedViewRef = useRef(false);
     useEffect(() => {
         if (!likedVideoByUser?.data) return;
         const liked = likedVideoByUser.data.some(
@@ -88,6 +93,14 @@ export default function ReelItem({
         if (inView) {
             onVisible(item);
             playSafely();
+            if (userId && !trackedViewRef.current) {
+                trackedViewRef.current = true;
+                if (feedType === "service") {
+                    trackServiceView(item.id);
+                } else {
+                    trackProductView(item.id);
+                }
+            }
         } else {
             pauseSafely();
         }
@@ -174,6 +187,8 @@ export default function ReelItem({
                     setShareModal={setShareModal}
                     shareUrl={`${window.location.origin}${type === "products" ? `/buy-product?id=${item.id}` : `/book-service?id=${item.id}`}`}
                     shareService={true}
+                    itemId={item.id}
+                    itemType={type === "products" ? "product" : "service"}
                 />
             </Modal>
             <video

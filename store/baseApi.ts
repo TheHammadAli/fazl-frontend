@@ -128,6 +128,7 @@ export const baseApi = createApi({
     "BROADCAST",
     "ORDERS",
     "CATEGORIES",
+    "SETTINGS",
   ],
   endpoints: () => ({}),
 });

@@ -24,6 +24,11 @@ import {
   useUnlikeVideoMutation,
 } from "@/store/services/feedService";
 import { useGetProductOwnerDetailQuery } from "@/store/services/authService";
+import {
+  useTrackServiceViewMutation,
+  useTrackServiceContactClickMutation,
+  useTrackServiceWhatsappClickMutation,
+} from "@/store/services/sellingService";
 import Lightbox from "yet-another-react-lightbox";
 import "yet-another-react-lightbox/styles.css";
 import { buildListingUrl } from "@/utils/getPublicAppOrigin";
@@ -110,6 +115,9 @@ function BuyServiceDetail({
   );
   const reviewCount = avgReview?.data?.count ?? 0;
   const { onInitiateChat, isLoading } = useInitiateChat();
+  const [trackServiceView] = useTrackServiceViewMutation();
+  const [trackServiceContactClick] = useTrackServiceContactClickMutation();
+  const [trackServiceWhatsappClick] = useTrackServiceWhatsappClickMutation();
   const [likeVideo, { isLoading: isLikeLoading }] = useLikeVideoMutation();
   const [unlikeVideo, { isLoading: isUnlikeLoading }] = useUnlikeVideoMutation();
   const [mounted, setMounted] = useState(false);
@@ -145,6 +153,16 @@ function BuyServiceDetail({
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Server dedupes per (service, user, day); this ref just stops a re-render from firing it
+  // again for the same service within this mount.
+  const trackedViewForServiceId = useRef<string | null>(null);
+  useEffect(() => {
+    if (!serviceId || !userId || isOwner) return;
+    if (trackedViewForServiceId.current === serviceId) return;
+    trackedViewForServiceId.current = serviceId;
+    trackServiceView(serviceId);
+  }, [serviceId, userId, isOwner, trackServiceView]);
 
   useEffect(() => {
     if (type === "video" && !videoSrc) {
@@ -209,6 +227,10 @@ function BuyServiceDetail({
         .join("\n");
 
       onInitiateChat(userId, providerUserId, initialMessage);
+
+      if (serviceId) {
+        trackServiceContactClick(serviceId);
+      }
     });
   };
 
@@ -240,6 +262,10 @@ function BuyServiceDetail({
     }
 
     window.open(url, "_blank", "noopener,noreferrer");
+
+    if (serviceId) {
+      trackServiceWhatsappClick(serviceId);
+    }
   };
 
   const parameters = service?.data?.parameters ?? [];
@@ -400,6 +426,7 @@ function BuyServiceDetail({
                   type="service"
                   id={service?.data?.id || service?.data?._id}
                   allowAddReview={checkReview?.canReview}
+                  requestId={checkReview?.requestId}
                 />
               </div>
             </div>

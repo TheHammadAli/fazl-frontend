@@ -24,28 +24,36 @@ import {
     TelegramIcon
 } from 'react-share'
 import toast from 'react-hot-toast'
+import { useTrackShareMutation } from '@/store/services/feedService'
 type Props = {
     setShareModal: (sharePost: boolean) => void
     shareUrl: string
     shareService?: boolean
     type: string
+    itemId?: string
+    itemType?: 'product' | 'service'
 }
 const SharePostModal = (props: Props) => {
-    const { setShareModal, shareUrl, shareService } = props
+    const { setShareModal, shareUrl, shareService, itemId, itemType } = props
     const { placeholders, share_post } = useDictionary()
     type PlaceholderKey = keyof typeof placeholders
     const ph = (key: PlaceholderKey) => placeholders[key]
     const { copy, text_copied, share_service } = share_post
     const appId = ''
+    const [trackShare] = useTrackShareMutation()
+    const trackedShare = React.useRef(false)
+    const recordShare = () => {
+        if (trackedShare.current || !itemId || !itemType) return
+        trackedShare.current = true
+        trackShare({ itemId, itemType })
+    }
     const handleCopy = async () => {
         try {
             const textToCopy = shareUrl
             await navigator.clipboard.writeText(textToCopy)
             toast.success(text_copied)
+            recordShare()
         } catch (err) { }
-    }
-    const handleShareClick = () => {
-        window.open('https://www.instagram.com/', shareUrl)
     }
     return (
         <div className='text-black  space-y-4 z-50 bg-white h-max p-4 w-screen sm:w-[400px] rounded-lg '>
@@ -63,26 +71,26 @@ const SharePostModal = (props: Props) => {
                 />
             </div>
             <div className='flex items-center  gap-3  overflow-x-scroll hide-scrollbar  w-full'>
-                <FacebookShareButton url={shareUrl}>
+                <FacebookShareButton url={shareUrl} beforeOnClick={recordShare}>
                     <FacebookIcon size={42} round />
                 </FacebookShareButton>
 
-                <WhatsappShareButton url={shareUrl}>
+                <WhatsappShareButton url={shareUrl} beforeOnClick={recordShare}>
                     <WhatsappIcon size={42} round />
                 </WhatsappShareButton>
-                <TwitterShareButton url={shareUrl}>
+                <TwitterShareButton url={shareUrl} beforeOnClick={recordShare}>
                     <XIcon size={42} round />
                 </TwitterShareButton>
-                <FacebookMessengerShareButton appId={appId} url={shareUrl}>
+                <FacebookMessengerShareButton appId={appId} url={shareUrl} beforeOnClick={recordShare}>
                     <FacebookMessengerIcon size={42} round />
                 </FacebookMessengerShareButton>
-                <EmailShareButton url={shareUrl}>
+                <EmailShareButton url={shareUrl} beforeOnClick={recordShare}>
                     <EmailIcon size={42} round />
                 </EmailShareButton>
-                <LinkedinShareButton url={shareUrl}>
+                <LinkedinShareButton url={shareUrl} beforeOnClick={recordShare}>
                     <LinkedinIcon size={42} round />
                 </LinkedinShareButton>
-                <TelegramShareButton url={shareUrl}>
+                <TelegramShareButton url={shareUrl} beforeOnClick={recordShare}>
                     <TelegramIcon size={42} round />
                 </TelegramShareButton>
             </div>

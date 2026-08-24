@@ -40,10 +40,31 @@ export const homeService = baseApi.injectEndpoints({
       },
       providesTags: ["PRODUCT"],
     }),
+    trackProductView: build.mutation({
+      query: (id: string) => ({
+        url: `/products/${id}/track-view`,
+        method: "POST",
+      }),
+    }),
+    trackProductContactClick: build.mutation({
+      query: (id: string) => ({
+        url: `/products/${id}/track-contact-click`,
+        method: "POST",
+      }),
+    }),
+    trackProductWhatsappClick: build.mutation({
+      query: (id: string) => ({
+        url: `/products/${id}/track-whatsapp-click`,
+        method: "POST",
+      }),
+    }),
   }),
 });
 export const {
   useGetProductDetailQuery,
   useSearchProductsQuery,
   useSearchServicesQuery,
+  useTrackProductViewMutation,
+  useTrackProductContactClickMutation,
+  useTrackProductWhatsappClickMutation,
 } = homeService;

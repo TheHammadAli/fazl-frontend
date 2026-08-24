@@ -17,6 +17,9 @@ type BookedServiceRequest = {
     _id?: string;
     id?: string;
     status?: string;
+    jobStatus?: string;
+    alreadyReviewed?: boolean;
+    createdAt?: string;
     service?: {
         _id?: string;
         title?: string;
@@ -69,8 +72,7 @@ function BookedServices() {
             customerId: userId,
             page,
             limit: PAGE_LIMIT,
-            status: "accepted",
-            jobStatus: "completed",
+            status: "accepted,confirmed",
         },
         {
             skip: !userId,
@@ -192,7 +194,7 @@ function BookedServices() {
                                                     : ph("fixed")}
                                             </p>
                                             <p
-                                                className={`text-[14px] leading-snug ${request?.status === "accepted"
+                                                className={`text-[14px] leading-snug ${request?.jobStatus === "completed" || request?.status === "accepted"
                                                     ? "text-green-1"
                                                     : request?.status === "rejected"
                                                         ? "text-red-1"
@@ -201,13 +203,15 @@ function BookedServices() {
                                                             : "text-[#4B514F]"
                                                     }`}
                                             >
-                                                {request?.status === "accepted"
-                                                    ? ph("accepted")
-                                                    : request?.status === "rejected"
-                                                        ? ph("rejected")
-                                                        : request?.status === "proposed"
-                                                            ? ph("you_offered_a_new_time")
-                                                            : ph("pending")}
+                                                {request?.jobStatus === "completed"
+                                                    ? ph("completed")
+                                                    : request?.status === "accepted"
+                                                        ? ph("accepted")
+                                                        : request?.status === "rejected"
+                                                            ? ph("rejected")
+                                                            : request?.status === "proposed"
+                                                                ? ph("you_offered_a_new_time")
+                                                                : ph("pending")}
                                             </p>
                                         </div>
                                     </div>

@@ -45,6 +45,15 @@ export const feedService = baseApi.injectEndpoints({
         };
       },
     }),
+    trackShare: build.mutation({
+      query: (body: { itemId: string; itemType: "product" | "service" }) => {
+        return {
+          url: `/shares`,
+          method: "POST",
+          body,
+        };
+      },
+    }),
   }),
 });
 export const {
@@ -52,6 +61,7 @@ export const {
 
   useLikeVideoMutation,
   useUnlikeVideoMutation,
+  useTrackShareMutation,
   useGetAllProductsFeedQuery,
   useGetAllServicesFeedQuery,
 } = feedService;

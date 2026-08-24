@@ -92,6 +92,9 @@ type ReviewsProps = {
     type: "product" | "service" | "selling";
     id: string;
     allowAddReview?: boolean;
+    /** Booking this review is scoped to (services only) — when set, the write goes through as
+     *  a per-booking review instead of one review for the item overall. */
+    requestId?: string;
 };
 
 type ReviewItem = {
@@ -102,7 +105,7 @@ type ReviewItem = {
     userId: { name: string; image: string };
 };
 
-function Reviews({ type, id, allowAddReview }: ReviewsProps) {
+function Reviews({ type, id, allowAddReview, requestId }: ReviewsProps) {
     const { requireSignIn } = useRequireSignIn();
     const { placeholders, currentLanguage } = useDictionary();
     type PlaceholderKey = keyof typeof placeholders;
@@ -171,7 +174,8 @@ function Reviews({ type, id, allowAddReview }: ReviewsProps) {
                 itemId: id,
                 itemType: type,
                 rating: rating,
-                comment: comment
+                comment: comment,
+                ...(requestId ? { requestId } : {}),
             }
             writeReview(body).unwrap().then((res) => {
                 toast.success(res.message, { duration: REVIEW_FEEDBACK_TOAST_MS });

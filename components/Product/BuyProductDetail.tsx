@@ -27,6 +27,16 @@ import {
   useLikeVideoMutation,
   useUnlikeVideoMutation,
 } from "@/store/services/feedService";
+import {
+  useTrackShopContactClickMutation,
+  useTrackShopProductViewMutation,
+  useTrackShopWhatsappClickMutation,
+} from "@/store/services/sellingService";
+import {
+  useTrackProductViewMutation,
+  useTrackProductContactClickMutation,
+  useTrackProductWhatsappClickMutation,
+} from "@/store/services/homeService";
 import ShopProductsSlider from "./ShopProductsSlider";
 import { formatJoinedDate } from "@/utils/formatJoinedDate";
 import Lightbox from "yet-another-react-lightbox";
@@ -132,6 +142,12 @@ function BuyProductDetail({
   const router = useRouter();
   const { requireSignIn } = useRequireSignIn();
   const { onInitiateChat, isLoading } = useInitiateChat();
+  const [trackShopContactClick] = useTrackShopContactClickMutation();
+  const [trackShopProductView] = useTrackShopProductViewMutation();
+  const [trackShopWhatsappClick] = useTrackShopWhatsappClickMutation();
+  const [trackProductView] = useTrackProductViewMutation();
+  const [trackProductContactClick] = useTrackProductContactClickMutation();
+  const [trackProductWhatsappClick] = useTrackProductWhatsappClickMutation();
   const dispatch = useAppDispatch();
   const { pages, placeholders, currentLanguage, info_messages, error_messages } = useDictionary();
   const sharePostRef = React.useRef<HTMLDivElement>(null);
@@ -194,6 +210,25 @@ function BuyProductDetail({
     skip: !sellerUserId || Boolean(sellerPhoneFromProduct),
   });
   const sellerPhone = sellerPhoneFromProduct ?? sellerDetail?.data?.phone;
+
+  const trackedProductViewForShop = React.useRef<string | null>(null);
+  useEffect(() => {
+    if (!hasShop || !shopId || !userId || isOwner) return;
+    if (trackedProductViewForShop.current === shopId) return;
+    trackedProductViewForShop.current = shopId;
+    trackShopProductView(shopId);
+  }, [hasShop, shopId, userId, isOwner, trackShopProductView]);
+
+  // Listing-level view — fires for every product (shop-owned or personal), unlike the
+  // shop-scoped tracker above. Server dedupes per (product, user, day); this ref just stops a
+  // re-render from firing it again for the same listing within this mount.
+  const trackedViewForProductId = React.useRef<string | null>(null);
+  useEffect(() => {
+    if (!productId || !userId || isOwner) return;
+    if (trackedViewForProductId.current === productId) return;
+    trackedViewForProductId.current = productId;
+    trackProductView(productId);
+  }, [productId, userId, isOwner, trackProductView]);
 
   const joinedDateLabel = formatJoinedDate(
     hasShop ? shopData?.createdAt : ownerData?.createdAt,
@@ -338,6 +373,13 @@ function BuyProductDetail({
     }
 
     window.open(url, "_blank", "noopener,noreferrer");
+
+    if (productId) {
+      trackProductWhatsappClick(productId);
+    }
+    if (hasShop && shopId) {
+      trackShopWhatsappClick(shopId);
+    }
   };
 
   const handleChatStore = () => {
@@ -355,6 +397,13 @@ function BuyProductDetail({
         .join("\n");
 
       onInitiateChat(userId, sellerUserId ?? "", initialMessage);
+
+      if (productId) {
+        trackProductContactClick(productId);
+      }
+      if (hasShop && shopId) {
+        trackShopContactClick(shopId);
+      }
     });
   };
 

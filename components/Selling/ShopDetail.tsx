@@ -7,7 +7,10 @@ import profileImg from "@/assets/images/dummy-profile-image.jpg";
 import tickGray from "@/assets/icons/completed-tick-gray.svg";
 import locationIcon from "@/assets/icons/location-gray.svg";
 import ShopProducts from "./ShopProducts";
-import { useGetShopDetailQuery } from "@/store/services/sellingService";
+import {
+  useGetShopDetailQuery,
+  useTrackShopViewMutation,
+} from "@/store/services/sellingService";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import ShopInfoSkelton from "./ShopInfoSkelton";
@@ -99,11 +102,21 @@ export default function ShopDetail() {
   const isShopOwner = Boolean(userId && shopOwnerId && userId === shopOwnerId);
   const shopData = shop?.data;
 
+  const [trackShopView] = useTrackShopViewMutation();
+  const trackedViewForId = useRef<string | null>(null);
+
   useEffect(() => {
     if (!id) {
       router.back();
     }
   }, []);
+
+  useEffect(() => {
+    if (!isShopSuccess || !id || !userId || isShopOwner) return;
+    if (trackedViewForId.current === id) return;
+    trackedViewForId.current = id;
+    trackShopView(id);
+  }, [isShopSuccess, id, userId, isShopOwner, trackShopView]);
 
   useEffect(() => {
     setMounted(true);

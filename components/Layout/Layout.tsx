@@ -1,14 +1,16 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import Sidebar from "./Sidebar";
 import MobileHeader from "./MobileHeader";
 import { useGetUnreadNotificationsCountQuery } from "@/store/services/notificationService";
+import { useRegisterFcmTokenMutation } from "@/store/services/profileService";
 import { getUserId } from "@/utils/getUserId";
 import { useAppDispatch } from "@/store/store";
 import { baseApi } from "@/store/baseApi";
 import { initializeSocket } from "@/utils/socket";
 import { useUnreadMessagesCountQuery, useGetAllConversationsForUserQuery } from "@/store/services/chatService";
 import { playNotificationSound } from "@/utils/playNotificationSound";
+import { getPushToken } from "@/utils/firebasePush";
 import inAppChatIcon from "@/assets/icons/in-app-icon-chat.png"
 import {
   isDesktopBrowser,
@@ -18,6 +20,7 @@ import {
 import { useDictionary } from "@/dictionaries/DictionaryProvider";
 import NotificationIcon from "@/assets/icons/new-notification-icon.png"
 import { useRouter } from "next/navigation";
+import AutoReviewPrompt from "@/components/Services/AutoReviewPrompt";
 function getSocketSenderId(data: unknown): string | undefined {
   if (!data || typeof data !== "object") return undefined;
   const payload = data as Record<string, unknown>;
@@ -122,20 +125,38 @@ function Layout({ children }: { children: React.ReactNode }) {
   );
   const dispatch = useAppDispatch();
   const { placeholders } = useDictionary();
+  const [registerFcmToken] = useRegisterFcmTokenMutation();
+  const pushRegisteredRef = useRef(false);
+
+  const registerPushToken = useCallback(async () => {
+    if (pushRegisteredRef.current) return;
+    const token = await getPushToken();
+    if (!token) return;
+    pushRegisteredRef.current = true;
+    registerFcmToken(token);
+  }, [registerFcmToken]);
 
   useEffect(() => {
     // Native Allow/Block on first click if still undecided (e.g. Google login / already signed in).
     if (!userId || !isDesktopBrowser()) return;
     if (typeof window === "undefined" || !("Notification" in window)) return;
+
+    // Already granted in an earlier session — just (re-)register the push token.
+    if (Notification.permission === "granted") {
+      void registerPushToken();
+      return;
+    }
     if (Notification.permission !== "default") return;
 
     const askNativePermission = () => {
-      void requestBrowserNotificationPermission();
+      requestBrowserNotificationPermission().then((permission) => {
+        if (permission === "granted") void registerPushToken();
+      });
       window.removeEventListener("pointerdown", askNativePermission);
     };
     window.addEventListener("pointerdown", askNativePermission);
     return () => window.removeEventListener("pointerdown", askNativePermission);
-  }, [userId]);
+  }, [userId, registerPushToken]);
 
   useEffect(() => {
     setReadCount(unreadNotificationsCount?.data?.count || 0);
@@ -251,6 +272,7 @@ function Layout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="lg:flex">
+      <AutoReviewPrompt />
       <MobileHeader
         unreadMessages={unreadMessages}
         unreadCount={readCount}

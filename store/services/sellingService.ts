@@ -90,6 +90,30 @@ export const profileService = baseApi.injectEndpoints({
       },
       providesTags: ["SHOP_DETAIL"],
     }),
+    trackShopView: build.mutation({
+      query: (id: string) => ({
+        url: `/shops/${id}/track-view`,
+        method: "POST",
+      }),
+    }),
+    trackShopProductView: build.mutation({
+      query: (shopId: string) => ({
+        url: `/shops/${shopId}/track-product-view`,
+        method: "POST",
+      }),
+    }),
+    trackShopContactClick: build.mutation({
+      query: (id: string) => ({
+        url: `/shops/${id}/track-contact-click`,
+        method: "POST",
+      }),
+    }),
+    trackShopWhatsappClick: build.mutation({
+      query: (id: string) => ({
+        url: `/shops/${id}/track-whatsapp-click`,
+        method: "POST",
+      }),
+    }),
 
     getShopProducts: build.query({
       query: (id) => {
@@ -207,6 +231,24 @@ export const profileService = baseApi.injectEndpoints({
       },
       providesTags: ["SERVICES"],
     }),
+    trackServiceView: build.mutation({
+      query: (id: string) => ({
+        url: `/services/${id}/track-view`,
+        method: "POST",
+      }),
+    }),
+    trackServiceContactClick: build.mutation({
+      query: (id: string) => ({
+        url: `/services/${id}/track-contact-click`,
+        method: "POST",
+      }),
+    }),
+    trackServiceWhatsappClick: build.mutation({
+      query: (id: string) => ({
+        url: `/services/${id}/track-whatsapp-click`,
+        method: "POST",
+      }),
+    }),
     getServicesRequests: build.query<
       PaginatedListResponse,
       {
@@ -313,6 +355,9 @@ export const {
   useGetServicesRequestsQuery,
   useDeleteServiceMediaMutation,
   useGetServiceDetailQuery,
+  useTrackServiceViewMutation,
+  useTrackServiceContactClickMutation,
+  useTrackServiceWhatsappClickMutation,
   useGetUserServiceQuery,
   useGetCustomerOrdersQuery,
   useUpdateShopMutation,
@@ -322,6 +367,10 @@ export const {
   useGetShopProductsQuery,
   useListProductMutation,
   useGetShopDetailQuery,
+  useTrackShopViewMutation,
+  useTrackShopProductViewMutation,
+  useTrackShopContactClickMutation,
+  useTrackShopWhatsappClickMutation,
   useAddServiceMutation,
   useCreateShopMutation,
   useGetUsersShopsQuery,

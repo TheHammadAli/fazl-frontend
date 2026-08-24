@@ -7,6 +7,7 @@ import { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import FazalLogo from "@/assets/icons/fazal-logo.svg";
 import FacebookIcon from "@/assets/icons/facebook.svg";
+// TODO: replace with a real Threads glyph — no Threads asset exists in assets/icons/ yet.
 import ThreadsIcon from "@/assets/icons/mail.svg";
 import LinkedInIcon from "@/assets/icons/linked-in.svg";
 import XIcon from "@/assets/icons/xicon.svg";
@@ -20,6 +21,7 @@ import {
 } from "@/assets/content/constants";
 import { useDictionary } from "@/dictionaries/DictionaryProvider";
 import { useCategoriesQuery } from "@/custom-hooks/useCategoriesQuery";
+import { useGetSocialLinksQuery } from "@/store/services/settingsService";
 import { getFeedCategoryLabel } from "@/utils/getFeedCategoryLabel";
 
 type CategoryItem = {
@@ -40,11 +42,18 @@ type SocialLink = {
     icon: StaticImageData;
 };
 
-const SOCIAL_LINKS: SocialLink[] = [
-    { label: "Facebook", href: "#", icon: FacebookIcon },
-    { label: "Threads", href: "#", icon: ThreadsIcon },
-    { label: "LinkedIn", href: "#", icon: LinkedInIcon },
-    { label: "X", href: "#", icon: XIcon },
+type ApiSocialLinks = {
+    facebookUrl?: string | null;
+    twitterUrl?: string | null;
+    threadsUrl?: string | null;
+    linkedinUrl?: string | null;
+};
+
+const SOCIAL_ICON_META: { key: keyof ApiSocialLinks; label: string; icon: StaticImageData }[] = [
+    { key: "facebookUrl", label: "Facebook", icon: FacebookIcon },
+    { key: "threadsUrl", label: "Threads", icon: ThreadsIcon },
+    { key: "linkedinUrl", label: "LinkedIn", icon: LinkedInIcon },
+    { key: "twitterUrl", label: "X", icon: XIcon },
 ];
 
 const FOOTER_LINK_CLASS =
@@ -85,6 +94,16 @@ function HomeFooter() {
     const { placeholders, info_messages, currentLanguage } = useDictionary();
     const { data: productCategories } = useCategoriesQuery({ type: "product" });
     const { data: serviceCategories } = useCategoriesQuery({ type: "service" });
+    const { data: socialLinksData } = useGetSocialLinksQuery(undefined);
+
+    const socialLinks: SocialLink[] = useMemo(() => {
+        const links = (socialLinksData as { data?: ApiSocialLinks } | undefined)?.data;
+        return SOCIAL_ICON_META.map((meta) => ({
+            label: meta.label,
+            icon: meta.icon,
+            href: links?.[meta.key] ?? "",
+        }));
+    }, [socialLinksData]);
 
     const popularProductCategories = useMemo(
         () =>
@@ -137,12 +156,15 @@ function HomeFooter() {
                     </p>
 
                     <div className="mt-4 flex flex-wrap items-center gap-2.5 sm:mt-8">
-                        {SOCIAL_LINKS.map(({ label, href, icon }) => (
+                        {socialLinks.map(({ label, href, icon }) => (
                             <a
                                 key={label}
-                                href={href}
+                                href={href || undefined}
+                                target={href ? "_blank" : undefined}
+                                rel={href ? "noopener noreferrer" : undefined}
                                 aria-label={label}
-                                className="inline-flex shrink-0  transition-opacity hover:opacity-90"
+                                aria-disabled={!href}
+                                className={`inline-flex shrink-0 transition-opacity ${href ? "hover:opacity-90" : "cursor-default opacity-40"}`}
                             >
                                 <Image
                                     src={icon}

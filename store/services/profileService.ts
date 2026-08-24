@@ -12,6 +12,14 @@ type UserDetailResponse = {
 
 export const profileService = baseApi.injectEndpoints({
   endpoints: (build) => ({
+    registerFcmToken: build.mutation({
+      query: (token: string) => ({
+        url: "/users/register-fcm-token",
+        method: "POST",
+        body: { token },
+      }),
+    }),
+
     updateProfile: build.mutation({
       query: ({ formData, id }) => ({
         url: "/users/" + id,
@@ -125,4 +133,5 @@ export const {
   useGetUserDetailQuery,
   useUpdateProfileMutation,
   useLazyGetUserDetailQuery,
+  useRegisterFcmTokenMutation,
 } = profileService;
