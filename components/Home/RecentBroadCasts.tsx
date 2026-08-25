@@ -9,7 +9,7 @@ import { useSentBroadcastMessagesQuery } from "@/store/services/chatService";
 import { useCanInteractAsUser } from "@/custom-hooks/useIsGuest";
 import { parsePositiveInt } from "@/components/Updates/Notifications";
 import AvatarUi from "@/components/Ui/AvatarUi";
-import noImageAvatar from "@/assets/images/profile-placehonder.png";
+import noImageAvatar from "@/assets/images/default-profile-avatar.svg";
 import broadcastServiceIcon from "@/assets/icons/broadcast_service.svg";
 import recentBroadImagesIcon from "@/assets/icons/recent-broad-images.svg";
 import "swiper/css";

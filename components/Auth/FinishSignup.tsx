@@ -15,7 +15,7 @@ import {
 } from "@/store/services/authService";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
-import dummyProfile from "@/assets/images/profile-placehonder.png";
+import dummyProfile from "@/assets/images/default-profile-avatar.svg";
 import { useDebounce } from "use-debounce";
 import Footer from "./Footer";
 import DoodleButton from "@/components/Ui/DoodleButton";

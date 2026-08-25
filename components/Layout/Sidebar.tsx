@@ -12,7 +12,7 @@ import dynamic from "next/dynamic";
 
 import { usePathname, useRouter } from "next/navigation";
 
-import dummyProfile from "@/assets/images/profile-placehonder.png";
+import dummyProfile from "@/assets/images/default-profile-avatar.svg";
 
 import copyRight from "@/assets/icons/copyright.svg";
 

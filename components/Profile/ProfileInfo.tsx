@@ -8,7 +8,7 @@ import { useClickOutside } from "@/custom-hooks/useClickOutside";
 import locationIcon from "@/assets/icons/location-icon.svg";
 import { useGetLocationsQuery } from "@/store/services/authService";
 import { useDebounce } from "use-debounce";
-import dummyProfile from "@/assets/images/profile-placehonder.png";
+import dummyProfile from "@/assets/images/default-profile-avatar.svg";
 import chevDown from "@/assets/icons/chev-down-icon.svg";
 import { BeatLoader } from "react-spinners";
 import DoodleButton from "@/components/Ui/DoodleButton";

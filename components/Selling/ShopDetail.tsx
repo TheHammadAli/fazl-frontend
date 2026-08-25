@@ -80,12 +80,6 @@ export default function ShopDetail() {
   const router = useRouter();
   const { pages, placeholders, info_messages } = useDictionary();
   const id = useSearchParams().get("id");
-  const userData =
-    typeof window !== "undefined"
-      ? JSON.parse(localStorage.getItem("user") || "{}")
-      : {};
-
-  const { user } = userData;
   const userId = getUserId() ?? "";
   const [shareModal, setShareModal] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -217,7 +211,7 @@ export default function ShopDetail() {
                         {shop?.data?.title}
                       </h2>
                       <p className="text-[14px] font-normal text-[#4B514F] truncate">
-                        {user?.email ?? ""}
+                        {shopData?.ownerId?.email ?? ""}
                       </p>
                     </div>
                   </div>
@@ -249,7 +243,7 @@ export default function ShopDetail() {
                     <div className="flex gap-1.5  items-center">
                       <Image src={tickGray} alt="tick" />
                       <span className="text-gray-8 font-light text-[14px]">
-                        {user?.email ?? ""}
+                        {shopData?.ownerId?.email ?? ""}
                       </span>
                     </div>
                     {shopData?.address ? (

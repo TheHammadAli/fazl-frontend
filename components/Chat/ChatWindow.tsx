@@ -16,7 +16,7 @@ import { initializeSocket } from "@/utils/socket";
 import baseApi from "@/store/baseApi";
 import { useAppDispatch } from "@/store/store";
 import { XMarkIcon } from "@heroicons/react/24/outline";
-import noImageAvtar from "@/assets/images/profile-placehonder.png";
+import noImageAvtar from "@/assets/images/default-profile-avatar.svg";
 import chatDoodleBackground from "@/assets/images/new-chat-doodle.svg";
 import noMessagesIcon from "@/assets/icons/no-message.svg";
 import AvatarUi from "../Ui/AvatarUi";

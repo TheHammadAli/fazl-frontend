@@ -12,7 +12,7 @@ import { ChatSidebarProps } from './ChatSidebar';
 import { parsePositiveInt } from '../Updates/Notifications';
 import moment from 'moment';
 import noMessagesIcon from "@/assets/icons/no-message.svg";
-import noImageAvtar from "@/assets/images/profile-placehonder.png";
+import noImageAvtar from "@/assets/images/default-profile-avatar.svg";
 import AvatarUi from '../Ui/AvatarUi';
 function DirectMessages({
     threadType,

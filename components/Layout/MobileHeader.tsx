@@ -6,7 +6,7 @@ import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
 import Image from "next/image";
 import logo from "@/assets/icons/fazal-logo.svg";
 import { useDictionary } from "@/dictionaries/DictionaryProvider";
-import dummyProfile from "@/assets/images/profile-placehonder.png";
+import dummyProfile from "@/assets/images/default-profile-avatar.svg";
 import { links } from "@/assets/content/links";
 import { usePathname, useRouter } from "next/navigation";
 import copyRight from "@/assets/icons/copyright.svg";

@@ -185,11 +185,16 @@ function UpdateService() {
       }, 1500);
       return () => clearTimeout(timer);
     }
-    if (isError && "data" in error) {
-      toast.error(
-        (error?.data as { message?: string })?.message ||
-          "something went wrong!",
-      );
+    if (isError && error) {
+      // FetchBaseQueryError has no "data" key for network/timeout failures
+      // (only {status, error}) — checking "data" alone let those fail silently.
+      const message =
+        "data" in error
+          ? (error.data as { message?: string })?.message
+          : "error" in error
+            ? String(error.error)
+            : undefined;
+      toast.error(message || "something went wrong!");
     }
   }, [isSuccess, isError, data, error, router]);
 

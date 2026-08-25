@@ -11,7 +11,7 @@ import { type ChatThread } from "./types";
 import { ChatSidebarProps } from './ChatSidebar';
 import moment from 'moment';
 import noMessagesIcon from "@/assets/icons/no-message.svg";
-import noImageAvtar from "@/assets/images/profile-placehonder.png";
+import noImageAvtar from "@/assets/images/default-profile-avatar.svg";
 import AvatarUi from '../Ui/AvatarUi';
 
 function BroadCastThreadList({

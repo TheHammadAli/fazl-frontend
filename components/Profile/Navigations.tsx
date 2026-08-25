@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import Image, { StaticImageData } from "next/image";
-import dummyProfile from "@/assets/images/profile-placehonder.png";
+import dummyProfile from "@/assets/images/default-profile-avatar.svg";
 import chevron from "@/assets/icons/chev-down-icon.svg";
 import { useDictionary } from "@/dictionaries/DictionaryProvider";
 
