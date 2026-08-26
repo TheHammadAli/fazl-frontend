@@ -98,6 +98,7 @@ function BuyServiceDetail({
   const [isLiked, setIsLiked] = useState(false);
   const [likesCount, setLikesCount] = useState(0);
   const [imageLightboxOpen, setImageLightboxOpen] = useState(false);
+  const [providerAvatarFailed, setProviderAvatarFailed] = useState(false);
   const isLikePendingRef = useRef(false);
   const ownerData = service?.data?.ownerId;
   const providerUserId = ownerData?.id || ownerData?._id || "";
@@ -106,6 +107,10 @@ function BuyServiceDetail({
     skip: !providerUserId || Boolean(sellerPhoneFromService),
   });
   const sellerPhone = sellerPhoneFromService ?? sellerDetail?.data?.phone;
+  const providerAvatarSrc =
+    service?.data?.ownerId && hasRealProfileImage(ownerData?.image) && !providerAvatarFailed
+      ? ownerData.image
+      : defaultProfileAvatar;
   const serviceId = service?.data?.id ?? service?.data?._id ?? "";
   const isOwner =
     Boolean(userId) && userId === providerUserId;
@@ -456,15 +461,12 @@ function BuyServiceDetail({
               <div className="mt-4 flex items-center gap-2">
                 <Image
                   className="h-[44px] w-[44px] rounded-full object-cover"
-                  src={
-                    service?.data?.ownerId && hasRealProfileImage(ownerData?.image)
-                      ? ownerData.image
-                      : defaultProfileAvatar
-                  }
+                  src={providerAvatarSrc}
                   alt="profile"
                   height={100}
                   width={100}
                   unoptimized
+                  onError={() => setProviderAvatarFailed(true)}
                 />
                 <div>
                   <h4 className="text-[14px] text-[#030303]">
@@ -570,15 +572,12 @@ function BuyServiceDetail({
                       <div className="mt-4 flex items-center gap-2">
                         <Image
                           className="h-[44px] w-[44px] rounded-full object-cover"
-                          src={
-                            service?.data?.ownerId && hasRealProfileImage(ownerData?.image)
-                              ? ownerData.image
-                              : defaultProfileAvatar
-                          }
+                          src={providerAvatarSrc}
                           alt="profile"
                           height={100}
                           width={100}
                           unoptimized
+                          onError={() => setProviderAvatarFailed(true)}
                         />
                         <div>
                           <h4 className="text-[14px] text-[#030303]">

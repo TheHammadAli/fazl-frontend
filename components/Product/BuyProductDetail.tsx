@@ -159,6 +159,7 @@ function BuyProductDetail({
   const [isLiked, setIsLiked] = useState(false);
   const [likesCount, setLikesCount] = useState(0);
   const [imageLightboxOpen, setImageLightboxOpen] = useState(false);
+  const [sellerAvatarFailed, setSellerAvatarFailed] = useState(false);
   const isLikePendingRef = React.useRef(false);
   const productId = product?.data?.id ?? product?.data?._id ?? "";
   const productAddress = product?.data?.address?.trim() || "";
@@ -213,6 +214,12 @@ function BuyProductDetail({
     skip: !sellerUserId || Boolean(sellerPhoneFromProduct),
   });
   const sellerPhone = sellerPhoneFromProduct ?? sellerDetail?.data?.phone;
+  const sellerAvatarSrc =
+    product?.data?.shopId && hasRealProfileImage(shopData?.image) && !sellerAvatarFailed
+      ? shopData.image
+      : product?.data?.ownerId && hasRealProfileImage(ownerData?.image) && !sellerAvatarFailed
+        ? ownerData.image
+        : defaultProfileAvatar;
 
   const trackedProductViewForShop = React.useRef<string | null>(null);
   useEffect(() => {
@@ -328,7 +335,7 @@ function BuyProductDetail({
           ? (ownerData?.name ?? "")
           : "";
       const sellerImage =
-        product.data.shopId && shopData?.image
+        product.data.shopId && hasRealProfileImage(shopData?.image)
           ? shopData.image
           : product.data.ownerId && hasRealProfileImage(ownerData?.image)
             ? ownerData.image
@@ -623,17 +630,12 @@ function BuyProductDetail({
                   <div className="flex mt-4 items-center gap-2">
                     <Image
                       className="h-[44px] w-[44px] rounded-full object-cover "
-                      src={
-                        product?.data?.shopId && shopData?.image
-                          ? shopData.image
-                          : product?.data?.ownerId && hasRealProfileImage(ownerData?.image)
-                            ? ownerData.image
-                            : defaultProfileAvatar
-                      }
+                      src={sellerAvatarSrc}
                       alt="profile"
                       height={100}
                       width={100}
                       unoptimized
+                      onError={() => setSellerAvatarFailed(true)}
                     />
                     <div>
                       <h4 className="text-[#030303] text-[14px]">
@@ -802,17 +804,12 @@ function BuyProductDetail({
                     <div className="flex mt-4 items-center gap-2">
                       <Image
                         className="h-[44px] w-[44px] rounded-full object-cover "
-                        src={
-                          product?.data?.shopId && shopData?.image
-                            ? shopData.image
-                            : product?.data?.ownerId && hasRealProfileImage(ownerData?.image)
-                              ? ownerData.image
-                              : defaultProfileAvatar
-                        }
+                        src={sellerAvatarSrc}
                         alt="profile"
                         height={100}
                         width={100}
                         unoptimized
+                        onError={() => setSellerAvatarFailed(true)}
                       />
                       <div>
                         <h4 className="text-[#030303] text-[14px]">
