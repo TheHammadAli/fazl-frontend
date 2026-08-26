@@ -132,6 +132,6 @@ export function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!api|_next/static|_next/image|favicon.ico|favicon.png|icon.svg|icon.png|notifications/).*)",
+    "/((?!api|_next/static|_next/image|favicon.ico|favicon.png|icon.svg|icon.png|firebase-messaging-sw.js|notifications/).*)",
   ],
 };

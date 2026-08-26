@@ -143,7 +143,7 @@ function HomeFooter() {
     ];
 
     return (
-        <footer className="mt-8 overflow-hidden bg-[#EEF2F3] -mx-4 px-4 py-8 sm:mt-20 sm:-mx-5 sm:px-5 sm:py-10">
+        <footer className="mt-0 overflow-hidden rounded-[16px] bg-[#EEF2F3] px-4 py-8 sm:mt-0 sm:rounded-[24px] sm:px-5 sm:py-10">
             <div className="flex min-w-0 flex-col gap-8 lg:flex-row lg:items-start lg:justify-between lg:gap-10 xl:gap-16">
                 <div className="max-w-[320px] shrink-0">
                     <Image

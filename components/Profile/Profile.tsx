@@ -7,10 +7,12 @@ import ordersIcon from "@/assets/icons/my-orders.svg";
 import requestsIcon from "@/assets/icons/my-requests.svg";
 import jobsIcon from "@/assets/icons/my-jobs.svg";
 import broadcastMessagesIcon from "@/assets/icons/broadcast.svg";
+import favouritesIcon from "@/assets/icons/favourites.svg";
 import MyCart from "./MyCart";
 import MyOrders from "./MyOrders";
 import MyRequests from "./MyRequests";
 import MyJobs from "./MyJobs";
+import Favourites from "./Favourites";
 import Settings from "./Settings";
 import ProfileInfo from "./ProfileInfo";
 import { useDictionary } from "@/dictionaries/DictionaryProvider";
@@ -21,6 +23,7 @@ type tabsComponentsTypes = {
   my_orders: React.JSX.Element;
   my_requests: React.JSX.Element;
   my_jobs: React.JSX.Element;
+  favourites: React.JSX.Element;
   settings: React.JSX.Element;
   profile_info: React.JSX.Element;
 };
@@ -37,6 +40,7 @@ function Profile() {
       // { title: "my_orders", icon: ordersIcon },
       { title: "my_requests", icon: requestsIcon },
       { title: "my_jobs", icon: jobsIcon },
+      { title: "favourites", icon: favouritesIcon },
       { title: "broadcast_messages", icon: broadcastMessagesIcon },
     ],
     [],
@@ -48,6 +52,7 @@ function Profile() {
       my_orders: <MyOrders />,
       my_requests: <MyRequests />,
       my_jobs: <MyJobs />,
+      favourites: <Favourites />,
       settings: <Settings />,
       profile_info: <ProfileInfo toggle={toggle} setToggle={setToggle} />,
     }),

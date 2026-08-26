@@ -6,6 +6,7 @@ import { useDictionary } from "@/dictionaries/DictionaryProvider";
 import { useGetProductDetailQuery } from "@/store/services/homeService";
 import { useSearchParams } from "next/navigation";
 import noImageAvtar from "@/assets/images/no-image-av.png";
+import defaultProfileAvatar from "@/assets/images/default-profile-avatar.svg";
 import { useClickOutside } from "@/custom-hooks/useClickOutside";
 import { useDeleteProductMutation } from "@/store/services/sellingService";
 import threeDots from "@/assets/icons/three-dots.svg";
@@ -297,7 +298,7 @@ function ProductDetail() {
                       ? shopData.image
                       : product?.data?.ownerId && hasRealProfileImage(ownerData?.image)
                         ? ownerData.image
-                        : noImageAvtar
+                        : defaultProfileAvatar
                   }
                   alt="profile"
                   unoptimized
