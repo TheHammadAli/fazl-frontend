@@ -42,6 +42,8 @@ export default function ReelItem({
     const [duration, setDuration] = useState(0);
     const [currentTime, setCurrentTime] = useState(0);
     const [isLiked, setIsLiked] = useState(false);
+    const [likesCount, setLikesCount] = useState(item.likesCount ?? 0);
+    const [sharesCount, setSharesCount] = useState(item.sharesCount ?? 0);
     const feedType = type === "products" ? "product" : "service";
     const { ref, inView } = useInView({
         threshold: 0.7, // 
@@ -56,6 +58,14 @@ export default function ReelItem({
     const [trackProductView] = useTrackProductViewMutation();
     const [trackServiceView] = useTrackServiceViewMutation();
     const trackedViewRef = useRef(false);
+    useEffect(() => {
+        // Virtuoso keys rows by index, not item id, so a recycled ReelItem
+        // instance must re-sync its counts whenever the item it represents changes.
+        setLikesCount(item.likesCount ?? 0);
+        setSharesCount(item.sharesCount ?? 0);
+        trackedViewRef.current = false;
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [item.id]);
     useEffect(() => {
         if (!likedVideoByUser?.data) return;
         const liked = likedVideoByUser.data.some(
@@ -135,6 +145,7 @@ export default function ReelItem({
         const nextIsLiked = !prevIsLiked;
         // Optimistic UI update
         setIsLiked(nextIsLiked);
+        setLikesCount((count) => Math.max(0, count + (nextIsLiked ? 1 : -1)));
 
         const req = prevIsLiked
             ? unlikeVideo({ itemId: activeReel?.id, itemType: feedType }).unwrap()
@@ -147,6 +158,7 @@ export default function ReelItem({
         req.catch((error) => {
             // Revert if API fails
             setIsLiked(prevIsLiked);
+            setLikesCount((count) => Math.max(0, count + (nextIsLiked ? -1 : 1)));
             console.log("error", error);
         });
     }
@@ -189,6 +201,7 @@ export default function ReelItem({
                     shareService={true}
                     itemId={item.id}
                     itemType={type === "products" ? "product" : "service"}
+                    onShared={() => setSharesCount((count) => count + 1)}
                 />
             </Modal>
             <video
@@ -274,33 +287,40 @@ export default function ReelItem({
                         <User className="h-7 w-7 text-green-1" strokeWidth={1.75} aria-hidden />
                     </div>
 
-                    <button
-                        type="button"
-                        onClick={(e) => requireSignIn(() => onLikeClick(e))}
-                        className={`flex h-[54px] w-[54px] cursor-pointer items-center justify-center rounded-full  text-white bg-[#2C2C2C]/80`}
-                        aria-label="Like"
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 24 24"
-                            stroke={isLiked ? undefined : "white"}
-                            strokeWidth={isLiked ? undefined : 1.5}
-                            fill={isLiked ? "white" : "none"}
-                            className="h-8 w-8"
+                    <div className="flex flex-col items-center gap-1">
+                        <button
+                            type="button"
+                            onClick={(e) => requireSignIn(() => onLikeClick(e))}
+                            className={`flex h-[54px] w-[54px] cursor-pointer items-center justify-center rounded-full  text-white bg-[#2C2C2C]/80`}
+                            aria-label="Like"
                         >
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
-                        </svg>
-
-
-                    </button>
-                    <button
-                        type="button"
-                        onClick={(e) => requireSignIn(() => onShareClick(e))}
-                        className="mt-1 cursor-pointer flex h-[54px] w-[54px] items-center justify-center rounded-full bg-[#2C2C2C]/80 text-white"
-                        aria-label="Share"
-                    >
-                        <Image className="" src={shareSimpleIcon} alt="share-simple-icon" />
-                    </button>
-                    {/* <span className="text-xs font-medium text-white drop-shadow">Share</span> */}
+                            <svg xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 24 24"
+                                stroke={isLiked ? undefined : "white"}
+                                strokeWidth={isLiked ? undefined : 1.5}
+                                fill={isLiked ? "#E92440" : "none"}
+                                className="h-8 w-8"
+                            >
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
+                            </svg>
+                        </button>
+                        <span className="text-[12px] font-medium text-white drop-shadow">
+                            {likesCount.toLocaleString()}
+                        </span>
+                    </div>
+                    <div className="flex flex-col items-center gap-1">
+                        <button
+                            type="button"
+                            onClick={(e) => requireSignIn(() => onShareClick(e))}
+                            className="cursor-pointer flex h-[54px] w-[54px] items-center justify-center rounded-full bg-[#2C2C2C]/80 text-white"
+                            aria-label="Share"
+                        >
+                            <Image className="" src={shareSimpleIcon} alt="share-simple-icon" />
+                        </button>
+                        <span className="text-[12px] font-medium text-white drop-shadow">
+                            {sharesCount.toLocaleString()}
+                        </span>
+                    </div>
                 </div>
             </div>
 

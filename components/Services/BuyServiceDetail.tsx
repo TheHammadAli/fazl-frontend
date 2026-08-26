@@ -9,6 +9,7 @@ import useInitiateChat from "@/custom-hooks/useInitiateChat";
 import Reviews from "../Ui/Reviews";
 import { useGetAvgReviewsQuery } from "@/store/services/reviewService";
 import { getFeedCategoryLabel } from "@/utils/getFeedCategoryLabel";
+import { hasRealProfileImage } from "@/utils/hasRealProfileImage";
 import { useRequireSignIn } from "@/custom-hooks/useRequireSignIn";
 import Modal from "../Ui/Modals/Modal";
 import SharePostModal from "../Ui/SharePostModal";
@@ -444,7 +445,7 @@ function BuyServiceDetail({
                 <Image
                   className="h-[44px] w-[44px] rounded-full object-cover"
                   src={
-                    service?.data?.ownerId && ownerData?.image
+                    service?.data?.ownerId && hasRealProfileImage(ownerData?.image)
                       ? ownerData.image
                       : noImageAvtar
                   }
@@ -558,7 +559,7 @@ function BuyServiceDetail({
                         <Image
                           className="h-[44px] w-[44px] rounded-full object-cover"
                           src={
-                            service?.data?.ownerId && ownerData?.image
+                            service?.data?.ownerId && hasRealProfileImage(ownerData?.image)
                               ? ownerData.image
                               : noImageAvtar
                           }

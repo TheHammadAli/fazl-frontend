@@ -6,6 +6,7 @@ import { RadioGroup } from "@headlessui/react";
 import { Clock } from "lucide-react";
 import { Star } from "lucide-react";
 import noImageAvtar from "@/assets/images/no-image-av.png";
+import { hasRealProfileImage } from "@/utils/hasRealProfileImage";
 import penIcon from "@/assets/icons/pen-icon.svg";
 import easyPaisaIcon from "@/assets/icons/easypaisa-icon.svg";
 import cashOnDelivery from "@/assets/icons/cash-delivery.svg";
@@ -66,7 +67,7 @@ function buildCheckoutItems(
       selectedVariants,
       quantity: 1,
       sellerLabel: shopData?.title ?? ownerData?.name ?? "",
-      sellerImage: shopData?.image ?? ownerData?.image ?? "",
+      sellerImage: shopData?.image ?? (hasRealProfileImage(ownerData?.image) ? ownerData?.image : "") ?? "",
     },
   ];
 }

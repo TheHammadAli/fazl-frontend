@@ -17,6 +17,8 @@ type ProductFeedItem = {
     shopId?: ProductFeedItem["ownerId"];
     ownerId?: string | { _id?: string; id?: string; image?: string; images?: string[] };
     category?: ReelItem["category"];
+    likesCount?: number;
+    sharesCount?: number;
 };
 
 type FeedResponseMeta = {
@@ -32,7 +34,6 @@ function ProductFeeds() {
     const LIMIT = 10;
     const [page, setPage] = useState(1);
     const [products, setProducts] = useState<ReelItem[]>([]);
-    console.log(products)
     const [hasMore, setHasMore] = useState(true);
     const { data: productsFeed, isLoading, isFetching } = useGetAllProductsFeedQuery({ page, limit: LIMIT });
     const isInitialLoading = products.length === 0 && (isLoading || isFetching);
@@ -45,7 +46,6 @@ function ProductFeeds() {
                 .map((product: ProductFeedItem) => {
                     const shopId = resolveFeedEntityId(product.shopId);
                     const ownerId = resolveFeedEntityId(product.ownerId);
-                    console.log(product)
                     return {
                         id: product._id ?? product.id ?? "",
                         video: product.video ?? "",
@@ -60,6 +60,8 @@ function ProductFeeds() {
                         ownerImage: !shopId
                             ? resolveFeedEntityImage(product.ownerId)
                             : undefined,
+                        likesCount: product.likesCount ?? 0,
+                        sharesCount: product.sharesCount ?? 0,
                     };
                 }) ?? [];
 

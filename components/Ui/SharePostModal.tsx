@@ -32,9 +32,10 @@ type Props = {
     type: string
     itemId?: string
     itemType?: 'product' | 'service'
+    onShared?: () => void
 }
 const SharePostModal = (props: Props) => {
-    const { setShareModal, shareUrl, shareService, itemId, itemType } = props
+    const { setShareModal, shareUrl, shareService, itemId, itemType, onShared } = props
     const { placeholders, share_post } = useDictionary()
     type PlaceholderKey = keyof typeof placeholders
     const ph = (key: PlaceholderKey) => placeholders[key]
@@ -46,6 +47,7 @@ const SharePostModal = (props: Props) => {
         if (trackedShare.current || !itemId || !itemType) return
         trackedShare.current = true
         trackShare({ itemId, itemType })
+        onShared?.()
     }
     const handleCopy = async () => {
         try {

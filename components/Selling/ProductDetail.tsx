@@ -17,6 +17,7 @@ import Modal from "../Ui/Modals/Modal";
 import { toast } from "react-hot-toast";
 import { BeatLoader } from "react-spinners";
 import { getFeedCategoryLabel } from "@/utils/getFeedCategoryLabel";
+import { hasRealProfileImage } from "@/utils/hasRealProfileImage";
 import BuyProductDetailSkeleton from "../Product/BuyProductDetailSkeleton";
 import ShopProductsSlider from "../Product/ShopProductsSlider";
 
@@ -294,7 +295,7 @@ function ProductDetail() {
                   src={
                     product?.data?.shopId && shopData?.image
                       ? shopData.image
-                      : product?.data?.ownerId && ownerData?.image
+                      : product?.data?.ownerId && hasRealProfileImage(ownerData?.image)
                         ? ownerData.image
                         : noImageAvtar
                   }

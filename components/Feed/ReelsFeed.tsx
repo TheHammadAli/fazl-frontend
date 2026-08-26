@@ -13,6 +13,8 @@ export type ReelItem = {
     title: string;
     price: string;
     category: ReelCategory;
+    likesCount?: number;
+    sharesCount?: number;
 };
 
 type ReelsFeedProps = {

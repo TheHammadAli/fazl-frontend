@@ -10,6 +10,7 @@ import Reviews from "../Ui/Reviews";
 import { useGetAvgReviewsQuery } from "@/store/services/reviewService";
 import { useGetProductOwnerDetailQuery } from "@/store/services/authService";
 import { getFeedCategoryLabel } from "@/utils/getFeedCategoryLabel";
+import { hasRealProfileImage } from "@/utils/hasRealProfileImage";
 import { useAppDispatch } from "@/store/store";
 import { addToCart } from "@/store/reducers/cartReducer";
 import toast from "react-hot-toast";
@@ -324,7 +325,7 @@ function BuyProductDetail({
       const sellerImage =
         product.data.shopId && shopData?.image
           ? shopData.image
-          : product.data.ownerId && ownerData?.image
+          : product.data.ownerId && hasRealProfileImage(ownerData?.image)
             ? ownerData.image
             : "";
 
@@ -613,7 +614,7 @@ function BuyProductDetail({
                       src={
                         product?.data?.shopId && shopData?.image
                           ? shopData.image
-                          : product?.data?.ownerId && ownerData?.image
+                          : product?.data?.ownerId && hasRealProfileImage(ownerData?.image)
                             ? ownerData.image
                             : noImageAvtar
                       }
@@ -792,7 +793,7 @@ function BuyProductDetail({
                         src={
                           product?.data?.shopId && shopData?.image
                             ? shopData.image
-                            : product?.data?.ownerId && ownerData?.image
+                            : product?.data?.ownerId && hasRealProfileImage(ownerData?.image)
                               ? ownerData.image
                               : noImageAvtar
                         }

@@ -16,6 +16,8 @@ type ServiceFeedItem = {
     images?: string[];
     ownerId?: string | { _id?: string; id?: string; image?: string; images?: string[] };
     category?: ReelItem["category"];
+    likesCount?: number;
+    sharesCount?: number;
 };
 
 type FeedResponseMeta = {
@@ -51,6 +53,8 @@ function ServiceFeeds() {
                         category: service.category ?? "",
                         ownerId: ownerId || undefined,
                         ownerImage: resolveFeedEntityImage(service.ownerId),
+                        likesCount: service.likesCount ?? 0,
+                        sharesCount: service.sharesCount ?? 0,
                     };
                 }) ?? [];
 
