@@ -7,11 +7,12 @@ import countries from "country-list-with-dial-code-and-flag";
 import { useClickOutside } from "@/custom-hooks/useClickOutside";
 import locationIcon from "@/assets/icons/location-icon.svg";
 import { BeatLoader } from "react-spinners";
-import { useAppSelector } from "@/store/store";
+import { useAppDispatch, useAppSelector } from "@/store/store";
 import { validatePhone } from "./SendOtp";
 import {
   useGetLocationsQuery,
   useSignupMutation,
+  useSigninMutation,
 } from "@/store/services/authService";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
@@ -20,6 +21,8 @@ import { useDebounce } from "use-debounce";
 import Footer from "./Footer";
 import DoodleButton from "@/components/Ui/DoodleButton";
 import { useDictionary } from "@/dictionaries/DictionaryProvider";
+import { setProfileCompleted, setToken, setUserId } from "@/store/reducers/authReducer";
+import { baseApi } from "@/store/baseApi";
 
 interface Location {
   description?: string;
@@ -34,12 +37,15 @@ interface Location {
 function FinishSignup() {
   const { currentLanguage, placeholders } = useDictionary();
   const router = useRouter();
+  const dispatch = useAppDispatch();
   const {
     email: emailData,
     phone: phoneData,
     password,
     type,
   } = useAppSelector((state) => state?.authReducer?.otpInfo);
+  const [signin] = useSigninMutation();
+  const submittedEmailRef = useRef("");
   const countryRef = useRef<HTMLDivElement | null>(null);
   const locationRef = useRef<HTMLDivElement | null>(null);
   const [isOpen, setIsOpen] = useState(false);
@@ -156,8 +162,10 @@ function FinishSignup() {
       }
     }
     if (isValid) {
+      const finalEmail = type === "email" ? emailData : email;
+      submittedEmailRef.current = finalEmail;
       const payload = {
-        email: type === "email" ? emailData : email,
+        email: finalEmail,
         password: password,
         name: firstName + " " + lastName,
         phone: type === "phone" ? phoneData : phone,
@@ -186,25 +194,48 @@ function FinishSignup() {
     }
   };
 
+  const hasAutoLoggedInRef = useRef(false);
   useEffect(() => {
-    if (isSuccess) {
-      toast.success(data?.message);
-      localStorage.removeItem("otpInfo");
-      localStorage.removeItem("confirmedPwd");
+    if (!isSuccess || hasAutoLoggedInRef.current) return;
+    hasAutoLoggedInRef.current = true;
 
-      const timer = setTimeout(() => {
+    toast.success(data?.message);
+    localStorage.removeItem("otpInfo");
+    localStorage.removeItem("confirmedPwd");
+
+    // Signup only creates the account — it doesn't return a session, so log
+    // the new account in immediately instead of bouncing back to /signin.
+    signin({ email: submittedEmailRef.current, password })
+      .unwrap()
+      .then((res) => {
+        dispatch(baseApi.util.resetApiState());
+        dispatch(
+          setToken({
+            accessToken: res.data.accessToken,
+            refreshToken: res.data.refreshToken,
+          }),
+        );
+        localStorage.setItem("user", JSON.stringify({ user: res.data.user }));
+        dispatch(setUserId(res.data.user.id));
+        dispatch(setProfileCompleted(true));
+        router.replace("/welcome");
+        router.refresh();
+      })
+      .catch(() => {
+        // Account was created but auto-login failed — fall back to asking
+        // the user to sign in manually rather than leaving them stuck here.
         router.push("/signin");
-      }, 1500);
+      });
+  }, [isSuccess, data, router, signin, password, dispatch]);
 
-      return () => clearTimeout(timer);
-    }
+  useEffect(() => {
     if (isError && "data" in error) {
       toast.error(
         (error?.data as { message?: string })?.message ||
         "something went wrong!"
       );
     }
-  }, [isSuccess, isError, data, error, router]);
+  }, [isError, error]);
 
   if (mounted) {
     return (

@@ -28,7 +28,7 @@ function DownloadAppBanner() {
     ];
 
     return (
-        <section className="mt-8 overflow-hidden rounded-[16px] bg-[#f2f8f8] sm:mt-14 sm:rounded-[24px]">
+        <section className="mt-8 overflow-hidden bg-[#f2f8f8] sm:mt-14">
             <div className="flex flex-col sm:flex-row 2xl:justify-center  h-full pt-5 sm:pt-0 gap-5 px-5  md:gap-8 md:px-8 lg:gap-12 lg:px-12 xl:gap-16 xl:px-16 2xl:px-20 2xl:gap-20">
                 <div className="min-h-max flex items-center justify-center sm:block">
                     <Image
