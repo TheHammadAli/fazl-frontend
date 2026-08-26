@@ -3,8 +3,8 @@ import "./[lang]/globals.css";
 import "@fontsource-variable/ibm-plex-sans/index.css";
 import Providers from "./providers";
 
-const FAVICON_PNG = "/favicon.png?v=3";
-const FAVICON_ICO = "/favicon.ico?v=3";
+const FAVICON_PNG = "/favicon.png?v=4";
+const FAVICON_ICO = "/favicon.ico?v=4";
 
 export const metadata: Metadata = {
   title: "Fazal",
