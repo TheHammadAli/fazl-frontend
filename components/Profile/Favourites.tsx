@@ -1,18 +1,12 @@
 "use client";
 
-import { useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { BeatLoader } from "react-spinners";
 import { useDictionary } from "@/dictionaries/DictionaryProvider";
 import chevronIcon from "@/assets/icons/chevron.svg";
-import crossIcon from "@/assets/icons/cross-icon.svg";
 import noImageAvtar from "@/assets/images/no-image-av.png";
 import { getUserId } from "@/utils/getUserId";
-import {
-  useGetUserFavouritesQuery,
-  useUnlikeVideoMutation,
-} from "@/store/services/feedService";
+import { useGetUserFavouritesQuery } from "@/store/services/feedService";
 
 type FavouriteItemDetails = {
   _id?: string;
@@ -20,6 +14,8 @@ type FavouriteItemDetails = {
   title?: string;
   images?: string[];
   price?: number | string;
+  ownerId?: { name?: string } | string;
+  shopId?: { title?: string } | string;
 };
 
 type FavouriteItem = {
@@ -36,6 +32,18 @@ function getFavouriteKey(item: FavouriteItem, index: number): string {
   return item.itemDetails?._id ?? item.itemDetails?.id ?? item.itemId ?? String(index);
 }
 
+function getFavouritePartyName(item: FavouriteItem): string {
+  const details = item.itemDetails;
+  if (!details) return "";
+  if (item.itemType === "product" && details.shopId && typeof details.shopId === "object") {
+    return details.shopId.title ?? "";
+  }
+  if (details.ownerId && typeof details.ownerId === "object") {
+    return details.ownerId.name ?? "";
+  }
+  return "";
+}
+
 function Favourites() {
   const { placeholders } = useDictionary();
   type PlaceholderKey = keyof typeof placeholders;
@@ -46,25 +54,11 @@ function Favourites() {
   const { data, isLoading, isFetching } = useGetUserFavouritesQuery(userId, {
     skip: !userId,
   });
-  const [unlikeVideo] = useUnlikeVideoMutation();
-  const [removingId, setRemovingId] = useState("");
 
   const items = (
     (data as FavouritesResponse | undefined)?.data ?? []
   ).filter((item) => item.itemDetails);
   const loading = isLoading || isFetching;
-
-  async function handleRemove(item: FavouriteItem) {
-    if (!item.itemId || !item.itemType || removingId) return;
-    setRemovingId(item.itemId);
-    try {
-      await unlikeVideo({ itemId: item.itemId, itemType: item.itemType }).unwrap();
-    } catch {
-      // Cache stays consistent either way — a stale row is the worst case.
-    } finally {
-      setRemovingId("");
-    }
-  }
 
   function handleOpen(item: FavouriteItem) {
     if (!item.itemId) return;
@@ -104,7 +98,11 @@ function Favourites() {
             <div className="max-w-[760px] bg-white">
               {items.map((item, index) => {
                 const details = item.itemDetails as FavouriteItemDetails;
-                const isRemoving = removingId === item.itemId;
+                const template =
+                  item.itemType === "service" ? ph("liked_service_of") : ph("liked_product_of");
+                const favouriteText = template
+                  .replace("{title}", details.title ?? "")
+                  .replace("{name}", getFavouritePartyName(item));
                 return (
                   <div
                     key={getFavouriteKey(item, index)}
@@ -124,28 +122,10 @@ function Favourites() {
                         unoptimized
                       />
                       <div className="min-w-0 flex-1">
-                        <h3 className="truncate text-[15px] font-medium leading-none text-black-1">
-                          {details.title}
+                        <h3 className="truncate text-[15px] font-medium text-black-1">
+                          {favouriteText}
                         </h3>
-                        {details.price ? (
-                          <p className="mt-1 text-[14px] font-medium leading-none text-green-1">
-                            Rs {details.price}
-                          </p>
-                        ) : null}
                       </div>
-                    </button>
-                    <button
-                      type="button"
-                      aria-label={ph("remove_from_favourites")}
-                      onClick={() => handleRemove(item)}
-                      disabled={isRemoving}
-                      className="flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-full hover:bg-gray-9 disabled:cursor-not-allowed disabled:opacity-50"
-                    >
-                      {isRemoving ? (
-                        <BeatLoader color="#E92440" size={6} />
-                      ) : (
-                        <Image src={crossIcon} alt="" width={12} height={12} />
-                      )}
                     </button>
                   </div>
                 );

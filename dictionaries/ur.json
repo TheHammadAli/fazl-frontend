@@ -146,6 +146,8 @@
         "favourites": "پسندیدہ",
         "no_favourites_yet": "آپ نے ابھی تک کچھ لائیک نہیں کیا",
         "remove_from_favourites": "پسندیدہ سے ہٹائیں",
+        "liked_product_of": "آپ نے {name} کی {title} لسٹنگ کو پسند کیا",
+        "liked_service_of": "آپ نے {name} کی {title} سروس کو پسند کیا",
         "start_timer": "ٹائمر شروع کریں",
         "end_service": "سروس ختم کریں",
         "start_job_confirm_message": "یہ سروس کے وقت کی ٹریکنگ شروع کرے گا۔ جاری رکھنے سے پہلے یقینی بنائیں کہ آپ شروع کرنے کے لیے تیار ہیں۔",

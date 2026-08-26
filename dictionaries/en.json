@@ -148,6 +148,8 @@
         "favourites": "Favourites",
         "no_favourites_yet": "You haven't liked anything yet",
         "remove_from_favourites": "Remove from favourites",
+        "liked_product_of": "You liked {title} listing of {name}",
+        "liked_service_of": "You liked {title} service of {name}",
         "start_timer": "Start timer",
         "end_service": "End service",
         "start_job_confirm_message": "This will begin tracking time for the service. Make sure you're ready to start before continuing.",

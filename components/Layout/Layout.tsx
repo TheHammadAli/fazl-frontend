@@ -194,19 +194,33 @@ function Layout({ children }: { children: React.ReactNode }) {
     };
 
     const onNotification = (data: Record<string, unknown> | undefined) => {
+      dispatch(baseApi.util.invalidateTags(["NOTIFICATIONS"]));
+
+      // Chat's own "receiveMessage" handler (below) already plays a sound and
+      // shows a desktop alert for new messages — skip here to avoid firing both.
+      if (data?.type === "MESSAGE") return;
+
       if (data?.type === "SERVICE_REQUEST") {
         playNotificationSound(data?.type as string);
       } else {
         playNotificationSound("REST");
       }
-      dispatch(baseApi.util.invalidateTags(["NOTIFICATIONS"]));
 
       showDesktopOsNotification({
         title: placeholders.new_notification,
         body: getPreviewText(data ?? {}) || placeholders.new_notification,
         icon: typeof data?.image === "string" ? data.image : NotificationIcon.src as string,
         tag: "app-notification",
-        onClick: () => { if (data?.type === "PROMOTION") { router.push(`/chat?tab=broadcast_messages&type=received`) } else { setOpenSidebar(true) } },
+        onClick: () => {
+          if (data?.type === "PROMOTION") {
+            router.push(`/chat?tab=broadcast_messages&type=received`);
+          } else if (data?.type === "BROADCAST") {
+            const subTab = (data as any)?.broadcastSubTab === "sent" ? "sent" : "received";
+            router.push(`/chat?tab=broadcast_messages&type=${subTab}&chatId=${(data as any)?.thread?.id}`);
+          } else {
+            setOpenSidebar(true);
+          }
+        },
       });
     };
 

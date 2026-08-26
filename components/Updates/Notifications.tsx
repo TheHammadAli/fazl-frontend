@@ -13,6 +13,7 @@ import noNotificationIcon from "@/assets/icons/no-notification.svg";
 import { useRouter } from "next/navigation";
 import { formatRequestedDateTime } from "@/utils/formatRequestedDateTime";
 import NotificationIcon from "@/assets/icons/new-notification-icon.png";
+import AnnouncementModal from "./AnnouncementModal";
 /** Must match what the notifications API expects (see `data.limit` in the response). */
 const PAGE_LIMIT = 15;
 
@@ -51,6 +52,11 @@ type NotificationPayload = {
     request?: {
         service?: string;
     };
+    title?: string;
+    image?: string;
+    video?: string;
+    ctaLabel?: string;
+    ctaDestination?: string;
 };
 
 type NotificationApiItem = {
@@ -127,6 +133,7 @@ function Notifications({ setOpenSidebar, unreadCount = 0, setReadCount }: Notifi
     // Page 1, 2, 3… for ?page= — scroll loads the next page until we reach totalPages from the API.
     const [page, setPage] = useState(1);
     const [notificationItems, setNotificationItems] = useState<NotificationApiItem[]>([]);
+    const [announcementItem, setAnnouncementItem] = useState<NotificationApiItem | null>(null);
     const lastMergedKeyRef = useRef<string>("");
 
     const { data, isLoading, isFetching, isUninitialized, fulfilledTimeStamp } =
@@ -143,9 +150,22 @@ function Notifications({ setOpenSidebar, unreadCount = 0, setReadCount }: Notifi
         );
     function handleNavigation(item: any) {
         console.log(item, "thred item");
+        if (item.type === "ANNOUNCEMENT") {
+            setAnnouncementItem(item);
+            return;
+        }
         setOpenSidebar?.(false);
         if (item.type === "PROMOTION") {
             router.push(`/chat?tab=broadcast_messages&type=received&chatId=${item.payload.threadId}`);
+            return;
+        }
+        if (item.type === "MESSAGE") {
+            router.push(`/chat?chatId=${item.payload?.conversation?.id}`);
+            return;
+        }
+        if (item.type === "BROADCAST") {
+            const subTab = item.payload?.broadcastSubTab === "sent" ? "sent" : "received";
+            router.push(`/chat?tab=broadcast_messages&type=${subTab}&chatId=${item.payload?.thread?.id}`);
             return;
         }
         const targetId = getPayloadTargetId(getNotificationPayload(item));
@@ -237,6 +257,8 @@ function Notifications({ setOpenSidebar, unreadCount = 0, setReadCount }: Notifi
 
     const showEmpty =
         hasMounted && !loadingInitial && notificationItems.length === 0;
+
+    const announcementPayload = announcementItem ? getNotificationPayload(announcementItem) : null;
 
     useEffect(() => {
         if (!hasMounted) return;
@@ -372,6 +394,17 @@ function Notifications({ setOpenSidebar, unreadCount = 0, setReadCount }: Notifi
                 )
                 }
             </div >
+
+            <AnnouncementModal
+                open={announcementItem != null}
+                onClose={() => setAnnouncementItem(null)}
+                title={announcementPayload?.title}
+                message={announcementItem?.message}
+                image={announcementPayload?.image}
+                video={announcementPayload?.video}
+                ctaLabel={announcementPayload?.ctaLabel}
+                ctaDestination={announcementPayload?.ctaDestination}
+            />
         </div >
     );
 }
