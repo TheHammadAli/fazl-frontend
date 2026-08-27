@@ -1,15 +1,17 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import Image from "next/image";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import Modal from "@/components/Ui/Modals/Modal";
 import { useDictionary } from "@/dictionaries/DictionaryProvider";
 import { getYouTubeEmbedUrl } from "@/utils/getYouTubeEmbedUrl";
+import { useTrackAnnouncementViewMutation } from "@/store/services/notificationService";
 
 type AnnouncementModalProps = {
   open: boolean;
   onClose: () => void;
+  announcementId?: string;
   title?: string;
   message?: string;
   image?: string;
@@ -21,6 +23,7 @@ type AnnouncementModalProps = {
 function AnnouncementModal({
   open,
   onClose,
+  announcementId,
   title,
   message,
   image,
@@ -32,6 +35,17 @@ function AnnouncementModal({
   type PlaceholderKey = keyof typeof placeholders;
   const ph = (key: PlaceholderKey) => placeholders[key];
   const modalRef = useRef<HTMLDivElement>(null);
+  const [trackView] = useTrackAnnouncementViewMutation();
+  const trackedIdRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!open || !announcementId) return;
+    if (trackedIdRef.current === announcementId) return;
+    trackedIdRef.current = announcementId;
+    trackView(announcementId).catch(() => {
+      // Best-effort — a failed view record shouldn't disrupt reading the announcement.
+    });
+  }, [open, announcementId, trackView]);
 
   const videoEmbedUrl = !video ? getYouTubeEmbedUrl(ctaDestination) : null;
   const isExternalLink = Boolean(ctaDestination) && !videoEmbedUrl;

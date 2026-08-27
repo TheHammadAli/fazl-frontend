@@ -25,6 +25,7 @@ import { isAdminOnlyAccount } from "@/utils/userRoles";
 export type Body = {
   email?: string;
   password?: string;
+  loginContext?: "web" | "admin";
 };
 
 const SIGNIN_ERROR_TOAST_ID = "signin-error";
@@ -90,7 +91,7 @@ function Signin() {
       // Chrome native Allow/Block dialog (only appears if permission is still "default").
       await requestBrowserNotificationPermission();
 
-      const body: Body = { email, password };
+      const body: Body = { email, password, loginContext: "web" };
 
       const res = await signin(body).unwrap();
 

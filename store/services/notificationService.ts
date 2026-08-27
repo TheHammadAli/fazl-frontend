@@ -36,10 +36,19 @@ export const notificationService = baseApi.injectEndpoints({
       },
       invalidatesTags: ["NOTIFICATIONS"],
     }),
+    trackAnnouncementView: build.mutation({
+      query: (announcementId: string) => {
+        return {
+          url: `/announcements/${announcementId}/view`,
+          method: "POST",
+        };
+      },
+    }),
   }),
 });
 export const {
   useMarkAsReadMutation,
   useGetAllNotificationsQuery,
   useGetUnreadNotificationsCountQuery,
+  useTrackAnnouncementViewMutation,
 } = notificationService;

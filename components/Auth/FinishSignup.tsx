@@ -205,7 +205,7 @@ function FinishSignup() {
 
     // Signup only creates the account — it doesn't return a session, so log
     // the new account in immediately instead of bouncing back to /signin.
-    signin({ email: submittedEmailRef.current, password })
+    signin({ email: submittedEmailRef.current, password, loginContext: "web" })
       .unwrap()
       .then((res) => {
         dispatch(baseApi.util.resetApiState());

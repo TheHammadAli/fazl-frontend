@@ -57,6 +57,7 @@ type NotificationPayload = {
     video?: string;
     ctaLabel?: string;
     ctaDestination?: string;
+    announcementId?: string;
 };
 
 type NotificationApiItem = {
@@ -398,6 +399,7 @@ function Notifications({ setOpenSidebar, unreadCount = 0, setReadCount }: Notifi
             <AnnouncementModal
                 open={announcementItem != null}
                 onClose={() => setAnnouncementItem(null)}
+                announcementId={announcementPayload?.announcementId}
                 title={announcementPayload?.title}
                 message={announcementItem?.message}
                 image={announcementPayload?.image}
