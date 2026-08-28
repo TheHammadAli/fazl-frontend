@@ -13,7 +13,7 @@ import Image from "next/image";
 import noImageIcon from "@/assets/images/new-no-image-placeholder.png";
 import AllCategoriesModal from "./AllCategoriesModal";
 
-const INITIAL_SERVICE_CATEGORY_COUNT = 3;
+const INITIAL_SERVICE_CATEGORY_COUNT = 5;
 
 type CategoryItem = {
     _id: string;
