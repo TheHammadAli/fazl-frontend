@@ -13,7 +13,6 @@ import { playNotificationSound } from "@/utils/playNotificationSound";
 import { getPushToken } from "@/utils/firebasePush";
 import inAppChatIcon from "@/assets/icons/in-app-icon-chat.png"
 import {
-  isDesktopBrowser,
   requestBrowserNotificationPermission,
   showDesktopOsNotification,
 } from "@/utils/showDesktopNotification";
@@ -138,7 +137,10 @@ function Layout({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     // Native Allow/Block on first click if still undecided (e.g. Google login / already signed in).
-    if (!userId || !isDesktopBrowser()) return;
+    // Not desktop-only: Android mobile browsers support the Notification API and Firebase web
+    // push fine, and excluding them here was silently skipping FCM registration for anyone using
+    // Fazal from a phone browser (rather than the native app) — including for chat messages.
+    if (!userId) return;
     if (typeof window === "undefined" || !("Notification" in window)) return;
 
     // Already granted in an earlier session — just (re-)register the push token.
